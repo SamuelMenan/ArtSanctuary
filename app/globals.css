@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   ArtSanctuary — Design System (Tailwind v4)
+   Paleta "Sanctuary": neutros cálidos que no compiten con el contenido artístico.
+   ============================================================================ */
+
+@theme inline {
+  /* --- Colores principales --- */
+  --color-sanctuary-bg:           #141210;
+  --color-sanctuary-surface:      #1e1c1a;
+  --color-sanctuary-surface-alt:  #252320;
+  --color-sanctuary-border:       #2e2b28;
+  --color-sanctuary-muted:        #5a534c;
+  --color-sanctuary-text:         #e8e0d5;
+  --color-sanctuary-accent:       #c9a96e;
+  --color-sanctuary-accent-hover: #d4b87a;
+  --color-sanctuary-accent-dim:   rgba(201, 169, 110, 0.15);
+
+  /* --- Tipografía --- */
+  --font-sans:  "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  /* --- Border radius --- */
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+
+  /* --- Transiciones --- */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease-out;
+}
+
+/* --- Base global --- */
+@layer base {
+  html {
+    background-color: var(--color-sanctuary-bg);
+    color: var(--color-sanctuary-text);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    min-height: 100vh;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    color: var(--color-sanctuary-text);
+  }
+
+  /* --- Scrollbar personalizado (Webkit) --- */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-sanctuary-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-sanctuary-border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-sanctuary-muted);
+  }
+}
+
+/* --- Utilidades reutilizables --- */
+@layer utilities {
+  .glass-panel {
+    background: rgba(30, 28, 26, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-sanctuary-border);
+    border-radius: var(--radius-card);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #c9a96e 0%, #d4b87a 50%, #c9a96e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
