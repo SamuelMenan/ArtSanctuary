@@ -13,6 +13,7 @@ export interface ICollection extends Document {
   description: string;
   isPrivate: boolean;
   references: IReference[];
+  artworks: Types.ObjectId[];
   owner: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +45,9 @@ const CollectionSchema = new Schema<ICollection>(
 
     // Referencias visuales guardadas
     references: [ReferenceSchema],
+
+    // Obras guardadas de la plataforma
+    artworks: [{ type: Schema.Types.ObjectId, ref: "Artwork" }],
 
     owner: {
       type: Schema.Types.ObjectId,
