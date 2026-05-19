@@ -26,6 +26,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!user) {
           throw new Error("Email o contraseña incorrectos");
         }
+        if (user.status === "deleted") {
+          throw new Error("Cuenta eliminada");
+        }
 
         const isValid = await bcrypt.compare(
           credentials.password as string,
@@ -35,6 +38,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!isValid) {
           throw new Error("Email o contraseña incorrectos");
         }
+
+        // Reactivar al iniciar sesión si estaba desactivada.
+        if (user.status === "deactivated") {
+          user.status = "active";
+        }
+        user.lastLoginAt = new Date();
+        await user.save();
 
         return {
           id: user._id.toString(),
@@ -46,27 +56,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
 
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
 
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
+  pages: { signIn: "/login", error: "/login" },
 
   callbacks: {
-    async jwt({ token, user }) {
-      // En el primer login, user está presente: guardamos el id en el token
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
+        await connectDB();
+        const u = await User.findById(user.id).select("tokenVersion");
+        token.tv = u?.tokenVersion ?? 0;
+      } else if (token.id && trigger !== "update") {
+        // Validación perezosa: si rotó tokenVersion (cambio pwd/email,
+        // logout-all, desactivación, borrado), invalidamos la sesión.
+        await connectDB();
+        const u = await User.findById(token.id).select("tokenVersion status");
+        if (!u || u.status === "deleted" || u.tokenVersion !== token.tv) {
+          return null as never;
+        }
       }
       return token;
     },
 
     async session({ session, token }) {
-      // Pasamos el id del token a la session
-      if (session.user && token.id) {
+      if (session.user && token?.id) {
         session.user.id = token.id as string;
       }
       return session;
