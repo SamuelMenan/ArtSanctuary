@@ -19,17 +19,17 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Filtro base: solo obras públicas
-    const filter: Record<string, unknown> = { isPublic: true };
+    const filter: Record<string, unknown> = { visibility: "public" };
     if (category && category !== "todas") {
       filter.category = category;
     }
 
     const [artworks, total] = await Promise.all([
       Artwork.find(filter)
-        .sort({ createdAt: -1 })
+        .sort({ uploadDate: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("author", "username displayName avatarUrl")
+        .populate("artistId", "username displayName avatarUrl")
         .lean(),
       Artwork.countDocuments(filter),
     ]);
@@ -64,7 +64,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, imageUrl, description, technique, dimensions, year, tags, category } = body;
+    const { 
+      title, 
+      imageUrl, 
+      description, 
+      category,
+      creationDate,
+      artistProvidedDateText,
+      medium,
+      technique,
+      materials,
+      dimensions,
+      edition,
+      signature,
+      signatureLocation,
+      provenance,
+      visibility,
+      altText,
+      licenseRights,
+      tags
+    } = body;
 
     if (!title || !imageUrl) {
       return NextResponse.json(
@@ -75,16 +94,58 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
+    // Generar fileMeta (simulado para el servidor)
+    const fileMeta = {
+      filename: `artwork_${Date.now()}.jpg`,
+      mimeType: "image/jpeg",
+      sizeBytes: Math.floor(Math.random() * 2000000) + 100000, // Simulación
+    };
+
+    // Thumbnails simulados
+    const thumbnails = {
+      small: imageUrl,
+      medium: imageUrl,
+      large: imageUrl,
+    };
+
+    console.log("[POST /api/artworks] Creating artwork with:", {
+      title,
+      artistId: session.user.id,
+      visibility: visibility ?? "public",
+      category: category ?? "otro",
+    });
+
     const artwork = await Artwork.create({
       title,
       imageUrl,
+      artistId: session.user.id,
+      uploadDate: new Date(),
+      creationDate,
+      artistProvidedDateText,
       description: description ?? "",
-      technique: technique ?? "",
-      dimensions: dimensions ?? "",
-      year,
-      tags: tags ?? [],
       category: category ?? "otro",
-      author: session.user.id,
+      medium,
+      technique,
+      materials: materials ?? [],
+      dimensions,
+      edition,
+      signature,
+      signatureLocation,
+      provenance,
+      visibility: visibility ?? "public",
+      altText,
+      licenseRights,
+      tags: tags ?? [],
+      fileMeta,
+      thumbnails
+    });
+
+    return NextResponse.json({ artwork }, { status: 201 });
+    console.log("[POST /api/artworks] Created artwork:", {
+      _id: artwork._id,
+      title: artwork.title,
+      visibility: artwork.visibility,
+      artistId: artwork.artistId,
     });
 
     return NextResponse.json({ artwork }, { status: 201 });

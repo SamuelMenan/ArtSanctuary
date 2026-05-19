@@ -2,123 +2,135 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Artwork from "@/models/Artwork";
 import { auth } from "@/auth";
-import mongoose from "mongoose";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-/**
- * GET /api/artworks/[id]
- * Detalle de una obra por ID.
- */
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
-    }
-
+    const resolvedParams = await params;
     await connectDB();
-
-    const artwork = await Artwork.findById(id)
-      .populate("author", "username displayName avatarUrl location plan")
+    
+    // Buscar obra y popular autor
+    const artwork = await Artwork.findById(resolvedParams.id)
+      .populate("artistId", "username displayName avatarUrl")
       .lean();
 
     if (!artwork) {
       return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
     }
 
-    return NextResponse.json({ artwork });
+    const session = await auth();
+    let shouldIncrementView = false;
+    const cookieStore = req.cookies;
+    const viewCookieName = `viewed_${resolvedParams.id}`;
+
+    if (session?.user?.id) {
+      const userId = session.user.id;
+      // Verificar si el usuario ya vio la obra
+      const alreadyViewed = await Artwork.exists({ _id: resolvedParams.id, viewedBy: userId });
+      if (!alreadyViewed) {
+        shouldIncrementView = true;
+        // Se incrementa y se añade al array en background
+        Artwork.findByIdAndUpdate(resolvedParams.id, {
+          $inc: { views: 1 },
+          $addToSet: { viewedBy: userId }
+        }).exec();
+      }
+    } else {
+      // Usuario no autenticado: usar cookie
+      if (!cookieStore.has(viewCookieName)) {
+        shouldIncrementView = true;
+        Artwork.findByIdAndUpdate(resolvedParams.id, { $inc: { views: 1 } }).exec();
+      }
+    }
+
+    const response = NextResponse.json(artwork);
+
+    // Setear cookie si fue una nueva vista anónima
+    if (shouldIncrementView && !session?.user?.id) {
+      response.cookies.set(viewCookieName, 'true', {
+        maxAge: 60 * 60 * 24, // 24 horas
+        httpOnly: true,
+        sameSite: 'lax'
+      });
+    }
+
+    return response;
   } catch (error) {
-    console.error("[GET /api/artworks/:id]", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    console.error("[GET /api/artworks/[id]]", error);
+    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
 
-/**
- * PUT /api/artworks/[id]
- * Edita una obra existente. Solo el autor puede editar.
- */
-export async function PUT(req: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const resolvedParams = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const { id } = await params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
-    }
-
     await connectDB();
+    const artwork = await Artwork.findById(resolvedParams.id);
 
-    const artwork = await Artwork.findById(id);
     if (!artwork) {
       return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
     }
 
-    if (artwork.author.toString() !== session.user.id) {
+    if (artwork.artistId.toString() !== session.user.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const body = await req.json();
-    const allowedFields = [
-      "title", "description", "imageUrl", "thumbnailUrl",
-      "technique", "dimensions", "year", "tags", "category", "isPublic",
-    ];
-
-    for (const field of allowedFields) {
-      if (body[field] !== undefined) {
-        (artwork as Record<string, unknown>)[field] = body[field];
+    
+    // Actualizar campos
+    const mutableArtwork = artwork as typeof artwork & Record<string, unknown>;
+    Object.keys(body).forEach(key => {
+      if (key !== '_id' && key !== 'artistId' && key !== 'uploadDate' && key !== 'views' && key !== 'likes') {
+        mutableArtwork[key] = body[key];
       }
-    }
+    });
 
     await artwork.save();
 
-    return NextResponse.json({ artwork });
+    return NextResponse.json(artwork);
   } catch (error) {
-    console.error("[PUT /api/artworks/:id]", error);
-    return NextResponse.json({ error: "Error al editar la obra" }, { status: 500 });
+    console.error("[PUT /api/artworks/[id]]", error);
+    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
 
-/**
- * DELETE /api/artworks/[id]
- * Elimina una obra. Solo el autor puede eliminar.
- */
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const resolvedParams = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const { id } = await params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
-    }
-
     await connectDB();
+    const artwork = await Artwork.findById(resolvedParams.id);
 
-    const artwork = await Artwork.findById(id);
     if (!artwork) {
       return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
     }
 
-    if (artwork.author.toString() !== session.user.id) {
+    if (artwork.artistId.toString() !== session.user.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
-    await artwork.deleteOne();
+    await Artwork.findByIdAndDelete(resolvedParams.id);
 
-    return NextResponse.json({ message: "Obra eliminada" });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DELETE /api/artworks/:id]", error);
-    return NextResponse.json({ error: "Error al eliminar la obra" }, { status: 500 });
+    console.error("[DELETE /api/artworks/[id]]", error);
+    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
