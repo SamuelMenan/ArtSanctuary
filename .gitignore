@@ -9,6 +9,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+**/node_modules
 
 # testing
 /coverage
@@ -39,3 +40,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# user uploads (local dev — producción debe usar storage externo)
+/public/uploads
+
+# editor / tool configs (personal)
+/.vscode
+/.claude
+
+# mcp build + scraped artifacts
+/mcp/.vscode
+/mcp/dist
+/mcp/index.js
+/mcp/index.js.map
+/mcp/index.d.ts
+/mcp/index.d.ts.map
+/mcp/*.html
