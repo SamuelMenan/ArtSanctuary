@@ -1,82 +1,92 @@
-import AppShell from "@/components/layout/AppShell";
+'use client'
 
-export const metadata = {
-  title: "Micro-herramientas",
-  description:
-    "Suite de herramientas de asistencia rápida para artistas: papel milimetrado, cuadrícula, Notan, mezcla de colores y Gesture Drawing.",
-};
+import AppShell from '@/components/layout/AppShell'
+import Link from 'next/link'
 
-const TOOLS = [
-  {
-    id: "graph-paper",
-    title: "Papel Milimetrado",
-    description:
-      "Lienzo de cuadrícula configurable para bocetos proporcionales.",
-    icon: "▦",
-  },
-  {
-    id: "grid-overlay",
-    title: "Cuadrícula de Referencia",
-    description:
-      "Superpone una cuadrícula sobre cualquier imagen para encuadrar proporciones.",
-    icon: "⊞",
-  },
-  {
-    id: "notan",
-    title: "Notan",
-    description:
-      "Reduce una imagen a valores tonales en blanco, negro y gris medio.",
-    icon: "◑",
-  },
-  {
-    id: "color-mixer",
-    title: "Mezcla de Colores",
-    description: "Simula la mezcla substractiva de pigmentos físicos.",
-    icon: "🎨",
-  },
-  {
-    id: "gesture-drawing",
-    title: "Gesture Drawing",
-    description:
-      "Sesiones cronometradas de dibujo de figura con fotos de referencia.",
-    icon: "⏱",
-  },
-];
+export default function ToolsDashboardPage() {
+  const tools = [
+    {
+      title: 'Papel Milimetrado',
+      desc: 'Genera cuadrículas milimétricas para precisión anatómica.',
+      icon: 'grid_on',
+      badge: 'FREE',
+      href: '/dashboard/tools/papel-milimetrado'
+    },
+    {
+      title: 'Cuadrícula de Referencia',
+      desc: 'Superpone una rejilla sobre tus imágenes de referencia.',
+      icon: 'select_all',
+      badge: 'FREE',
+      href: '/dashboard/tools/cuadricula'
+    },
+    {
+      title: 'Notan',
+      desc: 'Simplifica valores de luz y sombra para composiciones fuertes.',
+      icon: 'contrast',
+      badge: 'FREE',
+      href: '/dashboard/tools/notan'
+    },
+    {
+      title: 'Mezcla de Colores',
+      desc: 'Experimenta con mezclas digitales de pigmentos tradicionales.',
+      icon: 'palette',
+      badge: 'FREE',
+      href: '/dashboard/tools/mezcla'
+    },
+    {
+      title: 'Gesture Drawing',
+      desc: 'Sesiones de práctica cronometradas con referencias aleatorias.',
+      icon: 'schedule',
+      badge: 'FREE',
+      href: '/dashboard/tools/gesture'
+    },
+    {
+      title: 'Canon de Proporciones',
+      desc: 'Guía técnica de proporciones humanas basada en unidades de cabeza para estudios anatómicos.',
+      icon: 'accessibility_new',
+      badge: 'FREE',
+      href: '/dashboard/tools/canon'
+    }
+  ]
 
-export default function ToolsPage() {
   return (
     <AppShell>
-      <div className="mb-8">
-        <h1 className="text-3xl font-serif text-sanctuary-text mb-2">
-          Micro-herramientas
-        </h1>
-        <p className="font-sans text-sanctuary-muted text-sm">
-          Utilidades de asistencia rápida. Todo corre en tu navegador, sin salir
-          de ArtSanctuary.
-        </p>
-      </div>
+      <div className="pt-8 pb-12 w-full max-w-[1400px] mx-auto z-10 relative">
+        <header className="mb-12">
+          <h1 className="font-display-lg text-[var(--text-display-lg)] text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
+            HERRAMIENTAS
+          </h1>
+          <p className="font-mono text-[var(--text-label-sm)] tracking-[0.05em] text-[var(--color-on-surface-variant)] uppercase">
+            Utilidades de Asistencia Rápida. Todo corre en tu navegador
+          </p>
+        </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {TOOLS.map((tool) => (
-          <article
-            key={tool.id}
-            className="group rounded-[var(--radius-card)] bg-sanctuary-surface
-                       border border-sanctuary-border p-5
-                       hover:border-sanctuary-accent hover:-translate-y-0.5
-                       transition-all duration-300 cursor-pointer"
-          >
-            <div className="size-10 rounded-lg bg-sanctuary-accent/10 flex items-center justify-center mb-4 group-hover:bg-sanctuary-accent/20 transition-colors">
-              <span className="text-lg">{tool.icon}</span>
-            </div>
-            <h3 className="font-serif text-base text-sanctuary-text mb-1">
-              {tool.title}
-            </h3>
-            <p className="font-sans text-xs text-sanctuary-muted leading-relaxed">
-              {tool.description}
-            </p>
-          </article>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[var(--spacing-grid-gutter)]">
+          {tools.map((tool) => (
+            <Link href={tool.href} key={tool.href} className="block group h-full">
+              <div className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-[var(--radius-xl)] p-8 transition-all duration-300 group-hover:border-[var(--color-outline)] group-hover:-translate-y-1 group-hover:bg-[var(--color-surface-container-high)] flex flex-col h-full cursor-pointer">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="size-16 bg-[var(--color-surface-container-lowest)] rounded-[var(--radius-lg)] border border-[var(--color-outline-variant)] flex items-center justify-center overflow-hidden">
+                    <span className="material-symbols-outlined text-[32px] text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)] transition-colors">
+                      {tool.icon}
+                    </span>
+                  </div>
+                  <span className="px-3 py-1 font-mono text-[10px] tracking-widest uppercase border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] rounded-full group-hover:border-[var(--color-primary)] group-hover:text-[var(--color-primary)] transition-colors">
+                    {tool.badge}
+                  </span>
+                </div>
+                
+                <h2 className="font-sans text-[var(--text-headline-md)] text-[var(--color-primary)] font-semibold mb-3">
+                  {tool.title}
+                </h2>
+                <p className="font-sans text-[var(--text-body-md)] text-[var(--color-on-surface-variant)] leading-[1.6]">
+                  {tool.desc}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </AppShell>
-  );
+  )
 }
