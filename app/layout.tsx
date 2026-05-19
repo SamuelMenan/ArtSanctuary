@@ -1,60 +1,56 @@
-import type { Metadata } from "next";
-import { Inter, Playfair_Display, JetBrains_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Manrope, JetBrains_Mono } from 'next/font/google'
+import '@/app/globals.css'
+import Providers from '@/components/Providers'
+import { auth } from '@/auth'
+import { connectDB } from '@/lib/mongodb'
+import { getRequestLocale, getRequestTheme } from '@/lib/requestPreferences'
+import { normalizeLocale, normalizeTheme } from '@/lib/i18n'
+import User from '@/models/User'
 
-/* ── Fuentes ── */
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-manrope',
+  display: 'swap',
+})
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
+  display: 'swap',
+})
 
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-});
-
-/* ── SEO ── */
 export const metadata: Metadata = {
-  title: {
-    default: "ArtSanctuary — Tu santuario creativo",
-    template: "%s | ArtSanctuary",
-  },
-  description:
-    "Plataforma digital para artistas, escultores e ilustradores de Pasto, Nariño. Biblioteca de referencias visuales y herramientas colaborativas sin distracciones.",
-  keywords: [
-    "arte",
-    "artistas",
-    "escultura",
-    "ilustración",
-    "referencias visuales",
-    "Pasto",
-    "Nariño",
-    "portfolio",
-  ],
-};
+  title: 'ArtSanctuary',
+  description: 'Your Creative Sanctuary',
+}
 
-/* ── Root Layout ── */
-export default function RootLayout({
+export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
+  const session = await auth()
+  let initialLocale = await getRequestLocale()
+  let initialTheme = await getRequestTheme()
+
+  if (session?.user?.id) {
+    await connectDB()
+    const user = await User.findById(session.user.id).select('locale theme').lean()
+    initialLocale = normalizeLocale(user?.locale)
+    initialTheme = normalizeTheme(user?.theme)
+  }
+
   return (
-    <html
-      lang="es"
-      className={`${inter.variable} ${playfair.variable} ${jetbrains.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-sanctuary-bg text-sanctuary-text">
-        {children}
+    <html lang={initialLocale} className={`${initialTheme} ${manrope.variable} ${jetbrainsMono.variable}`} data-authenticated={session?.user?.id ? 'true' : 'false'} suppressHydrationWarning>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      </head>
+      <body className="antialiased font-sans bg-background text-on-background min-h-screen" suppressHydrationWarning>
+        <Providers initialLocale={initialLocale} initialTheme={initialTheme} userId={session?.user?.id}>
+          {children}
+        </Providers>
       </body>
     </html>
-  );
+  )
 }
