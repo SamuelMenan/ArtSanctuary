@@ -1,27 +1,24 @@
-import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
+'use client'
 
-interface AppShellProps {
-  children: React.ReactNode;
-}
+import Sidebar from './Sidebar'
+import Navbar from './Navbar'
+import { ReactNode } from 'react'
 
-export default function AppShell({ children }: AppShellProps) {
+export default function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen bg-sanctuary-bg">
-      {/* Sidebar visible solo en lg+ */}
+    <div className="min-h-screen bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] flex flex-col md:flex-row relative">
+      {/* Desktop Sidebar */}
       <Sidebar />
+      
+      {/* Mobile Navbar */}
+      <Navbar />
 
-      {/* Área principal */}
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Navbar visible en mobile y md; en lg se oculta porque el sidebar tiene el logo */}
-        <div className="lg:hidden">
-          <Navbar />
-        </div>
-
-        <main className="flex-1 px-4 sm:px-6 lg:px-10 py-8 max-w-7xl mx-auto w-full">
+      {/* Main Content Area */}
+      <main className="flex-1 md:ml-[var(--spacing-sidebar-width)] md:pt-16 flex flex-col min-w-0 bg-[var(--color-background)] transition-all duration-300">
+        <div className="flex-1 p-[var(--spacing-container-padding)] relative">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
-  );
+  )
 }

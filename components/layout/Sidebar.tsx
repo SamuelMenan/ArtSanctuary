@@ -1,85 +1,78 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link'
+import UploadButton from '@/components/ui/UploadButton'
+import { usePathname } from 'next/navigation'
+import { ReactNode, useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { usePreferences } from '../AppPreferencesProvider'
 
-const SIDEBAR_LINKS = [
-  { label: "Inicio", href: "/", icon: "◈" },
-  { label: "Galería", href: "/gallery", icon: "◫" },
-  { label: "Explorar", href: "/explore", icon: "◉" },
-  { label: "Herramientas", href: "/dashboard/tools", icon: "⬡" },
-  { label: "Mi Portfolio", href: "/profile", icon: "◧" },
-];
+const navItems = [
+  { key: 'nav.home', href: '/', icon: 'home' },
+  { key: 'nav.gallery', href: '/gallery', icon: 'grid_view' },
+  { key: 'nav.explore', href: '/explore', icon: 'explore' },
+  { key: 'nav.tools', href: '/dashboard/tools', icon: 'handyman' },
+]
 
 export default function Sidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname()
+  const { data: session } = useSession()
+  const { t } = usePreferences()
+  const [collections, setCollections] = useState<any[]>([])
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetch('/api/collections')
+        .then(res => res.json())
+        .then(data => {
+          if (data.collections) setCollections(data.collections)
+        })
+        .catch(err => console.error(err))
+    }
+  }, [session])
 
   return (
-    <aside
-      className="hidden lg:flex flex-col w-56 shrink-0 h-screen sticky top-0
-                 bg-sanctuary-surface border-r border-sanctuary-border"
-    >
-      {/* Logo */}
-      <div className="px-5 h-14 flex items-center border-b border-sanctuary-border">
-        <Link href="/" className="group flex items-center gap-2">
-          <span className="text-lg font-serif text-sanctuary-accent group-hover:text-sanctuary-accent-hover transition-colors">
-            Art
-          </span>
-          <span className="text-lg font-serif text-sanctuary-text">
-            Sanctuary
-          </span>
-        </Link>
+    <nav className="hidden md:flex flex-col h-full py-8 gap-[var(--spacing-stack-md)] bg-[var(--color-surface-container)] fixed left-0 top-0 w-[var(--spacing-sidebar-width)] border-r border-[var(--color-outline-variant)] z-50">
+      <div className="px-6 mb-8 flex flex-col gap-2">
+        <h1 className="text-2xl font-display-lg tracking-[-0.02em] text-[var(--color-primary)] font-semibold mb-1">
+          ArtSanctuary
+        </h1>
+        <p className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-[0.05em] font-medium">
+          {t('home.heroLabel')}
+        </p>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <ul className="flex flex-col gap-0.5">
-          {SIDEBAR_LINKS.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`
-                    flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-sans
-                    transition-colors duration-200
-                    ${
-                      isActive
-                        ? "bg-sanctuary-accent-dim text-sanctuary-accent font-medium"
-                        : "text-sanctuary-muted hover:text-sanctuary-text hover:bg-sanctuary-bg"
-                    }
-                  `}
-                >
-                  <span className={`text-xs ${isActive ? "opacity-100" : "opacity-50"}`}>
-                    {link.icon}
-                  </span>
-                  {link.label}
-                </Link>
+      <ul className="flex flex-col gap-4 flex-grow px-2 mt-4">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <li key={item.key}>
+              <Link
+                href={item.href}
+                className={`flex items-center gap-4 py-2 font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] pl-4 transition-colors duration-200 `}
+              >
+                <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                <span>{t(item.key)}</span>
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+
+      <div className="px-6 pb-4 mt-auto">
+         <p className="font-mono text-[var(--text-label-sm)] text-[var(--color-outline-variant)] mb-4 tracking-[0.05em] uppercase font-medium">{t('nav.profile')}</p>
+         <ul className="flex flex-col gap-3 font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] mb-8 max-h-[20vh] overflow-y-auto custom-scrollbar">
+            {collections.length > 0 ? collections.map(c => (
+              <li key={c._id} className="flex items-center gap-2 hover:text-[var(--color-primary)] cursor-pointer transition-colors duration-200">
+                <span className="text-xs material-symbols-outlined text-[16px]">folder_open</span>
+                <Link href={`/collections/${c._id}`} className="truncate w-full block">{c.name}</Link>
               </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* Footer: plan badge */}
-      <div className="p-4 border-t border-sanctuary-border">
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-lg
-                     bg-sanctuary-bg border border-sanctuary-border"
-        >
-          <div className="size-7 rounded-full bg-sanctuary-accent/20 flex items-center justify-center">
-            <span className="text-xs text-sanctuary-accent">✦</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xs font-sans text-sanctuary-text leading-tight">
-              Plan Free
-            </span>
-            <span className="text-[10px] font-mono text-sanctuary-muted leading-tight">
-              Observador
-            </span>
-          </div>
-        </div>
+            )) : session ? (
+              <li className="text-[10px] text-[var(--color-outline-variant)]">{t('sidebar.noCollections')}</li>
+            ) : null}
+         </ul>
+        <UploadButton />
       </div>
-    </aside>
-  );
+    </nav>
+  )
 }
