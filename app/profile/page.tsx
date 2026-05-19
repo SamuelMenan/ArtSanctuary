@@ -1,57 +1,103 @@
-import AppShell from "@/components/layout/AppShell";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import AppShell from '@/components/layout/AppShell'
+import { auth } from '@/auth'
+import { redirect } from 'next/navigation'
+import { connectDB } from '@/lib/mongodb'
+import Artwork from '@/models/Artwork'
+import User from '@/models/User'
+import Link from 'next/link'
+import ArtworkGrid from '@/components/ui/ArtworkGrid'
+import { ProfileHero } from '@/components/profile/ProfileHero'
+import { ProfileMetaBlock } from '@/components/profile/ProfileMetaBlock'
+import { ArtworkSectionHeader } from '@/components/profile/ArtworkSectionHeader'
+import { EmptyPortfolio } from '@/components/profile/EmptyPortfolio'
+import { createTranslator, getDictionary } from '@/lib/i18n'
+import { getRequestLocale } from '@/lib/requestPreferences'
 
 export const metadata = {
-  title: "Mi Portfolio",
-  description: "Tu portfolio personal en ArtSanctuary.",
-};
+  title: 'Mi Portfolio | ArtSanctuary',
+  description: 'Tu portfolio personal en ArtSanctuary.',
+}
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+
+  const locale = await getRequestLocale()
+  const t = createTranslator(getDictionary(locale))
+
+  await connectDB()
+  const dbUser = await User.findById(session.user.id)
+    .select(
+      'username displayName bio avatarUrl location website socials plan followers following privacySettings createdAt',
+    )
+    .lean()
+
+  if (!dbUser) redirect('/login')
+
+  const userArtworks = await Artwork.find({ artistId: dbUser._id })
+    .sort({ uploadDate: -1 })
+    .lean()
+
+  const userId = dbUser._id.toString()
+  const name = dbUser.displayName || dbUser.username
+  const followersCount = dbUser.followers?.length ?? 0
+  const followingCount = dbUser.following?.length ?? 0
+
+  const primaryBtn =
+    'inline-flex items-center gap-1.5 bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-[10px] uppercase tracking-[0.2em] px-3 py-2 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors'
+  const ghostBtn =
+    'inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] border border-[var(--color-outline-variant)] text-[var(--color-primary)] px-3 py-2 rounded-sm hover:border-[var(--color-primary)] transition-colors'
+
   return (
     <AppShell>
-      {/* Profile header */}
-      <div className="flex items-start gap-5 mb-10">
-        {/* Avatar placeholder */}
-        <div className="shrink-0 size-20 rounded-full bg-sanctuary-surface border-2 border-sanctuary-border flex items-center justify-center">
-          <span className="font-serif text-2xl text-sanctuary-accent">A</span>
-        </div>
-        <div>
-          <h1 className="text-2xl font-serif text-sanctuary-text">
-            Artista Demo
-          </h1>
-          <p className="font-mono text-xs text-sanctuary-muted mt-1">
-            @artista_demo · Pasto, Nariño
-          </p>
-          <p className="font-sans text-sm text-sanctuary-muted mt-2 max-w-md">
-            Artista plástico enfocado en pintura al óleo y escultura
-            contemporánea.
-          </p>
-          <div className="mt-3 flex items-center gap-3">
-            <Badge plan="free" />
-            <Button variant="ghost" className="text-xs px-3 py-1">
-              Editar perfil
-            </Button>
-          </div>
-        </div>
-      </div>
+      <div className="w-full max-w-[1300px] mx-auto pt-2 pb-16 px-4 lg:px-0">
+        <ProfileHero
+          userId={userId}
+          name={name}
+          username={dbUser.username}
+          avatarUrl={dbUser.avatarUrl}
+          plan={dbUser.plan || 'free'}
+          isOwner
+          worksCount={userArtworks.length}
+          followersCount={followersCount}
+          followingCount={followingCount}
+          eyebrow="TU SANTUARIO"
+          t={t}
+          actions={
+            <>
+              <Link href="/upload" className={primaryBtn}>
+                <span aria-hidden>+</span>
+                {t('home.uploadArtwork')}
+              </Link>
+              <Link href="/settings" className={ghostBtn}>
+                {t('profile.editProfile')}
+              </Link>
+            </>
+          }
+        />
 
-      {/* Portfolio grid placeholder */}
-      <h2 className="text-xl font-serif text-sanctuary-text mb-4">Obras</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {["obra-1", "obra-2", "obra-3", "obra-4"].map((id, i) => (
-          <div
-            key={id}
-            className="aspect-square rounded-[var(--radius-card)]
-                       bg-sanctuary-surface border border-sanctuary-border
-                       flex items-center justify-center"
-          >
-            <span className="font-mono text-xs text-sanctuary-muted">
-              Obra {i + 1}
-            </span>
-          </div>
-        ))}
+        <ProfileMetaBlock
+          bio={dbUser.bio}
+          location={dbUser.location}
+          website={dbUser.website}
+          createdAt={dbUser.createdAt}
+          socials={dbUser.socials}
+          locale={locale}
+          t={t}
+        />
+
+        <ArtworkSectionHeader
+          title={t('profile.portfolio')}
+          count={userArtworks.length}
+          t={t}
+        />
+
+        {userArtworks.length === 0 ? (
+          <EmptyPortfolio ownerView t={t} />
+        ) : (
+          <ArtworkGrid artworks={JSON.parse(JSON.stringify(userArtworks))} />
+        )}
       </div>
     </AppShell>
-  );
+  )
 }
