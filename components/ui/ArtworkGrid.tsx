@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
 import ArtworkModal from './ArtworkModal';
 import { usePreferences } from '@/components/AppPreferencesProvider';
@@ -37,14 +36,12 @@ export default function ArtworkGrid({ artworks, emptyState }: ArtworkGridProps) 
             onClick={() => handleOpen(idx)}
             className="masonry-item relative group bg-[var(--color-surface-container-low)] cursor-pointer overflow-hidden rounded-[var(--radius-sm)] block mb-[var(--spacing-grid-gutter)]"
           >
-            <div className="w-full relative aspect-square">
-              <Image
-                src={art.imageUrl}
-                alt={art.title}
-                fill
-                className="object-cover grayscale opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-500"
-              />
-            </div>
+            <img
+              src={art.imageUrl}
+              alt={art.title}
+              loading="lazy"
+              className="w-full h-auto block transition-transform duration-500 group-hover:scale-[1.02]"
+            />
             
             <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-primary)] transition-colors duration-300 pointer-events-none" />
             

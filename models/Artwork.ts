@@ -25,7 +25,7 @@ export interface IArtwork extends Document {
     width?: number;
     height?: number;
     depth?: number;
-    unit?: "cm" | "in";
+    unit?: "cm" | "in" | "px" | "mm";
   };
   
   edition?: {
@@ -112,7 +112,7 @@ const ArtworkSchema = new Schema<IArtwork>(
       width: { type: Number },
       height: { type: Number },
       depth: { type: Number },
-      unit: { type: String, enum: ["cm", "in"] },
+      unit: { type: String, enum: ["cm", "in", "px", "mm"] },
     },
 
     edition: {
