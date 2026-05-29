@@ -2,98 +2,435 @@
 
 import AppShell from '@/components/layout/AppShell'
 import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
-import { useState } from 'react'
+import ImageSourceModal from '@/components/tools/ImageSourceModal'
+import { useEffect, useRef, useState } from 'react'
+
+// Etiqueta de columna estilo hoja de cálculo: 0->A, 25->Z, 26->AA…
+function colLabel(n: number): string {
+  let s = ''
+  n += 1
+  while (n > 0) {
+    const r = (n - 1) % 26
+    s = String.fromCharCode(65 + r) + s
+    n = Math.floor((n - 1) / 26)
+  }
+  return s
+}
 
 export default function CuadriculaPage() {
-  const [cols, setCols] = useState(8)
-  const [rows, setRows] = useState(8)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [imgNatural, setImgNatural] = useState({ w: 4, h: 3 })
+
+  const [realWidthCm, setRealWidthCm] = useState(20)
+  const [squareCm, setSquareCm] = useState(2)
+  const [targetCm, setTargetCm] = useState(50)
+
   const [opacity, setOpacity] = useState(30)
   const [color, setColor] = useState('#ffffff')
+  const [showNumbers, setShowNumbers] = useState(false)
 
-  const gridStyle = {
-    backgroundImage: `linear-gradient(to right, ${color}${Math.floor(opacity * 2.55).toString(16).padStart(2, '0')} 1px, transparent 1px),
-                      linear-gradient(to bottom, ${color}${Math.floor(opacity * 2.55).toString(16).padStart(2, '0')} 1px, transparent 1px)`,
-    backgroundSize: `${100 / cols}% ${100 / rows}%`
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+
+  const [modalOpen, setModalOpen] = useState(false)
+  const [exportWarning, setExportWarning] = useState<string | null>(null)
+
+  const stageRef = useRef<HTMLDivElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
+  const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
+
+  // Tamaño disponible del escenario (excluye padding gracias a contentRect)
+  const [stage, setStage] = useState({ w: 0, h: 0 })
+  useEffect(() => {
+    const el = stageRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      const cr = entries[0].contentRect
+      setStage({ w: cr.width, h: cr.height })
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // ── Geometría de la cuadrícula ──
+  // El ancho real debe ser múltiplo del cuadro: cols es entero exacto y la
+  // proporción cols:rows se mantiene para escalar el mismo dibujo más grande.
+  const aspect = imgNatural.h / imgNatural.w
+  const cols = Math.max(1, Math.round(realWidthCm / squareCm))
+  const effWidthCm = cols * squareCm // ancho efectivo, ya múltiplo del cuadro
+  const realHeightCm = Math.max(1, effWidthCm * aspect)
+  const rows = Math.max(1, Math.round(realHeightCm / squareCm))
+  const factor = targetCm / squareCm
+  const canvasW = Math.round(cols * targetCm)
+  const canvasH = Math.round(rows * targetCm)
+
+  // Tamaño REAL del lienzo en px: encaja cols:rows dentro del escenario.
+  // Garantiza celdas perfectamente cuadradas = idéntico al PNG exportado.
+  const fit = Math.min((Math.min(stage.w, 920) || 0) / cols, (stage.h || 0) / rows)
+  const frameW = fit > 0 ? cols * fit : 0
+  const frameH = fit > 0 ? rows * fit : 0
+
+  // Calculadora de tamaño: ancho/alto = nº cuadros × tamaño cuadro, en ambas escalas
+  const refW = cols * squareCm
+  const refH = rows * squareCm
+  const finW = cols * targetCm
+  const finH = rows * targetCm
+  // cm -> "750 cm (7,5 m)"
+  const fmt = (cm: number) => {
+    const m = cm / 100
+    const mStr = (Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')).replace('.', ',')
+    return `${+cm.toFixed(2)} cm (${mStr} m)`
   }
+
+  const alphaHex = Math.round(opacity * 2.55).toString(16).padStart(2, '0')
+  const gridStyle = {
+    backgroundImage: `linear-gradient(to right, ${color}${alphaHex} 1px, transparent 1px),
+                      linear-gradient(to bottom, ${color}${alphaHex} 1px, transparent 1px)`,
+    backgroundSize: `${100 / cols}% ${100 / rows}%`,
+  }
+
+  // ── Pan + zoom ──
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!imageUrl) return
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y }
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return
+    setPan({
+      x: dragging.current.panX + (e.clientX - dragging.current.startX),
+      y: dragging.current.panY + (e.clientY - dragging.current.startY),
+    })
+  }
+  const onPointerUp = () => {
+    dragging.current = null
+  }
+  const onWheel = (e: React.WheelEvent) => {
+    if (!imageUrl) return
+    const next = Math.min(5, Math.max(0.2, zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)))
+    setZoom(next)
+  }
+  const resetView = () => {
+    setPan({ x: 0, y: 0 })
+    setZoom(1)
+  }
+
+  // Ancho y destino siempre múltiplos del cuadro (factor de escala entero)
+  const snapMul = (cm: number) => Math.max(squareCm, Math.round(cm / squareCm) * squareCm)
+  // Re-ajusta ancho y destino cuando cambia el tamaño del cuadro
+  useEffect(() => {
+    setRealWidthCm((w) => Math.max(squareCm, Math.round(w / squareCm) * squareCm))
+    setTargetCm((t) => Math.max(squareCm, Math.round(t / squareCm) * squareCm))
+  }, [squareCm])
+
+  // ── Exportar PNG ──
+  const exportPNG = () => {
+    if (!imageUrl || !frameRef.current) return
+    setExportWarning(null)
+    const fr = frameRef.current.getBoundingClientRect()
+    const cellPx = 120
+    const EW = cols * cellPx
+    const EH = rows * cellPx
+    const k = EW / fr.width // factor pantalla -> export
+
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = EW
+      canvas.height = EH
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, EW, EH)
+
+      // Imagen con el mismo contain + pan/zoom que en pantalla
+      const containScale = Math.min(EW / img.naturalWidth, EH / img.naturalHeight)
+      const dw = img.naturalWidth * containScale * zoom
+      const dh = img.naturalHeight * containScale * zoom
+      const dx = EW / 2 + pan.x * k - dw / 2
+      const dy = EH / 2 + pan.y * k - dh / 2
+      ctx.drawImage(img, dx, dy, dw, dh)
+
+      ctx.strokeStyle = color
+      ctx.globalAlpha = opacity / 100
+      ctx.lineWidth = 1
+      for (let c = 0; c <= cols; c++) {
+        const x = Math.round((c * EW) / cols) + 0.5
+        ctx.beginPath()
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, EH)
+        ctx.stroke()
+      }
+      for (let r = 0; r <= rows; r++) {
+        const y = Math.round((r * EH) / rows) + 0.5
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(EW, y)
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1
+
+      if (showNumbers) {
+        ctx.fillStyle = color
+        ctx.globalAlpha = Math.min(1, opacity / 100 + 0.3)
+        ctx.font = `${Math.round(cellPx / 6)}px monospace`
+        ctx.textBaseline = 'top'
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            ctx.fillText(`${colLabel(c)}${r + 1}`, (c * EW) / cols + 4, (r * EH) / rows + 4)
+          }
+        }
+        ctx.globalAlpha = 1
+      }
+
+      try {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            setExportWarning('No se pudo exportar (imagen externa sin permiso CORS).')
+            return
+          }
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = 'cuadricula.png'
+          a.click()
+          URL.revokeObjectURL(url)
+        }, 'image/png')
+      } catch {
+        setExportWarning('No se pudo exportar (imagen externa sin permiso CORS).')
+      }
+    }
+    img.onerror = () => setExportWarning('No se pudo cargar la imagen para exportar.')
+    img.src = imageUrl
+  }
+
+  // ── Estilos reutilizables ──
+  const lbl = 'font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-[0.08em]'
+  const numInput =
+    'w-12 bg-transparent border-0 border-b border-[var(--color-outline-variant)] px-0.5 py-0.5 font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] text-center focus:border-[var(--color-primary)] outline-none'
+
+  // Cluster: agrupa controles relacionados en un contenedor con etiqueta
+  const Cluster = ({ name, children }: { name: string; children: React.ReactNode }) => (
+    <div className="flex items-center gap-3 px-3 h-10 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60 shrink-0">
+      <span className="font-mono text-[9px] text-[var(--color-on-surface-variant)]/70 uppercase tracking-[0.12em] hidden xl:inline">{name}</span>
+      {children}
+    </div>
+  )
 
   return (
     <AppShell>
       <ToolActiveLayout>
-        {/* Top Control Bar */}
-        <div className="h-[52px] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-[var(--spacing-grid-gutter)] shrink-0 gap-8 overflow-x-auto whitespace-nowrap">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase">COLUMNAS</span>
-            <input 
-              className="w-24 custom-range" 
-              max="20" min="1" type="range" 
-              value={cols}
-              onChange={(e) => setCols(Number(e.target.value))}
-            />
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] w-4 text-center">{cols}</span>
-          </div>
-          
-          <div className="w-px h-4 bg-[var(--color-outline-variant)] opacity-50"></div>
-          
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase">FILAS</span>
-            <input 
-              className="w-24 custom-range" 
-              max="20" min="1" type="range" 
-              value={rows}
-              onChange={(e) => setRows(Number(e.target.value))}
-            />
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] w-4 text-center">{rows}</span>
-          </div>
-          
-          <div className="w-px h-4 bg-[var(--color-outline-variant)] opacity-50"></div>
-          
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase">OPACIDAD</span>
-            <input 
-              className="w-24 custom-range" 
-              max="100" min="0" type="range" 
-              value={opacity}
-              onChange={(e) => setOpacity(Number(e.target.value))}
-            />
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] w-8 text-right">{opacity}%</span>
-          </div>
-          
-          <div className="w-px h-4 bg-[var(--color-outline-variant)] opacity-50"></div>
-          
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase">COLOR</span>
-            <div className="w-5 h-5 rounded-sm border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden ring-2 ring-transparent focus-within:ring-[var(--color-primary)]/30">
-              <input 
-                type="color" 
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="absolute inset-[-10px] w-10 h-10 cursor-pointer"
+        {/* Barra de controles agrupada */}
+        <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
+          {/* Fuente */}
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 transition-opacity"
+          >
+            <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+            IMAGEN
+          </button>
+
+          {/* Medidas */}
+          <Cluster name="Medidas">
+            <label className="flex items-center gap-1">
+              <span className={lbl}>Ancho</span>
+              <button
+                type="button"
+                onClick={() => setRealWidthCm((w) => snapMul(w - squareCm))}
+                className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
+                aria-label="Menos un cuadro"
+              >remove</button>
+              <input
+                type="number" min={squareCm} step={squareCm} value={realWidthCm}
+                onChange={(e) => setRealWidthCm(Number(e.target.value))}
+                onBlur={(e) => setRealWidthCm(snapMul(Number(e.target.value)))}
+                className={numInput}
               />
+              <button
+                type="button"
+                onClick={() => setRealWidthCm((w) => snapMul(w + squareCm))}
+                className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
+                aria-label="Más un cuadro"
+              >add</button>
+              <span className={lbl}>cm</span>
+            </label>
+            <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
+            <label className="flex items-center gap-1.5">
+              <span className={lbl}>Cuadro</span>
+              <input type="number" min={0.1} step={0.5} value={squareCm} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
+              <span className={lbl}>cm</span>
+            </label>
+            <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
+            <label className="flex items-center gap-1">
+              <span className={lbl}>Destino</span>
+              <button
+                type="button"
+                onClick={() => setTargetCm((t) => snapMul(t - squareCm))}
+                className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
+                aria-label="Menos un cuadro"
+              >remove</button>
+              <input
+                type="number" min={squareCm} step={squareCm} value={targetCm}
+                onChange={(e) => setTargetCm(Number(e.target.value))}
+                onBlur={(e) => setTargetCm(snapMul(Number(e.target.value)))}
+                className={numInput}
+              />
+              <button
+                type="button"
+                onClick={() => setTargetCm((t) => snapMul(t + squareCm))}
+                className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
+                aria-label="Más un cuadro"
+              >add</button>
+              <span className={lbl}>cm</span>
+            </label>
+          </Cluster>
+
+          {/* Estilo */}
+          <Cluster name="Estilo">
+            <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
+            <input className="w-20 custom-range" max="100" min="0" type="range" value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} />
+            <span className="font-mono text-[10px] text-[var(--color-primary)] w-7 text-right">{opacity}%</span>
+            <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
+            <div className="w-5 h-5 rounded-sm border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden">
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-[-10px] w-10 h-10 cursor-pointer" />
+            </div>
+            <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
+            <button
+              onClick={() => setShowNumbers((v) => !v)}
+              aria-pressed={showNumbers}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md font-mono text-[10px] uppercase tracking-[0.08em] transition-colors ${
+                showNumbers ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">tag</span>
+              Numerar
+            </button>
+          </Cluster>
+
+          <div className="flex-1" />
+
+          {/* Acciones */}
+          <button
+            onClick={resetView}
+            disabled={!imageUrl}
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40"
+            title="Centrar imagen"
+          >
+            <span className="material-symbols-outlined text-[20px]">recenter</span>
+          </button>
+          <button
+            onClick={exportPNG}
+            disabled={!imageUrl}
+            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity"
+          >
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            EXPORTAR
+          </button>
+        </div>
+
+        {/* Escenario (lienzo) */}
+        <div ref={stageRef} className="flex-1 bg-[var(--color-surface-container-lowest)] p-[var(--spacing-grid-gutter)] flex items-center justify-center relative min-h-0 overflow-hidden">
+          <div
+            ref={frameRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerUp}
+            onWheel={onWheel}
+            className="relative border border-[var(--color-outline-variant)] shadow-2xl bg-[var(--color-surface)] overflow-hidden select-none touch-none transition-[width,height] duration-200 ease-out"
+            style={{ width: frameW || undefined, height: frameH || undefined, aspectRatio: `${cols} / ${rows}`, cursor: imageUrl ? 'grab' : 'default' }}
+          >
+            {imageUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt="Referencia"
+                  src={imageUrl}
+                  draggable={false}
+                  onLoad={(e) => {
+                    const t = e.currentTarget
+                    setImgNatural({ w: t.naturalWidth, h: t.naturalHeight })
+                    // Auto-calcula el ancho real desde los px naturales (96dpi ≈ 37.8 px/cm),
+                    // limitado a un rango sensato y ajustado a múltiplo del cuadro. Editable.
+                    const cmFromPx = t.naturalWidth / 37.795
+                    setRealWidthCm(snapMul(Math.min(200, Math.max(squareCm * 2, cmFromPx))))
+                  }}
+                  className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                  style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center' }}
+                />
+                <div className="absolute inset-0 pointer-events-none" style={gridStyle} />
+                {showNumbers && (
+                  <div
+                    className="absolute inset-0 grid pointer-events-none"
+                    style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
+                  >
+                    {Array.from({ length: cols * rows }).map((_, i) => {
+                      const c = i % cols
+                      const r = Math.floor(i / cols)
+                      return (
+                        <span key={i} className="font-mono leading-none p-0.5 text-[9px]" style={{ color, opacity: Math.min(1, opacity / 100 + 0.3) }}>
+                          {colLabel(c)}{r + 1}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={() => setModalOpen(true)}
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+              >
+                <span className="material-symbols-outlined text-5xl">add_photo_alternate</span>
+                <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest">Sube o elige una imagen</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Pie: métricas + calculadora */}
+        <div className="bg-[var(--color-surface-container)] border-t border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2 flex items-center justify-between gap-4 overflow-x-auto whitespace-nowrap">
+          <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] flex items-center gap-3">
+            <span className="text-[var(--color-primary)]">{cols} × {rows} cuadros</span>
+            <span className="opacity-40">·</span>
+            <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
+            <span className="opacity-40">·</span>
+            <span>lienzo {canvasW}×{canvasH} cm</span>
+            {imageUrl && <><span className="opacity-40">·</span><span>zoom {Math.round(zoom * 100)}%</span></>}
+          </div>
+
+          <div className="flex items-stretch gap-3 font-mono text-[10px] shrink-0">
+            <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60">
+              <span className="text-[var(--color-on-surface-variant)] uppercase tracking-[0.1em] mb-0.5">Referencia · {squareCm}cm</span>
+              <span className="text-[var(--color-on-surface)]">A {fmt(refW)} · Al {fmt(refH)}</span>
+            </div>
+            <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/40">
+              <span className="text-[var(--color-primary)] uppercase tracking-[0.1em] mb-0.5">Final · {targetCm}cm</span>
+              <span className="text-[var(--color-primary)]">A {fmt(finW)} · Al {fmt(finH)}</span>
             </div>
           </div>
         </div>
 
-        {/* Main Area */}
-        <div className="flex-1 bg-[var(--color-surface-container-lowest)] p-[var(--spacing-grid-gutter)] overflow-auto flex items-center justify-center relative min-h-0">
-          <div className="relative max-w-[800px] w-full aspect-video border border-[var(--color-outline-variant)] shadow-2xl bg-[var(--color-surface)] group transition-transform duration-500 ease-out hover:scale-[1.01]">
-            <img 
-              alt="Classical portrait sculpture" 
-              className="w-full h-full object-cover opacity-80 mix-blend-luminosity filter contrast-125" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6s40zJqvBfuLCR0eyhTFMr6l8_46VhVnV00nWJ71QR-slxb_-JPDCvnAMjUGR5PYzQbDrCMiXapviXGhN3MlD2GdoaejwgJVDYqzz9oxRqpZR7Nrzsz4Chuv8Ehl_neE6jK12BsY-H2wUdfk-x7BotEW6QrjJh7J_ML7TygNJoF7uc_2x8bAh4JMjfc3pF7qSGg13DSBNo-rONHHbv_YEstiSIlNwTmSdzDNUu7NLYyIEEMlurzFWYNbOrewMGi5i8s71aP7Uapgo"
-            />
-            <div 
-              className="absolute inset-0 border border-[var(--color-primary)]/20 pointer-events-none"
-              style={gridStyle}
-            ></div>
-            
-            <div className="absolute bottom-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <button className="h-8 px-3 bg-[var(--color-surface)]/80 backdrop-blur-md border border-[var(--color-outline-variant)] font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]">download</span>
-                EXPORTAR
-              </button>
-            </div>
+        {exportWarning && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded-sm px-3 py-1.5 z-30">
+            {exportWarning}
           </div>
-        </div>
+        )}
+
+        {modalOpen && (
+          <ImageSourceModal
+            onClose={() => setModalOpen(false)}
+            onSelect={(url) => {
+              setImageUrl(url)
+              setModalOpen(false)
+              resetView()
+              setExportWarning(null)
+            }}
+          />
+        )}
       </ToolActiveLayout>
     </AppShell>
   )

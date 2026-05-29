@@ -5,11 +5,13 @@ import { useState, useRef, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { usePreferences } from '../AppPreferencesProvider'
+import { useChrome } from './ChromeProvider'
 import { type Locale, type ThemeMode } from '@/lib/i18n'
 
 export default function Navbar() {
   const { data: session, status } = useSession()
   const { locale, theme, setLocale, setTheme, t } = usePreferences()
+  const { sidebarOpen, toggleSidebar } = useChrome()
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
@@ -123,8 +125,19 @@ export default function Navbar() {
   return (
     <>
       {/* Desktop TopAppBar */}
-      <header className="hidden md:flex bg-[var(--color-surface)]/60 backdrop-blur-md text-[var(--color-primary)] fixed top-0 right-0 md:left-[var(--spacing-sidebar-width)] h-16 border-b border-[var(--color-outline-variant)] justify-between items-center px-[var(--spacing-grid-gutter)] z-40">
-        <div className="font-display font-bold text-xl text-[var(--color-primary)]">ArtSanctuary</div>
+      <header className={`hidden md:flex bg-[var(--color-surface)]/60 backdrop-blur-md text-[var(--color-primary)] fixed top-0 right-0 h-16 border-b border-[var(--color-outline-variant)] justify-between items-center px-[var(--spacing-grid-gutter)] z-40 transition-all duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'}`}>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleSidebar}
+            aria-label={sidebarOpen ? 'Ocultar menú' : 'Mostrar menú'}
+            className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200"
+          >
+            <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: sidebarOpen ? 'none' : 'rotate(180deg)' }}>
+              chevron_left
+            </span>
+          </button>
+          <div className="font-display font-bold text-xl text-[var(--color-primary)]">ArtSanctuary</div>
+        </div>
         <div className="flex items-center gap-[var(--spacing-stack-md)]">
           <Link href="/explore" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200">
             <span className="material-symbols-outlined">search</span>

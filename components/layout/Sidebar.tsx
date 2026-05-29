@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { usePreferences } from '../AppPreferencesProvider'
+import { useChrome } from './ChromeProvider'
 
 const navItems = [
   { key: 'nav.home', href: '/', icon: 'home' },
@@ -18,6 +19,7 @@ export default function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { t } = usePreferences()
+  const { sidebarOpen } = useChrome()
   const [collections, setCollections] = useState<any[]>([])
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function Sidebar() {
   }, [session])
 
   return (
-    <nav className="hidden md:flex flex-col h-full py-8 gap-[var(--spacing-stack-md)] bg-[var(--color-surface-container)] fixed left-0 top-0 w-[var(--spacing-sidebar-width)] border-r border-[var(--color-outline-variant)] z-50">
+    <nav className={`hidden md:flex flex-col h-full py-8 gap-[var(--spacing-stack-md)] bg-[var(--color-surface-container)] fixed left-0 top-0 w-[var(--spacing-sidebar-width)] border-r border-[var(--color-outline-variant)] z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="px-6 mb-8 flex flex-col gap-2">
         <h1 className="text-2xl font-display-lg tracking-[-0.02em] text-[var(--color-primary)] font-semibold mb-1">
           ArtSanctuary
