@@ -76,5 +76,5 @@ export type BoardData = {
   viewport: BoardViewport
 }
 
-// 96 dpi: 1 cm ≈ 37.795 px (mundo). Usado para el espaciado del grid.
-export const PX_PER_CM = 37.795
+// 96 dpi: 1 cm ≈ 37.795 px (mundo). Fuente única en lib/measure.
+export { PX_PER_CM } from '@/lib/measure'

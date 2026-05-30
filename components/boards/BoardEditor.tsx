@@ -6,6 +6,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { cmOf, pxOf } from '@/lib/measure'
+import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
 import { Stage, Layer, Line, Image as KonvaImage, Text as KonvaText, Rect, Ellipse, Arrow, Group, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import ImageSourceModal from '@/components/tools/ImageSourceModal'
@@ -268,6 +271,7 @@ const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
 
 export default function BoardEditor({ boardId }: { boardId: string }) {
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<Konva.Stage>(null)
   const trRef = useRef<Konva.Transformer>(null)
@@ -327,12 +331,38 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d: { board: BoardData; isOwner: boolean }) => {
         if (!active) return
-        setObjects(d.board.objects ?? [])
-        if (d.board.background) setBackground(d.board.background)
+        let objs = d.board.objects ?? []
+        let bg = d.board.background
+        const vp = d.board.viewport
+
+        // Handoff: imagen entrante de otra herramienta (?handoff=1).
+        const params = new URLSearchParams(window.location.search)
+        if (d.isOwner && params.get('handoff') === '1') {
+          window.history.replaceState(null, '', `/dashboard/boards/${boardId}`)
+          const p = takeHandoff()
+          if (p) {
+            const w = pxOf(p.widthCm)
+            const h = pxOf(p.heightCm)
+            if (p.squareCm && bg) bg = { ...bg, squareCm: p.squareCm }
+            const target = p.objectId ? objs.find((o) => o.id === p.objectId) : null
+            if (target) {
+              objs = objs.map((o) => (o.id === p.objectId ? { ...o, src: p.imageUrl, w, h } : o))
+            } else {
+              const z = (vp?.zoom || 1)
+              const cx = -(vp?.x ?? 0) / z + 60
+              const cy = -(vp?.y ?? 0) / z + 60
+              const maxZ = Math.max(0, ...objs.map((o) => o.z))
+              objs = [...objs, { id: uid(), type: 'image', src: p.imageUrl, x: cx, y: cy, w, h, rotation: 0, z: maxZ + 1 }]
+            }
+          }
+        }
+
+        setObjects(objs)
+        if (bg) setBackground(bg)
         setName(d.board.name)
-        if (d.board.viewport) {
-          setPos({ x: d.board.viewport.x, y: d.board.viewport.y })
-          setScale(d.board.viewport.zoom || 1)
+        if (vp) {
+          setPos({ x: vp.x, y: vp.y })
+          setScale(vp.zoom || 1)
         }
         setReadOnly(!d.isOwner)
         setLoaded(true)
@@ -631,6 +661,22 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
   // Selección simple (los paneles de formato solo aplican a un objeto).
   const selectedId = selectedIds.length === 1 ? selectedIds[0] : null
+  // Enviar el objeto imagen seleccionado a otra herramienta (round-trip).
+  const editIn = (tool: 'recorte' | 'cuadricula') => {
+    const o = selectedId ? objects.find((x) => x.id === selectedId) : null
+    if (!o || o.type !== 'image' || !o.src) return
+    setHandoff({
+      imageUrl: o.src,
+      widthCm: cmOf(o.w),
+      heightCm: cmOf(o.h),
+      squareCm: background.squareCm,
+      source: 'boards',
+      boardId,
+      objectId: o.id,
+    })
+    router.push(`/dashboard/tools/${tool}?handoff=1`)
+  }
+
   const editingObj = editingId ? objects.find((o) => o.id === editingId) : null
   const selectedObj = selectedId ? objects.find((o) => o.id === selectedId) : null
 
@@ -873,6 +919,19 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         <button onClick={deleteSelected} disabled={!selectedIds.length || readOnly} className={`${iconBtn} hover:!text-red-500 hover:!border-red-500`} title="Borrar (Supr)">
           <span className="material-symbols-outlined text-[20px]">delete</span>
         </button>
+
+        {/* Editar imagen seleccionada en otra herramienta (round-trip) */}
+        {!readOnly && selectedObj?.type === 'image' && (
+          <>
+            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
+            <button onClick={() => editIn('recorte')} className={iconBtn} title="Editar en Recorte / Quitar fondo">
+              <span className="material-symbols-outlined text-[20px]">crop</span>
+            </button>
+            <button onClick={() => editIn('cuadricula')} className={iconBtn} title="Medir en Cuadrícula">
+              <span className="material-symbols-outlined text-[20px]">grid_on</span>
+            </button>
+          </>
+        )}
 
         <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
 

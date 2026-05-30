@@ -4,6 +4,8 @@ import AppShell from '@/components/layout/AppShell'
 import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
 import ImageSourceModal from '@/components/tools/ImageSourceModal'
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
 
 // Etiqueta de columna estilo hoja de cálculo: 0->A, 25->Z, 26->AA…
 function colLabel(n: number): string {
@@ -35,9 +37,29 @@ export default function CuadriculaPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [exportWarning, setExportWarning] = useState<string | null>(null)
 
+  const router = useRouter()
   const stageRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
+  const [sending, setSending] = useState(false)
+  // Destino de retorno si llegamos desde un board (round-trip).
+  const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
+
+  // Handoff entrante (?handoff=1): carga imagen + calibración de otra herramienta.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('handoff') !== '1') return
+    window.history.replaceState(null, '', '/dashboard/tools/cuadricula')
+    const p = takeHandoff()
+    if (!p) return
+    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId }
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setImageUrl(p.imageUrl)
+    if (p.squareCm) setSquareCm(p.squareCm)
+    if (p.widthCm) setRealWidthCm(Math.max(1, Math.round(p.widthCm)))
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [])
 
   // Tamaño disponible del escenario (excluye padding gracias a contentRect)
   const [stage, setStage] = useState({ w: 0, h: 0 })
@@ -206,6 +228,29 @@ export default function CuadriculaPage() {
     img.src = imageUrl
   }
 
+  // Enviar a Boards conservando el tamaño real (refW × refH cm = cols × rows cuadros).
+  const sendToBoards = async () => {
+    if (!imageUrl) return
+    setSending(true)
+    setExportWarning(null)
+    try {
+      const payload = { imageUrl, widthCm: refW, heightCm: refH, squareCm, source: 'cuadricula' as const }
+      if (back.current?.boardId) {
+        setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId })
+        router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
+      } else {
+        const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Desde cuadrícula' }) })
+        if (!res.ok) throw new Error()
+        const { board } = await res.json()
+        setHandoff(payload)
+        router.push(`/dashboard/boards/${board._id}?handoff=1`)
+      }
+    } catch {
+      setExportWarning('No se pudo enviar a Boards.')
+      setSending(false)
+    }
+  }
+
   // ── Estilos reutilizables ──
   const lbl = 'font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-[0.08em]'
   const numInput =
@@ -320,6 +365,19 @@ export default function CuadriculaPage() {
             title="Centrar imagen"
           >
             <span className="material-symbols-outlined text-[20px]">recenter</span>
+          </button>
+          <button
+            onClick={sendToBoards}
+            disabled={!imageUrl || sending}
+            className={`flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity ${
+              back.current?.boardId
+                ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+                : 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)]'
+            }`}
+            title={back.current?.boardId ? 'Volver al board con esta medida' : 'Enviar a Boards (respeta el tamaño)'}
+          >
+            <span className="material-symbols-outlined text-[18px]">{back.current?.boardId ? 'undo' : 'dashboard'}</span>
+            {back.current?.boardId ? 'BOARD' : 'BOARDS'}
           </button>
           <button
             onClick={exportPNG}
