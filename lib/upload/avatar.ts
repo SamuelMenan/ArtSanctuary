@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { put, del } from "@vercel/blob";
+import { saveImage, deleteImage } from "@/lib/upload/storage";
 
 export const AVATAR_MAX_BYTES = 3 * 1024 * 1024; // 3MB
 export const AVATAR_ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -38,19 +38,11 @@ export async function saveAvatar(
   const key = `uploads/avatars/${userId}-${Date.now()}-${random}.${ext}`;
 
   const buf = Buffer.from(await file.arrayBuffer());
-  const blob = await put(key, buf, {
-    access: "public",
-    contentType: file.type,
-  });
+  const url = await saveImage(key, buf, file.type);
 
-  return { ok: true, url: blob.url };
+  return { ok: true, url };
 }
 
 export async function deleteAvatarFile(avatarUrl: string): Promise<void> {
-  if (!avatarUrl) return;
-  try {
-    await del(avatarUrl);
-  } catch {
-    // blob gone or never existed — ignore
-  }
+  await deleteImage(avatarUrl);
 }

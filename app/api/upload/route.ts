@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { put } from '@vercel/blob';
+import { saveImage } from '@/lib/upload/storage';
 import crypto from 'crypto';
 
 export const runtime = 'nodejs';
@@ -43,14 +43,11 @@ export async function POST(request: NextRequest) {
     const hash = crypto.createHash('sha1').update(buffer).digest('hex').slice(0, 12);
     const key = `uploads/${session.user.id}-${Date.now()}-${hash}.${ext}`;
 
-    const blob = await put(key, buffer, {
-      access: 'public',
-      contentType: file.type,
-    });
+    const imageUrl = await saveImage(key, buffer, file.type);
 
     return NextResponse.json({
       success: true,
-      imageUrl: blob.url,
+      imageUrl,
       filename: file.name,
       size: file.size,
       type: file.type,
