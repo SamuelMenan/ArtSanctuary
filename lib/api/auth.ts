@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { connectDB } from "@/lib/mongodb";
-import User, { IUser } from "@/models/User";
+import { connectDB } from "@backend/db/mongoose";
+import User, { IUser } from "@backend/models/User";
 import { apiError } from "./errors";
 
 export type AuthResult =

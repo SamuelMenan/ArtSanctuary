@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Artwork from "@/models/Artwork";
+import { connectDB } from "@backend/db/mongoose";
+import Artwork from "@backend/models/Artwork";
 import { auth } from "@/auth";
 
 export async function GET(

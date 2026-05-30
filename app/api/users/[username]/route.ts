@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User";
-import Artwork from "@/models/Artwork";
+import { connectDB } from "@backend/db/mongoose";
+import User from "@backend/models/User";
+import Artwork from "@backend/models/Artwork";
 
 interface RouteParams {
   params: Promise<{ username: string }>;

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Artwork from "@/models/Artwork";
-import Notification from "@/models/Notification";
-import Collection from "@/models/Collection";
+import { connectDB } from "@backend/db/mongoose";
+import Artwork from "@backend/models/Artwork";
+import Notification from "@backend/models/Notification";
+import Collection from "@backend/models/Collection";
 import { auth } from "@/auth";
 import { Types } from "mongoose";
 

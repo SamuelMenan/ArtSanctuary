@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
-import { connectDB } from '@/lib/mongodb'
+import { connectDB } from '@backend/db/mongoose'
 import { normalizeLocale, normalizeTheme } from '@/lib/i18n'
-import User from '@/models/User'
+import User from '@backend/models/User'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PATCH(req: NextRequest) {

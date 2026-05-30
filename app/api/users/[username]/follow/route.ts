@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User";
-import Notification from "@/models/Notification";
+import { connectDB } from "@backend/db/mongoose";
+import User from "@backend/models/User";
+import Notification from "@backend/models/Notification";
 import { auth } from "@/auth";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {

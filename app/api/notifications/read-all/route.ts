@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Notification from "@/models/Notification";
+import { connectDB } from "@backend/db/mongoose";
+import Notification from "@backend/models/Notification";
 import { auth } from "@/auth";
 
 export async function PATCH(req: NextRequest) {

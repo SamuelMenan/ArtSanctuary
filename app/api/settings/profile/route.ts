@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import User from "@/models/User";
+import User from "@backend/models/User";
 import { requireUser } from "@/lib/api/auth";
 import { apiError, apiOk } from "@/lib/api/errors";
 import { validateProfile } from "@/lib/validation/settings";

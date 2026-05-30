@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Artwork from "@/models/Artwork";
-import User from "@/models/User"; // Asumiendo que existe el modelo User
+import { connectDB } from "@backend/db/mongoose";
+import Artwork from "@backend/models/Artwork";
+import User from "@backend/models/User"; // Asumiendo que existe el modelo User
 
 export async function GET() {
   try {

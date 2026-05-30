@@ -3,10 +3,10 @@ import { Manrope, JetBrains_Mono } from 'next/font/google'
 import '@/app/globals.css'
 import Providers from '@/components/Providers'
 import { auth } from '@/auth'
-import { connectDB } from '@/lib/mongodb'
+import { connectDB } from '@backend/db/mongoose'
 import { getRequestLocale, getRequestTheme } from '@/lib/requestPreferences'
 import { normalizeLocale, normalizeTheme } from '@/lib/i18n'
-import User from '@/models/User'
+import User from '@backend/models/User'
 
 const manrope = Manrope({
   subsets: ['latin'],

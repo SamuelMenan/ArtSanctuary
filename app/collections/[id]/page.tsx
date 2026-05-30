@@ -1,5 +1,5 @@
-import { connectDB } from "@/lib/mongodb";
-import Collection from "@/models/Collection";
+import { connectDB } from "@backend/db/mongoose";
+import Collection from "@backend/models/Collection";
 import ArtworkGrid from "@/components/ui/ArtworkGrid";
 import CollectionActions from "@/components/ui/CollectionActions";
 import AppShell from "@/components/layout/AppShell";

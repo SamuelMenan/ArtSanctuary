@@ -1,14 +1,14 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import { connectDB } from "@/lib/mongodb";
+import { connectDB } from "@backend/db/mongoose";
 import { requireUser } from "@/lib/api/auth";
 import { apiError, apiOk } from "@/lib/api/errors";
 import { deleteAvatarFile } from "@/lib/upload/avatar";
-import User from "@/models/User";
-import Artwork from "@/models/Artwork";
-import Collection from "@/models/Collection";
-import Notification from "@/models/Notification";
+import User from "@backend/models/User";
+import Artwork from "@backend/models/Artwork";
+import Collection from "@backend/models/Collection";
+import Notification from "@backend/models/Notification";
 
 const CONFIRM_WORD = "ELIMINAR";
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Board from "@/models/Board";
+import { connectDB } from "@backend/db/mongoose";
+import Board from "@backend/models/Board";
 import { auth } from "@/auth";
 
 export const runtime = "nodejs";
