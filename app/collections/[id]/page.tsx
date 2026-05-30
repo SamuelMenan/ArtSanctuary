@@ -1,8 +1,8 @@
 import { connectDB } from "@backend/db/mongoose";
 import Collection from "@backend/models/Collection";
-import ArtworkGrid from "@/components/ui/ArtworkGrid";
-import CollectionActions from "@/components/ui/CollectionActions";
-import AppShell from "@/components/layout/AppShell";
+import ArtworkGrid from "@frontend/shared/ui/ArtworkGrid";
+import CollectionActions from "@frontend/shared/ui/CollectionActions";
+import AppShell from "@frontend/shared/layouts/AppShell";
 import { auth } from "@backend/auth";
 import { notFound } from "next/navigation";
 

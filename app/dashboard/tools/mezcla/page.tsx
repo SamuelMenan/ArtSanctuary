@@ -1,8 +1,8 @@
 'use client'
 
-import AppShell from '@/components/layout/AppShell'
-import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
-import { usePreferences } from '@/components/AppPreferencesProvider'
+import AppShell from '@frontend/shared/layouts/AppShell'
+import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useMemo, useState } from 'react'
 import { MEDIUMS, getMedium } from '@/lib/mediums'
 import {

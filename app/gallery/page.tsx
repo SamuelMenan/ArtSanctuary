@@ -1,8 +1,8 @@
-import AppShell from '@/components/layout/AppShell'
+import AppShell from '@frontend/shared/layouts/AppShell'
 import Link from 'next/link'
 import { connectDB } from '@backend/db/mongoose'
 import Artwork from '@backend/models/Artwork'
-import ArtworkGrid from '@/components/ui/ArtworkGrid'
+import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid'
 import { createTranslator, getCategoryLabel, getDictionary } from '@/lib/i18n'
 import { getRequestLocale } from '@backend/requestPreferences'
 

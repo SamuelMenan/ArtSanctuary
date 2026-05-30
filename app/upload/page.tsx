@@ -3,8 +3,8 @@
 import NextImage from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AppShell from '@/components/layout/AppShell';
-import { usePreferences } from '@/components/AppPreferencesProvider';
+import AppShell from '@frontend/shared/layouts/AppShell';
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import {
   useArtworkAutoFill,
   getPresets,

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePreferences } from '@/components/AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type { Locale, ThemeMode } from '@/lib/i18n'
 
 const labelCls =

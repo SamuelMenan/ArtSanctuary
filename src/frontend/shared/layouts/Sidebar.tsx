@@ -1,11 +1,11 @@
 "use client"
 
 import Link from 'next/link'
-import UploadButton from '@/components/ui/UploadButton'
+import UploadButton from '@frontend/shared/ui/UploadButton'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { usePreferences } from '../AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from './ChromeProvider'
 
 const navItems = [

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { usePreferences } from '../AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from './ChromeProvider'
 import { type Locale, type ThemeMode } from '@/lib/i18n'
 

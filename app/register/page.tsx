@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
-import { usePreferences } from '@/components/AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
 export default function RegisterPage() {
   const { t } = usePreferences()

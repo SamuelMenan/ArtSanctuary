@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import ImageSourceModal from '@/components/tools/ImageSourceModal'
+import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@/lib/image/canvas'
 import { computeContentBounds, padBounds, type Bounds } from '@/lib/image/autocrop'
 import { setHandoff, takeHandoff } from '@/lib/tools/handoff'

@@ -1,12 +1,12 @@
 'use client'
 
-import AppShell from '@/components/layout/AppShell'
-import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
+import AppShell from '@frontend/shared/layouts/AppShell'
+import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import dynamic from 'next/dynamic'
 import { useParams } from 'next/navigation'
 
 // Konva toca `window`: el editor se carga solo en cliente.
-const BoardEditor = dynamic(() => import('@/components/boards/BoardEditor'), {
+const BoardEditor = dynamic(() => import('@frontend/features/tools/boards/BoardEditor'), {
   ssr: false,
   loading: () => (
     <div className="flex-1 flex items-center justify-center">

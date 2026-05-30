@@ -1,14 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-import AppShell from "@/components/layout/AppShell";
+import AppShell from "@frontend/shared/layouts/AppShell";
 import { auth } from "@backend/auth";
 import { connectDB } from "@backend/db/mongoose";
 import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";
-import ArtworkGrid from "@/components/ui/ArtworkGrid";
+import ArtworkGrid from "@frontend/shared/ui/ArtworkGrid";
 import { createTranslator, getCategoryLabel, getDictionary } from "@/lib/i18n";
 import { getRequestLocale } from "@backend/requestPreferences";
-import UploadButton from '@/components/ui/UploadButton';
+import UploadButton from '@frontend/shared/ui/UploadButton';
 
 export default async function HomePage() {
   const session = await auth();

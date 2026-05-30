@@ -3,8 +3,8 @@
 import { ReactNode, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { usePreferences } from '../AppPreferencesProvider'
-import { useChrome } from '../layout/ChromeProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
 
 export default function ToolActiveLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()

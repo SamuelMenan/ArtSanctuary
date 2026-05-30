@@ -3,10 +3,10 @@
 import { useState, useEffect, Suspense, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AppShell from '@/components/layout/AppShell';
-import ArtworkGrid from '@/components/ui/ArtworkGrid';
-import ArtworkModal from '@/components/ui/ArtworkModal';
-import { usePreferences } from '@/components/AppPreferencesProvider';
+import AppShell from '@frontend/shared/layouts/AppShell';
+import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid';
+import ArtworkModal from '@frontend/shared/ui/ArtworkModal';
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { getCategoryLabel } from '@/lib/i18n';
 
 function ExploreContent() {

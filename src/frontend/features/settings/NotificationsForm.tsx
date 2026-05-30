@@ -1,43 +1,44 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { usePreferences } from '@/components/AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { Toggle } from './Toggle'
 import { useStatus } from './useStatus'
 import { StatusBanner } from './StatusBanner'
 
 type T = (key: string, vars?: Record<string, string | number>) => string
 
-export interface PrivacySettings {
-  profilePublic: boolean
-  showEmail: boolean
-  allowMessages: boolean
-  allowFollow: boolean
+export interface NotificationSettings {
+  likes: boolean
+  comments: boolean
+  follows: boolean
+  saves: boolean
+  weeklyDigest: boolean
 }
 
 interface Props {
-  initial: PrivacySettings
+  initial: NotificationSettings
 }
 
-export function PrivacyForm({ initial }: Props) {
+export function NotificationsForm({ initial }: Props) {
   const { t } = usePreferences()
-  const [state, setState] = useState<PrivacySettings>(initial)
+  const [state, setState] = useState<NotificationSettings>(initial)
   const [pending, start] = useTransition()
   const { status, set } = useStatus()
 
-  function toggle<K extends keyof PrivacySettings>(key: K) {
+  function toggle<K extends keyof NotificationSettings>(key: K) {
     const next = { ...state, [key]: !state[key] }
     setState(next)
     set({ kind: 'loading' })
     start(async () => {
       try {
-        const res = await fetch('/api/settings/privacy', {
+        const res = await fetch('/api/settings/notifications', {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ [key]: next[key] }),
         })
         if (!res.ok) {
-          setState(state)
+          setState(state) // rollback
           set({ kind: 'error', message: t('settings.saveError') })
           return
         }
@@ -49,26 +50,15 @@ export function PrivacyForm({ initial }: Props) {
     })
   }
 
-  const items: Array<{ key: keyof PrivacySettings; label: string; hint: string }> = [
+  const items: Array<{ key: keyof NotificationSettings; label: string; hint: string }> = [
+    { key: 'likes', label: t('settings.notifLikes'), hint: t('settings.notifLikesHint') },
+    { key: 'comments', label: t('settings.notifComments'), hint: t('settings.notifCommentsHint') },
+    { key: 'follows', label: t('settings.notifFollows'), hint: t('settings.notifFollowsHint') },
+    { key: 'saves', label: t('settings.notifSaves'), hint: t('settings.notifSavesHint') },
     {
-      key: 'profilePublic',
-      label: t('settings.privacyPublic'),
-      hint: t('settings.privacyPublicHint'),
-    },
-    {
-      key: 'showEmail',
-      label: t('settings.privacyShowEmail'),
-      hint: t('settings.privacyShowEmailHint'),
-    },
-    {
-      key: 'allowMessages',
-      label: t('settings.privacyAllowMessages'),
-      hint: t('settings.privacyAllowMessagesHint'),
-    },
-    {
-      key: 'allowFollow',
-      label: t('settings.privacyAllowFollow'),
-      hint: t('settings.privacyAllowFollowHint'),
+      key: 'weeklyDigest',
+      label: t('settings.notifWeekly'),
+      hint: t('settings.notifWeeklyHint'),
     },
   ]
 
@@ -78,7 +68,7 @@ export function PrivacyForm({ initial }: Props) {
         {items.map((it) => (
           <Toggle
             key={it.key}
-            id={`privacy-${it.key}`}
+            id={`notif-${it.key}`}
             label={it.label}
             hint={it.hint}
             checked={state[it.key]}

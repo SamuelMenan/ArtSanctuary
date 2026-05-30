@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { usePreferences } from '@/components/AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { FollowListModal, type FollowKind } from './FollowListModal'
 
 interface Props {

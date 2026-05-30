@@ -11,7 +11,7 @@ import { cmOf, pxOf } from '@/lib/measure'
 import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
 import { Stage, Layer, Line, Image as KonvaImage, Text as KonvaText, Rect, Ellipse, Arrow, Group, Transformer } from 'react-konva'
 import type Konva from 'konva'
-import ImageSourceModal from '@/components/tools/ImageSourceModal'
+import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import {
   BoardData,
   BoardObject,

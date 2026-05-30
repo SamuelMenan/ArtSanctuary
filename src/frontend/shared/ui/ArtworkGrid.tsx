@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import ArtworkModal from './ArtworkModal';
-import { usePreferences } from '@/components/AppPreferencesProvider';
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { getCategoryLabel } from '@/lib/i18n';
 
 interface ArtworkGridProps {

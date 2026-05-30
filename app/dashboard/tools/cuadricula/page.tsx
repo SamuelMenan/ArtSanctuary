@@ -1,8 +1,8 @@
 'use client'
 
-import AppShell from '@/components/layout/AppShell'
-import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
-import ImageSourceModal from '@/components/tools/ImageSourceModal'
+import AppShell from '@frontend/shared/layouts/AppShell'
+import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
+import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@/lib/tools/handoff'

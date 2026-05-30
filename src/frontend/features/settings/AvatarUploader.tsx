@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useRef, useState, useTransition } from 'react'
-import { usePreferences } from '@/components/AppPreferencesProvider'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useStatus } from './useStatus'
 import { StatusBanner } from './StatusBanner'
 

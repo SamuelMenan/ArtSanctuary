@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Manrope, JetBrains_Mono } from 'next/font/google'
 import '@/app/globals.css'
-import Providers from '@/components/Providers'
+import Providers from '@frontend/shared/providers/Providers'
 import { auth } from '@backend/auth'
 import { connectDB } from '@backend/db/mongoose'
 import { getRequestLocale, getRequestTheme } from '@backend/requestPreferences'

@@ -1,7 +1,7 @@
 'use client'
 
-import AppShell from '@/components/layout/AppShell'
-import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
+import AppShell from '@frontend/shared/layouts/AppShell'
+import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'

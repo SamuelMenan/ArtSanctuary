@@ -1,6 +1,6 @@
 'use client'
 
-import AppShell from '@/components/layout/AppShell'
+import AppShell from '@frontend/shared/layouts/AppShell'
 import Link from 'next/link'
 
 export default function ToolsDashboardPage() {

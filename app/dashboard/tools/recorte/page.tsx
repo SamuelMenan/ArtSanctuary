@@ -1,10 +1,10 @@
 'use client'
 
-import AppShell from '@/components/layout/AppShell'
-import ToolActiveLayout from '@/components/tools/ToolActiveLayout'
+import AppShell from '@frontend/shared/layouts/AppShell'
+import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { useState } from 'react'
-import CropTool from '@/components/tools/recorte/CropTool'
-import CutoutTool from '@/components/tools/recorte/CutoutTool'
+import CropTool from '@frontend/features/tools/recorte/CropTool'
+import CutoutTool from '@frontend/features/tools/recorte/CutoutTool'
 
 export default function RecortePage() {
   const [tab, setTab] = useState<'crop' | 'cutout'>('crop')
