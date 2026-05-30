@@ -32,7 +32,7 @@ export default function LoginPage() {
         push('/')
         refresh()
       }
-    } catch (err: any) {
+    } catch {
       setError(t('auth.unexpectedError'))
     } finally {
       setLoading(false)

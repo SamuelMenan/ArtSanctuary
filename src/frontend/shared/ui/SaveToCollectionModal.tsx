@@ -1,11 +1,12 @@
 'use client';
 
+import type { Collection } from '@shared/lib/types';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 
-export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatusChange }: any) {
-  const [collections, setCollections] = useState<any[]>([]);
+export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatusChange }: { artworkId: string; onClose: () => void; onSavedStatusChange?: (saved: boolean) => void }) {
+  const [collections, setCollections] = useState<Collection[]>([]);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
     setLoading(false);
   };
 
-  const handleCreate = async (e: any) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCollectionName.trim()) return;
     const res = await fetch('/api/collections', {
@@ -38,7 +39,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
     }
   };
 
-  const handleToggle = async (collection: any) => {
+  const handleToggle = async (collection: Collection) => {
     setSavingId(collection._id);
     const hasArtwork = collection.artworks?.includes(artworkId);
     

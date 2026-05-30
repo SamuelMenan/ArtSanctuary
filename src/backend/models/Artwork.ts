@@ -68,7 +68,7 @@ export interface IArtwork extends Document {
   views?: number;
   viewedBy?: Types.ObjectId[];
   savedBy?: Types.ObjectId[];
-  comments?: any[]; // Podría ser una subcolección, pero usamos array simple por ahora
+  comments?: unknown[]; // Podría ser una subcolección, pero usamos array simple por ahora
 
   createdAt: Date;
   updatedAt: Date;

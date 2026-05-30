@@ -22,7 +22,7 @@ export default async function GalleryPage({
   const currentCategory = typeof resolvedParams?.category === 'string' ? resolvedParams.category.toLowerCase() : 'todas';
 
   // Configurar filtro de MongoDB
-  const filter: any = { visibility: 'public' };
+  const filter: Record<string, unknown> = { visibility: 'public' };
   if (currentCategory !== 'todas') {
     filter.category = currentCategory;
   }

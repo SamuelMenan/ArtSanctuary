@@ -20,7 +20,7 @@ export default function Sidebar() {
   const { data: session } = useSession()
   const { t } = usePreferences()
   const { sidebarOpen } = useChrome()
-  const [collections, setCollections] = useState<any[]>([])
+  const [collections, setCollections] = useState<{ _id: string; name: string }[]>([])
 
   useEffect(() => {
     if (session?.user?.id) {

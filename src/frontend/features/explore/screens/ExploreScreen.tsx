@@ -8,6 +8,7 @@ import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid';
 import ArtworkModal from '@frontend/shared/ui/ArtworkModal';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { getCategoryLabel } from '@shared/i18n';
+import type { Artwork } from '@shared/lib/types';
 
 function ExploreContent() {
   const { push } = useRouter();
@@ -22,8 +23,12 @@ function ExploreContent() {
   const [tags, setTags] = useState(searchParams.get('tags') || '');
 
   // Estados de Datos
-  const [results, setResults] = useState<any[]>([]);
-  const [trendingData, setTrendingData] = useState<any>(null);
+  const [results, setResults] = useState<Artwork[]>([]);
+  const [trendingData, setTrendingData] = useState<{
+    categories: { _id?: string; name: string; count?: number }[]
+    trendingTags: string[]
+    recentArtworks: Artwork[]
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const initialLoadingRef = useRef(true);
 
@@ -232,7 +237,7 @@ function ExploreContent() {
                   {t('explore.disciplines')}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {trendingData.categories.map((cat: any) => (
+                  {trendingData.categories.map((cat) => (
                     <button 
                       key={cat.name} 
                       onClick={() => { setCategory(cat.name); window.scrollTo({ top: 0 }); }}
@@ -252,14 +257,14 @@ function ExploreContent() {
                     {t('explore.recentRecords')}
                   </h2>
                   <div className="flex overflow-x-auto gap-4 pb-4 snap-x">
-                    {trendingData.recentArtworks.map((art: any) => (
+                    {trendingData.recentArtworks.map((art) => (
                       <div 
                         key={art._id.toString()} 
                         onClick={() => setDirectArtworkOpen(art._id.toString())}
                         className="snap-start shrink-0 w-64 group cursor-pointer relative"
                       >
                         <div className="aspect-square bg-[var(--color-surface-container-low)] overflow-hidden rounded-sm border border-[var(--color-outline-variant)] group-hover:border-[var(--color-primary)] transition-colors">
-                           <Image src={art.imageUrl} alt={art.title} width={256} height={256} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                           <Image src={art.imageUrl} alt={art.title || ''} width={256} height={256} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
                         </div>
                         <div className="mt-3">
                           <h3 className="font-sans font-semibold text-sm text-[var(--color-primary)] truncate">{art.title}</h3>

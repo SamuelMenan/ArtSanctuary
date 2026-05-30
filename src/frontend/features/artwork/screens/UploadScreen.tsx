@@ -102,7 +102,7 @@ export default function UploadArtworkPage() {
       suggestions.forEach(s => {
         if (!acceptedFields[s.field]) return;
         if (s.field in next) {
-          (next as any)[s.field] = s.value;
+          (next as Record<string, unknown>)[s.field] = s.value;
         }
       });
       return next;
@@ -175,6 +175,7 @@ export default function UploadArtworkPage() {
 
       router.push('/profile');
       router.refresh();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message);
     } finally {

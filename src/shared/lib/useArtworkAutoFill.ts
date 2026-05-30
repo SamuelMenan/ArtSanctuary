@@ -44,6 +44,7 @@ const TAG_PRESETS: Record<ArtworkCategory, string[]> = {
   otro: [],
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- EXIF: esquema externo dinámico
 export function inferCategoryFromExif(exif: any, fileName: string): ArtworkCategory | null {
   if (exif?.Make || exif?.Model || exif?.LensModel || exif?.FNumber || exif?.ISOSpeedRatings) {
     return 'fotografia';
@@ -64,6 +65,7 @@ function formatExifDate(d: Date | string | undefined): string | null {
 }
 
 export function buildSuggestions(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- EXIF dinámico
   exif: any,
   category: ArtworkCategory,
   fileName: string,
@@ -124,7 +126,7 @@ export function getPresets(category: ArtworkCategory) {
 }
 
 export function useArtworkAutoFill(file: File | null, category: ArtworkCategory): AutoFillResult {
-  const [exifData, setExifData] = useState<any>(null);
+  const [exifData, setExifData] = useState<Record<string, unknown> | null>(null);
   const [imageDims, setImageDims] = useState<{ width: number; height: number } | undefined>();
   const [inferredCategory, setInferredCategory] = useState<ArtworkCategory | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

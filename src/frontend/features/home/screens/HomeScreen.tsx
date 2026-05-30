@@ -20,7 +20,7 @@ export default async function HomePage() {
   return <PublicHome />;
 }
 
-async function DashboardHome({ user }: { user: any }) {
+async function DashboardHome({ user }: { user: { id: string; name?: string | null } }) {
   const locale = await getRequestLocale();
   const t = createTranslator(getDictionary(locale));
   await connectDB();

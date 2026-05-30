@@ -8,6 +8,17 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { useChrome } from './ChromeProvider'
 import { type Locale, type ThemeMode } from '@shared/i18n'
 
+interface AppNotification {
+  _id: string
+  type: 'like' | 'comment' | 'save' | 'follow' | string
+  read?: boolean
+  message?: string
+  origin?: string
+  createdAt: string
+  actorId?: { _id?: string; displayName?: string; username?: string } | null
+  artworkId?: { _id?: string; title?: string } | null
+}
+
 export default function Navbar() {
   const { data: session, status } = useSession()
   const { locale, theme, setLocale, setTheme, t } = usePreferences()
@@ -15,7 +26,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
 
   const pathname = usePathname()
@@ -87,7 +98,7 @@ export default function Navbar() {
     }
   };
 
-  const handleNotifClick = async (n: any) => {
+  const handleNotifClick = async (n: AppNotification) => {
     if (!n.read) {
       try {
         const endpoint = typeof window === 'undefined'
