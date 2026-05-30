@@ -18,7 +18,7 @@ import {
 
 type Slot = { hex: string; name: string; weight: number }
 
-export default function MezclaPage() {
+export default function ColorMixScreen() {
   const { locale } = usePreferences()
   const L = locale === 'es'
     ? {

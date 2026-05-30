@@ -1,1 +1,1 @@
-export { default } from '@frontend/features/tools/recorte/screens/RecorteScreen'
+export { default } from '@frontend/features/tools/recorte/screens/CropScreen'

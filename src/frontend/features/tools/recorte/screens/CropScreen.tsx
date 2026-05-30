@@ -6,7 +6,7 @@ import { useState } from 'react'
 import CropTool from '@frontend/features/tools/recorte/CropTool'
 import CutoutTool from '@frontend/features/tools/recorte/CutoutTool'
 
-export default function RecortePage() {
+export default function CropScreen() {
   const [tab, setTab] = useState<'crop' | 'cutout'>('crop')
 
   const tabClass = (active: boolean) =>

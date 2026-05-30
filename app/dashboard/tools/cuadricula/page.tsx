@@ -1,1 +1,1 @@
-export { default } from '@frontend/features/tools/cuadricula/screens/CuadriculaScreen'
+export { default } from '@frontend/features/tools/cuadricula/screens/ReferenceGridScreen'

@@ -19,7 +19,7 @@ function colLabel(n: number): string {
   return s
 }
 
-export default function CuadriculaPage() {
+export default function ReferenceGridScreen() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imgNatural, setImgNatural] = useState({ w: 4, h: 3 })
 

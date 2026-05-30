@@ -1,1 +1,1 @@
-export { default } from '@frontend/features/tools/mezcla/screens/MezclaScreen'
+export { default } from '@frontend/features/tools/mezcla/screens/ColorMixScreen'
