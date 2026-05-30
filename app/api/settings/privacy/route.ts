@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { requireUser } from "@backend/auth/requireUser";
-import { apiError, apiOk } from "@/lib/api/errors";
-import { validatePrivacy } from "@/lib/validation/settings";
+import { apiError, apiOk } from "@backend/http/errors";
+import { validatePrivacy } from "@shared/lib/validation/settings";
 
 export async function PATCH(req: NextRequest) {
   const r = await requireUser();

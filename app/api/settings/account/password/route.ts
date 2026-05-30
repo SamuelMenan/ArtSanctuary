@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { requireUser } from "@backend/auth/requireUser";
-import { apiError, apiOk } from "@/lib/api/errors";
-import { validatePassword } from "@/lib/validation/settings";
+import { apiError, apiOk } from "@backend/http/errors";
+import { validatePassword } from "@shared/lib/validation/settings";
 
 export async function PATCH(req: NextRequest) {
   const r = await requireUser({ withPassword: true });

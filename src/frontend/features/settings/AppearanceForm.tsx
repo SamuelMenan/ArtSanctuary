@@ -1,7 +1,7 @@
 'use client'
 
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
-import type { Locale, ThemeMode } from '@/lib/i18n'
+import type { Locale, ThemeMode } from '@shared/i18n'
 
 const labelCls =
   'font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-on-surface-variant)]'

@@ -1,5 +1,5 @@
 import { requireUser } from "@backend/auth/requireUser";
-import { apiOk } from "@/lib/api/errors";
+import { apiOk } from "@backend/http/errors";
 
 // Estrategia JWT: rotamos tokenVersion. El callback de NextAuth debe rechazar
 // tokens cuyo `tv` no coincida con el actual del usuario.

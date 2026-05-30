@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
-import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@/lib/image/canvas'
-import { computeContentBounds } from '@/lib/image/autocrop'
-import { floodErase } from '@/lib/image/floodfill'
-import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
-import { cmOf } from '@/lib/measure'
+import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
+import { computeContentBounds } from '@shared/lib/image/autocrop'
+import { floodErase } from '@shared/lib/image/floodfill'
+import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
+import { cmOf } from '@shared/lib/measure'
 
 export default function CutoutTool() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)

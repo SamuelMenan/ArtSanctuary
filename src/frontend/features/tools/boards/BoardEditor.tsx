@@ -7,8 +7,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { cmOf, pxOf } from '@/lib/measure'
-import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
+import { cmOf, pxOf } from '@shared/lib/measure'
+import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { Stage, Layer, Line, Image as KonvaImage, Text as KonvaText, Rect, Ellipse, Arrow, Group, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
@@ -20,7 +20,7 @@ import {
   BOARD_FONTS,
   DEFAULT_FONT,
   konvaFontStyle,
-} from '@/lib/boards/types'
+} from '@shared/lib/boards/types'
 
 const uid = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto

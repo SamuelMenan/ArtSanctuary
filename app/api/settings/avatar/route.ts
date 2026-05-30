@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { requireUser } from "@backend/auth/requireUser";
-import { apiError, apiOk } from "@/lib/api/errors";
+import { apiError, apiOk } from "@backend/http/errors";
 import {
   AVATAR_ALLOWED_MIME,
   AVATAR_MAX_BYTES,

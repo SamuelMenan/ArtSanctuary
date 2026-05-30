@@ -6,7 +6,7 @@ import { connectDB } from "@backend/db/mongoose";
 import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";
 import ArtworkGrid from "@frontend/shared/ui/ArtworkGrid";
-import { createTranslator, getCategoryLabel, getDictionary } from "@/lib/i18n";
+import { createTranslator, getCategoryLabel, getDictionary } from "@shared/i18n";
 import { getRequestLocale } from "@backend/requestPreferences";
 import UploadButton from '@frontend/shared/ui/UploadButton';
 

@@ -5,7 +5,7 @@ import Providers from '@frontend/shared/providers/Providers'
 import { auth } from '@backend/auth'
 import { connectDB } from '@backend/db/mongoose'
 import { getRequestLocale, getRequestTheme } from '@backend/requestPreferences'
-import { normalizeLocale, normalizeTheme } from '@/lib/i18n'
+import { normalizeLocale, normalizeTheme } from '@shared/i18n'
 import User from '@backend/models/User'
 
 const manrope = Manrope({

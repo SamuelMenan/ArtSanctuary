@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { requireUser } from "@backend/auth/requireUser";
-import { apiError, apiOk } from "@/lib/api/errors";
+import { apiError, apiOk } from "@backend/http/errors";
 
 export async function POST(req: NextRequest) {
   const r = await requireUser({ withPassword: true });

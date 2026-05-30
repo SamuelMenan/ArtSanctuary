@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
-import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@/lib/image/canvas'
-import { computeContentBounds, padBounds, type Bounds } from '@/lib/image/autocrop'
-import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
-import { cmOf } from '@/lib/measure'
+import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
+import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/autocrop'
+import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
+import { cmOf } from '@shared/lib/measure'
 
 type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se' | null
 

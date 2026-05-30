@@ -4,7 +4,7 @@ import AppShell from '@frontend/shared/layouts/AppShell'
 import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useMemo, useState } from 'react'
-import { MEDIUMS, getMedium } from '@/lib/mediums'
+import { MEDIUMS, getMedium } from '@shared/lib/mediums'
 import {
   mixColors,
   hexToRgb,
@@ -14,7 +14,7 @@ import {
   rgbToLab,
   isMuddy,
   type Pigment,
-} from '@/lib/colorMix'
+} from '@shared/lib/colorMix'
 
 type Slot = { hex: string; name: string; weight: number }
 

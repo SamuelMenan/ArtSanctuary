@@ -2,7 +2,7 @@ import "server-only";
 import { auth } from "@backend/auth";
 import { connectDB } from "@backend/db/mongoose";
 import User, { IUser } from "@backend/models/User";
-import { apiError } from '@/lib/api/errors';
+import { apiError } from '@backend/http/errors';
 
 export type AuthResult =
   | { ok: true; user: IUser }

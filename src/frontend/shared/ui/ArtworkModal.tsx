@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import SaveToCollectionModal from './SaveToCollectionModal';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
-import { getCategoryLabel, getVisibilityLabel } from '@/lib/i18n';
+import { getCategoryLabel, getVisibilityLabel } from '@shared/i18n';
 
 interface ArtworkModalProps {
   artworkId: string;

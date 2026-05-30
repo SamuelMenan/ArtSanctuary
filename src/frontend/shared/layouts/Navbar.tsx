@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from './ChromeProvider'
-import { type Locale, type ThemeMode } from '@/lib/i18n'
+import { type Locale, type ThemeMode } from '@shared/i18n'
 
 export default function Navbar() {
   const { data: session, status } = useSession()

@@ -3,7 +3,7 @@
 import { SessionProvider } from 'next-auth/react';
 import { ReactNode } from 'react';
 import AppPreferencesProvider from './AppPreferencesProvider';
-import type { Locale, ThemeMode } from '@/lib/i18n';
+import type { Locale, ThemeMode } from '@shared/i18n';
 
 export default function Providers({
   children,

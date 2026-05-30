@@ -10,7 +10,7 @@ import {
   getPresets,
   type ArtworkCategory,
   type Suggestion,
-} from '@/lib/useArtworkAutoFill';
+} from '@shared/lib/useArtworkAutoFill';
 
 type DateType = 'exact' | 'year' | 'monthyear' | 'range' | 'approx';
 

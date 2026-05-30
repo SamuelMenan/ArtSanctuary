@@ -77,4 +77,4 @@ export type BoardData = {
 }
 
 // 96 dpi: 1 cm ≈ 37.795 px (mundo). Fuente única en lib/measure.
-export { PX_PER_CM } from '@/lib/measure'
+export { PX_PER_CM } from '@shared/lib/measure'

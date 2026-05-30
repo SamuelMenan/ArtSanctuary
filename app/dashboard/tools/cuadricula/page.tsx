@@ -5,7 +5,7 @@ import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { setHandoff, takeHandoff } from '@/lib/tools/handoff'
+import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 
 // Etiqueta de columna estilo hoja de cálculo: 0->A, 25->Z, 26->AA…
 function colLabel(n: number): string {

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { connectDB } from "@backend/db/mongoose";
 import { requireUser } from "@backend/auth/requireUser";
-import { apiError, apiOk } from "@/lib/api/errors";
+import { apiError, apiOk } from "@backend/http/errors";
 import { deleteAvatarFile } from "@backend/upload/avatar";
 import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";

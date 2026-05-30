@@ -15,7 +15,7 @@ import {
   type Locale,
   type ResolvedTheme,
   type ThemeMode,
-} from '@/lib/i18n'
+} from '@shared/i18n'
 
 type PreferencesContextValue = {
   locale: Locale

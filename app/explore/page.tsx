@@ -7,7 +7,7 @@ import AppShell from '@frontend/shared/layouts/AppShell';
 import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid';
 import ArtworkModal from '@frontend/shared/ui/ArtworkModal';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
-import { getCategoryLabel } from '@/lib/i18n';
+import { getCategoryLabel } from '@shared/i18n';
 
 function ExploreContent() {
   const { push } = useRouter();
