@@ -4,16 +4,18 @@ import { ReactNode, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { usePreferences } from '../AppPreferencesProvider'
+import { useChrome } from '../layout/ChromeProvider'
 
 export default function ToolActiveLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const { locale } = usePreferences()
+  const { navbarOpen } = useChrome()
   const [navOpen, setNavOpen] = useState(true)
 
   const toolLabels = {
     es: {
       title: 'HERRAMIENTAS',
-      paper: 'PAPEL MILIMETRADO',
+      boards: 'BOARDS',
       grid: 'CUADRÍCULA DE REFERENCIA',
       notan: 'NOTAN',
       mix: 'MEZCLA DE COLORES',
@@ -22,7 +24,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
     },
     en: {
       title: 'TOOLS',
-      paper: 'GRAPH PAPER',
+      boards: 'BOARDS',
       grid: 'REFERENCE GRID',
       notan: 'NOTAN',
       mix: 'COLOR MIXING',
@@ -32,7 +34,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
   }[locale]
 
   const tools = [
-    { title: toolLabels.paper, href: '/dashboard/tools/papel-milimetrado' },
+    { title: toolLabels.boards, href: '/dashboard/boards' },
     { title: toolLabels.grid, href: '/dashboard/tools/cuadricula' },
     { title: toolLabels.notan, href: '/dashboard/tools/notan' },
     { title: toolLabels.mix, href: '/dashboard/tools/mezcla' },
@@ -41,7 +43,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
   ]
 
   return (
-    <div className="flex-1 flex overflow-hidden -m-[var(--spacing-container-padding)] h-[calc(100vh-64px)]">
+    <div className={`flex-1 flex overflow-hidden -m-[var(--spacing-container-padding)] ${navbarOpen ? 'h-[calc(100vh-64px)]' : 'h-screen'}`}>
       {/* Left Mini-Sidebar (Tool Navigation) */}
       <aside
         className={`hidden lg:flex bg-[var(--color-surface-container-lowest)] border-r border-[var(--color-outline-variant)] flex-col overflow-hidden z-10 shrink-0 transition-[width] duration-300 ease-in-out ${

@@ -69,9 +69,9 @@ async function DashboardHome({ user }: { user: any }) {
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Link href="/dashboard/tools/papel-milimetrado" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
-              <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">grid_4x4</span>
-              <span className="font-sans text-sm text-[var(--color-on-surface)]">{t('home.tools.grid')}</span>
+            <Link href="/dashboard/boards" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
+              <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">dashboard</span>
+              <span className="font-sans text-sm text-[var(--color-on-surface)]">{t('home.tools.boards')}</span>
             </Link>
             <Link href="/dashboard/tools/notan" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
               <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">contrast</span>
@@ -287,8 +287,8 @@ async function PublicHome() {
               </h3>
               <p className="font-sans text-[var(--color-on-surface-variant)] leading-relaxed">
                 {locale === 'en'
-                  ? 'Graph paper, reference grids, Notan, color mixing, and Gesture Drawing: everything in your browser, without leaving ArtSanctuary.'
-                  : 'Papel milimetrado, cuadrícula de referencia, Notan, mezcla de colores y Gesture Drawing: todo en tu navegador, sin salir de ArtSanctuary.'}
+                  ? 'Boards, reference grids, Notan, color mixing, and Gesture Drawing: everything in your browser, without leaving ArtSanctuary.'
+                  : 'Boards, cuadrícula de referencia, Notan, mezcla de colores y Gesture Drawing: todo en tu navegador, sin salir de ArtSanctuary.'}
               </p>
             </div>
           </div>

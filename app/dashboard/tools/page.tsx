@@ -6,11 +6,11 @@ import Link from 'next/link'
 export default function ToolsDashboardPage() {
   const tools = [
     {
-      title: 'Papel Milimetrado',
-      desc: 'Genera cuadrículas milimétricas para precisión anatómica.',
-      icon: 'grid_on',
+      title: 'Boards',
+      desc: 'Lienzo infinito tipo Miro: imágenes, texto y figuras sobre papel milimetrado. Guarda tus tableros por cuenta.',
+      icon: 'dashboard',
       badge: 'FREE',
-      href: '/dashboard/tools/papel-milimetrado'
+      href: '/dashboard/boards'
     },
     {
       title: 'Cuadrícula de Referencia',

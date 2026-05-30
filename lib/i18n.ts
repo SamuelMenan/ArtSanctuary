@@ -72,7 +72,7 @@ const messages = {
       tools: {
         canon: 'Proporciones',
         gesture: 'Dibujo gestual',
-        grid: 'Papel milimetrado',
+        boards: 'Boards',
         mix: 'Mezcla',
         notan: 'Notan',
       },
@@ -407,7 +407,7 @@ const messages = {
       tools: {
         canon: 'Proportions',
         gesture: 'Gesture drawing',
-        grid: 'Graph paper',
+        boards: 'Boards',
         mix: 'Mixing',
         notan: 'Notan',
       },
