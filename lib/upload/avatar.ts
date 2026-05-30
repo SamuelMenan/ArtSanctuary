@@ -1,6 +1,5 @@
-import { promises as fs } from "fs";
-import path from "path";
 import crypto from "crypto";
+import { put, del } from "@vercel/blob";
 
 export const AVATAR_MAX_BYTES = 3 * 1024 * 1024; // 3MB
 export const AVATAR_ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -12,7 +11,7 @@ const EXT_BY_MIME: Record<string, string> = {
 };
 
 export type SaveAvatarResult =
-  | { ok: true; url: string; absolutePath: string }
+  | { ok: true; url: string }
   | { ok: false; code: "UNSUPPORTED_MEDIA_TYPE" | "PAYLOAD_TOO_LARGE"; message: string };
 
 export async function saveAvatar(
@@ -35,29 +34,23 @@ export async function saveAvatar(
   }
 
   const ext = EXT_BY_MIME[file.type];
-  const dir = path.join(process.cwd(), "public", "uploads", "avatars");
-  await fs.mkdir(dir, { recursive: true });
-
   const random = crypto.randomBytes(6).toString("hex");
-  const filename = `${userId}-${Date.now()}-${random}.${ext}`;
-  const absolutePath = path.join(dir, filename);
+  const key = `uploads/avatars/${userId}-${Date.now()}-${random}.${ext}`;
 
   const buf = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(absolutePath, buf);
+  const blob = await put(key, buf, {
+    access: "public",
+    contentType: file.type,
+  });
 
-  return {
-    ok: true,
-    url: `/uploads/avatars/${filename}`,
-    absolutePath,
-  };
+  return { ok: true, url: blob.url };
 }
 
 export async function deleteAvatarFile(avatarUrl: string): Promise<void> {
-  if (!avatarUrl.startsWith("/uploads/avatars/")) return;
-  const absolutePath = path.join(process.cwd(), "public", avatarUrl);
+  if (!avatarUrl) return;
   try {
-    await fs.unlink(absolutePath);
+    await del(avatarUrl);
   } catch {
-    // file gone or never existed — ignore
+    // blob gone or never existed — ignore
   }
 }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 import crypto from 'crypto';
+
+export const runtime = 'nodejs';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -40,17 +41,16 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const ext = EXT_BY_MIME[file.type] || 'bin';
     const hash = crypto.createHash('sha1').update(buffer).digest('hex').slice(0, 12);
-    const filename = `${session.user.id}-${Date.now()}-${hash}.${ext}`;
+    const key = `uploads/${session.user.id}-${Date.now()}-${hash}.${ext}`;
 
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadsDir, { recursive: true });
-    await writeFile(path.join(uploadsDir, filename), buffer);
-
-    const imageUrl = `/uploads/${filename}`;
+    const blob = await put(key, buffer, {
+      access: 'public',
+      contentType: file.type,
+    });
 
     return NextResponse.json({
       success: true,
-      imageUrl,
+      imageUrl: blob.url,
       filename: file.name,
       size: file.size,
       type: file.type,
