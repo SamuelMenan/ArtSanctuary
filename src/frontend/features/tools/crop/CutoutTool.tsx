@@ -31,7 +31,7 @@ export default function CutoutTool() {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('handoff') !== '1') return
-    window.history.replaceState(null, '', '/dashboard/tools/recorte')
+    window.history.replaceState(null, '', '/dashboard/tools/crop')
     const p = takeHandoff()
     if (!p) return
     if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId }
@@ -161,7 +161,7 @@ export default function CutoutTool() {
   }
 
   // Enviar el resultado a otra herramienta conservando el tamaño (cm).
-  const sendTo = async (dest: 'boards' | 'cuadricula' | 'back') => {
+  const sendTo = async (dest: 'boards' | 'grid' | 'back') => {
     const w = work.current
     if (!w) return
     setBusy(true)
@@ -172,16 +172,16 @@ export default function CutoutTool() {
       const widthCm = cmOf(w.width)
       const heightCm = cmOf(w.height)
       if (dest === 'back' && back.current?.boardId) {
-        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'recorte', boardId: back.current.boardId, objectId: back.current.objectId })
+        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
         router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
-      } else if (dest === 'cuadricula') {
-        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'recorte' })
-        router.push('/dashboard/tools/cuadricula?handoff=1')
+      } else if (dest === 'grid') {
+        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
+        router.push('/dashboard/tools/grid?handoff=1')
       } else {
         const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Desde recorte' }) })
         if (!res.ok) throw new Error()
         const { board } = await res.json()
-        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'recorte' })
+        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
         router.push(`/dashboard/boards/${board._id}?handoff=1`)
       }
     } catch {
@@ -236,7 +236,7 @@ export default function CutoutTool() {
                 BOARDS
               </button>
             )}
-            <button onClick={() => sendTo('cuadricula')} disabled={busy} className={ctrlBtn} title="Enviar a Cuadrícula">
+            <button onClick={() => sendTo('grid')} disabled={busy} className={ctrlBtn} title="Enviar a Cuadrícula">
               <span className="material-symbols-outlined text-[18px]">grid_on</span>
             </button>
             <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">

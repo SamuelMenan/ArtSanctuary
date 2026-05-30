@@ -2,7 +2,7 @@
 // size. Images are persistent URLs (/api/upload), so sessionStorage + a URL
 // flag (?handoff=1) is enough.
 
-export type ToolSource = 'cuadricula' | 'recorte' | 'boards' | 'upload'
+export type ToolSource = 'grid' | 'crop' | 'boards' | 'upload'
 
 export interface PhysicalImage {
   imageUrl: string // persistent URL (Blob or /storage)

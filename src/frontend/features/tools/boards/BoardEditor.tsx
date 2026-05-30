@@ -662,7 +662,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   // Selección simple (los paneles de formato solo aplican a un objeto).
   const selectedId = selectedIds.length === 1 ? selectedIds[0] : null
   // Enviar el objeto imagen seleccionado a otra herramienta (round-trip).
-  const editIn = (tool: 'recorte' | 'cuadricula') => {
+  const editIn = (tool: 'crop' | 'grid') => {
     const o = selectedId ? objects.find((x) => x.id === selectedId) : null
     if (!o || o.type !== 'image' || !o.src) return
     setHandoff({
@@ -924,10 +924,10 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {!readOnly && selectedObj?.type === 'image' && (
           <>
             <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
-            <button onClick={() => editIn('recorte')} className={iconBtn} title="Editar en Recorte / Quitar fondo">
+            <button onClick={() => editIn('crop')} className={iconBtn} title="Editar en Recorte / Quitar fondo">
               <span className="material-symbols-outlined text-[20px]">crop</span>
             </button>
-            <button onClick={() => editIn('cuadricula')} className={iconBtn} title="Medir en Cuadrícula">
+            <button onClick={() => editIn('grid')} className={iconBtn} title="Medir en Cuadrícula">
               <span className="material-symbols-outlined text-[20px]">grid_on</span>
             </button>
           </>

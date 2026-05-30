@@ -17,14 +17,14 @@ export default function ToolsDashboardPage() {
       desc: 'Recorta imágenes (manual y automático) y quita el fondo (IA o varita mágica). Exporta PNG.',
       icon: 'crop',
       badge: 'FREE',
-      href: '/dashboard/tools/recorte'
+      href: '/dashboard/tools/crop'
     },
     {
       title: 'Cuadrícula de Referencia',
       desc: 'Superpone una rejilla sobre tus imágenes de referencia.',
       icon: 'select_all',
       badge: 'FREE',
-      href: '/dashboard/tools/cuadricula'
+      href: '/dashboard/tools/grid'
     },
     {
       title: 'Notan',
@@ -38,7 +38,7 @@ export default function ToolsDashboardPage() {
       desc: 'Experimenta con mezclas digitales de pigmentos tradicionales.',
       icon: 'palette',
       badge: 'FREE',
-      href: '/dashboard/tools/mezcla'
+      href: '/dashboard/tools/color-mixing'
     },
     {
       title: 'Gesture Drawing',

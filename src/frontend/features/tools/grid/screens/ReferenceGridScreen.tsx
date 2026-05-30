@@ -50,7 +50,7 @@ export default function ReferenceGridScreen() {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('handoff') !== '1') return
-    window.history.replaceState(null, '', '/dashboard/tools/cuadricula')
+    window.history.replaceState(null, '', '/dashboard/tools/grid')
     const p = takeHandoff()
     if (!p) return
     if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId }
@@ -216,7 +216,7 @@ export default function ReferenceGridScreen() {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = url
-          a.download = 'cuadricula.png'
+          a.download = 'grid.png'
           a.click()
           URL.revokeObjectURL(url)
         }, 'image/png')
@@ -234,7 +234,7 @@ export default function ReferenceGridScreen() {
     setSending(true)
     setExportWarning(null)
     try {
-      const payload = { imageUrl, widthCm: refW, heightCm: refH, squareCm, source: 'cuadricula' as const }
+      const payload = { imageUrl, widthCm: refW, heightCm: refH, squareCm, source: 'grid' as const }
       if (back.current?.boardId) {
         setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId })
         router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)

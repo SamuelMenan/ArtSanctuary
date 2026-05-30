@@ -77,7 +77,7 @@ async function DashboardHome({ user }: { user: { id: string; name?: string | nul
               <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">contrast</span>
               <span className="font-sans text-sm text-[var(--color-on-surface)]">{t('home.tools.notan')}</span>
             </Link>
-            <Link href="/dashboard/tools/mezcla" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
+            <Link href="/dashboard/tools/color-mixing" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
               <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">palette</span>
               <span className="font-sans text-sm text-[var(--color-on-surface)]">{t('home.tools.mix')}</span>
             </Link>

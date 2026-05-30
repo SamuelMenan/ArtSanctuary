@@ -3,8 +3,8 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { useState } from 'react'
-import CropTool from '@frontend/features/tools/recorte/CropTool'
-import CutoutTool from '@frontend/features/tools/recorte/CutoutTool'
+import CropTool from '@frontend/features/tools/crop/CropTool'
+import CutoutTool from '@frontend/features/tools/crop/CutoutTool'
 
 export default function CropScreen() {
   const [tab, setTab] = useState<'crop' | 'cutout'>('crop')
