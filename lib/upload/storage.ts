@@ -26,8 +26,8 @@ export async function saveImage(
     return blob.url;
   }
 
-  // Fallback local: public/<key>
-  const abs = path.join(process.cwd(), "public", key);
+  // Fallback local: storage/<key>
+  const abs = path.join(process.cwd(), "storage", key);
   await mkdir(path.dirname(abs), { recursive: true });
   await writeFile(abs, buffer);
   return `/${key}`;
@@ -46,7 +46,7 @@ export async function deleteImage(url: string): Promise<void> {
       return;
     }
     // Ruta local /uploads/...
-    const abs = path.join(process.cwd(), "public", url.replace(/^\//, ""));
+    const abs = path.join(process.cwd(), "storage", url.replace(/^\//, ""));
     await unlink(abs);
   } catch {
     // ya no existe o no se puede borrar — ignorar

@@ -43,6 +43,8 @@ next-env.d.ts
 
 # user uploads (local dev — producción debe usar storage externo)
 /public/uploads
+/storage
+/app/uploads
 
 # editor / tool configs (personal)
 /.vscode
