@@ -16,6 +16,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
     es: {
       title: 'HERRAMIENTAS',
       boards: 'BOARDS',
+      recorte: 'RECORTE',
       grid: 'CUADRÍCULA DE REFERENCIA',
       notan: 'NOTAN',
       mix: 'MEZCLA DE COLORES',
@@ -25,6 +26,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
     en: {
       title: 'TOOLS',
       boards: 'BOARDS',
+      recorte: 'CROP',
       grid: 'REFERENCE GRID',
       notan: 'NOTAN',
       mix: 'COLOR MIXING',
@@ -35,6 +37,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
 
   const tools = [
     { title: toolLabels.boards, href: '/dashboard/boards' },
+    { title: toolLabels.recorte, href: '/dashboard/tools/recorte' },
     { title: toolLabels.grid, href: '/dashboard/tools/cuadricula' },
     { title: toolLabels.notan, href: '/dashboard/tools/notan' },
     { title: toolLabels.mix, href: '/dashboard/tools/mezcla' },

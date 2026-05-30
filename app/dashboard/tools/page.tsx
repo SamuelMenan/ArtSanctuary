@@ -13,6 +13,13 @@ export default function ToolsDashboardPage() {
       href: '/dashboard/boards'
     },
     {
+      title: 'Recorte',
+      desc: 'Recorta imágenes (manual y automático) y quita el fondo (IA o varita mágica). Exporta PNG.',
+      icon: 'crop',
+      badge: 'FREE',
+      href: '/dashboard/tools/recorte'
+    },
+    {
       title: 'Cuadrícula de Referencia',
       desc: 'Superpone una rejilla sobre tus imágenes de referencia.',
       icon: 'select_all',
