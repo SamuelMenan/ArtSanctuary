@@ -174,9 +174,9 @@ function labToRgb({ l, a, b }: LAB): RGB {
   }
   x = 95.047 * f(x); y = 100 * f(y); z = 108.883 * f(z)
   const xn = x / 100, yn = y / 100, zn = z / 100
-  let R = xn * 3.2406 + yn * -1.5372 + zn * -0.4986
-  let G = xn * -0.9689 + yn * 1.8758 + zn * 0.0415
-  let B = xn * 0.0557 + yn * -0.2040 + zn * 1.0570
+  const R = xn * 3.2406 + yn * -1.5372 + zn * -0.4986
+  const G = xn * -0.9689 + yn * 1.8758 + zn * 0.0415
+  const B = xn * 0.0557 + yn * -0.2040 + zn * 1.0570
   const g = (v: number) => (v > 0.0031308 ? 1.055 * Math.pow(v, 1 / 2.4) - 0.055 : 12.92 * v)
   return {
     r: Math.max(0, Math.min(255, g(R) * 255)),

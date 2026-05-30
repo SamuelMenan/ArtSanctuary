@@ -167,7 +167,7 @@ function ExploreContent() {
         {/* CHIPS DE FILTROS ACTIVOS */}
         {hasActiveSearch && (
           <div className="flex flex-wrap gap-2 mt-4">
-            {query && <span className="inline-flex items-center gap-1 bg-[var(--color-surface-container)] px-3 py-1 rounded-full text-xs font-mono border border-[var(--color-outline-variant)] text-[var(--color-primary)]">"{query}"</span>}
+            {query && <span className="inline-flex items-center gap-1 bg-[var(--color-surface-container)] px-3 py-1 rounded-full text-xs font-mono border border-[var(--color-outline-variant)] text-[var(--color-primary)]">&quot;{query}&quot;</span>}
             {category !== 'todas' && <span className="inline-flex items-center gap-1 bg-[var(--color-surface-container)] px-3 py-1 rounded-full text-xs font-mono border border-[var(--color-outline-variant)] text-[var(--color-primary)] uppercase">{getCategoryLabel(locale, category)}</span>}
             {technique && <span className="inline-flex items-center gap-1 bg-[var(--color-surface-container)] px-3 py-1 rounded-full text-xs font-mono border border-[var(--color-outline-variant)] text-[var(--color-primary)]">{t('explore.technique')}: {technique}</span>}
             {medium && <span className="inline-flex items-center gap-1 bg-[var(--color-surface-container)] px-3 py-1 rounded-full text-xs font-mono border border-[var(--color-outline-variant)] text-[var(--color-primary)]">{t('explore.medium')}: {medium}</span>}

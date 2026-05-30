@@ -197,7 +197,7 @@ export default function Navbar() {
                         <p className="font-sans text-xs text-[var(--color-primary)]">
                           <strong className="font-semibold">{n.actorId?.displayName || n.actorId?.username || 'Usuario'}</strong> 
                           {n.type === 'like' ? ' le dio me gusta a tu obra ' : n.type === 'comment' ? ' comentó en tu obra ' : n.type === 'save' ? ' guardó tu obra en una colección ' : ' te empezó a seguir '}
-                          {n.artworkId && <span className="italic">"{n.artworkId?.title}"</span>}
+                          {n.artworkId && <span className="italic">&quot;{n.artworkId?.title}&quot;</span>}
                         </p>
                         {n.message && (
                           <p className="font-sans text-[10px] text-[var(--color-on-surface-variant)] mt-1 truncate border-l border-[var(--color-outline-variant)] pl-2">{n.message}</p>
