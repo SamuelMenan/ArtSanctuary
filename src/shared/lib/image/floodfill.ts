@@ -1,10 +1,10 @@
-// Varita mágica: vuelve transparentes los píxeles contiguos similares al punto
-// de inicio (quitar fondo manual para fondos sólidos). Opera sobre ImageData.
+// Magic wand: makes contiguous pixels similar to the start point transparent
+// (manual background removal for solid backgrounds). Operates on ImageData.
 
 /**
- * Flood-fill de transparencia desde (sx, sy).
- * @param tolerance 0–255: cuánto puede diferir un píxel del color inicial.
- * Muta `imageData` (pone alpha = 0 en la región). Devuelve nº de píxeles tocados.
+ * Transparency flood-fill from (sx, sy).
+ * @param tolerance 0–255: how much a pixel may differ from the start color.
+ * Mutates `imageData` (sets alpha = 0 in the region). Returns pixels touched.
  */
 export function floodErase(
   imageData: ImageData,
@@ -30,13 +30,13 @@ export function floodErase(
     if (visited[p]) continue
     visited[p] = 1
     const i = p * 4
-    if (data[i + 3] === 0) continue // ya transparente
+    if (data[i + 3] === 0) continue // already transparent
     const dr = data[i] - r0
     const dg = data[i + 1] - g0
     const db = data[i + 2] - b0
     if (dr * dr + dg * dg + db * db > tol2) continue
 
-    data[i + 3] = 0 // borra (transparente)
+    data[i + 3] = 0 // erase (transparent)
     count++
 
     const x = p % w

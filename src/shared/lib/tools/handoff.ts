@@ -1,18 +1,18 @@
-// Transferencia de imágenes entre herramientas (Boards ↔ Cuadrícula ↔ Recorte)
-// conservando el tamaño físico. Las imágenes son URLs persistentes (/api/upload),
-// así que basta sessionStorage + un flag en la URL (?handoff=1).
+// Image transfer between tools (Boards ↔ Grid ↔ Crop) preserving the physical
+// size. Images are persistent URLs (/api/upload), so sessionStorage + a URL
+// flag (?handoff=1) is enough.
 
 export type ToolSource = 'cuadricula' | 'recorte' | 'boards' | 'upload'
 
 export interface PhysicalImage {
-  imageUrl: string // URL persistente (Blob o /storage)
+  imageUrl: string // persistent URL (Blob or /storage)
   widthCm: number
   heightCm: number
-  squareCm?: number // cuadro sugerido (de cuadrícula/board)
+  squareCm?: number // suggested grid square (from grid/board)
   source: ToolSource
-  // round-trip a Boards:
+  // round-trip back to Boards:
   boardId?: string
-  objectId?: string // objeto a reemplazar al volver
+  objectId?: string // object to replace on return
 }
 
 const KEY = 'tool-handoff'
@@ -21,11 +21,11 @@ export function setHandoff(p: PhysicalImage): void {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(p))
   } catch {
-    /* sessionStorage no disponible */
+    /* sessionStorage unavailable */
   }
 }
 
-/** Lee y consume (borra) el handoff pendiente. */
+/** Read and consume (clear) the pending handoff. */
 export function takeHandoff(): PhysicalImage | null {
   try {
     const s = sessionStorage.getItem(KEY)

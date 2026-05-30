@@ -1,5 +1,5 @@
-// Tipos compartidos del board en cliente. No importar el modelo Mongoose aquí
-// (arrastraría mongoose al bundle del navegador).
+// Shared client-side board types. Do not import the Mongoose model here
+// (it would pull mongoose into the browser bundle).
 
 export type BoardObjectType =
   | 'image'
@@ -19,7 +19,7 @@ export type BoardObject = {
   h: number
   rotation: number
   z: number
-  // específicos
+  // type-specific
   src?: string
   text?: string
   fontSize?: number
@@ -27,8 +27,8 @@ export type BoardObject = {
   bold?: boolean
   italic?: boolean
   underline?: boolean
-  color?: string // text: fill · sticky: fondo
-  textColor?: string // sticky: color del texto
+  color?: string // text: fill · sticky: background
+  textColor?: string // sticky: text color
   align?: 'left' | 'center' | 'right'
   fill?: string
   stroke?: string
@@ -36,7 +36,7 @@ export type BoardObject = {
   points?: number[]
 }
 
-/** Fuentes disponibles (web-safe del sistema: Konva las pinta en canvas). */
+/** Available fonts (web-safe system fonts: Konva renders them on canvas). */
 export const BOARD_FONTS = [
   { label: 'Sans', value: 'Arial, Helvetica, sans-serif' },
   { label: 'Serif', value: 'Georgia, "Times New Roman", serif' },
@@ -50,7 +50,7 @@ export const BOARD_FONTS = [
 
 export const DEFAULT_FONT = BOARD_FONTS[0].value
 
-/** Construye el `fontStyle` de Konva a partir de bold/italic. */
+/** Builds Konva's `fontStyle` from bold/italic. */
 export function konvaFontStyle(o: { bold?: boolean; italic?: boolean }): string {
   const parts = []
   if (o.italic) parts.push('italic')
@@ -76,5 +76,5 @@ export type BoardData = {
   viewport: BoardViewport
 }
 
-// 96 dpi: 1 cm ≈ 37.795 px (mundo). Fuente única en lib/measure.
+// 96 dpi: 1 cm ≈ 37.795 px (world). Single source in lib/measure.
 export { PX_PER_CM } from '@shared/lib/measure'

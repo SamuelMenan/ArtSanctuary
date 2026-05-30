@@ -1,10 +1,10 @@
-// Recorte automático: calcula el bounding box del contenido real.
-//  - Imagen con alfa: extremos de los píxeles no transparentes.
-//  - Imagen sin alfa: extremos de los píxeles que difieren del color de borde.
+// Auto-crop: computes the bounding box of the real content.
+//  - Image with alpha: extents of the non-transparent pixels.
+//  - Image without alpha: extents of the pixels that differ from the border color.
 
 export type Bounds = { x: number; y: number; w: number; h: number }
 
-/** ¿La imagen tiene transparencia significativa? (algún píxel con alpha < 250) */
+/** Does the image have meaningful transparency? (any pixel with alpha < 250) */
 function hasAlpha(data: Uint8ClampedArray): boolean {
   for (let i = 3; i < data.length; i += 4) {
     if (data[i] < 250) return true
@@ -12,7 +12,7 @@ function hasAlpha(data: Uint8ClampedArray): boolean {
   return false
 }
 
-/** Color promedio de las 4 esquinas (para imágenes sin alfa). */
+/** Average color of the 4 corners (for images without alpha). */
 function borderColor(data: Uint8ClampedArray, w: number, h: number) {
   const corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + (w - 1)) * 4]
   let r = 0, g = 0, b = 0
@@ -25,8 +25,8 @@ function borderColor(data: Uint8ClampedArray, w: number, h: number) {
 }
 
 /**
- * Calcula los límites del contenido.
- * @param tolerance 0–255 (solo modo sin alfa): cuánto puede diferir del borde.
+ * Computes the content bounds.
+ * @param tolerance 0–255 (no-alpha mode only): how much it may differ from the border.
  */
 export function computeContentBounds(
   imageData: ImageData,
@@ -35,7 +35,7 @@ export function computeContentBounds(
   const { data, width: w, height: h } = imageData
   const useAlpha = hasAlpha(data)
   const bc = useAlpha ? null : borderColor(data, w, h)
-  const tol2 = tolerance * tolerance * 3 // distancia² en RGB
+  const tol2 = tolerance * tolerance * 3 // squared distance in RGB
 
   let minX = w, minY = h, maxX = -1, maxY = -1
 
@@ -60,11 +60,11 @@ export function computeContentBounds(
     }
   }
 
-  if (maxX < minX || maxY < minY) return null // imagen vacía/uniforme
+  if (maxX < minX || maxY < minY) return null // empty/uniform image
   return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 }
 }
 
-/** Aplica padding (px) a un bounds, recortado a los límites de la imagen. */
+/** Applies padding (px) to a bounds, clamped to the image limits. */
 export function padBounds(b: Bounds, pad: number, w: number, h: number): Bounds {
   const x = Math.max(0, b.x - pad)
   const y = Math.max(0, b.y - pad)

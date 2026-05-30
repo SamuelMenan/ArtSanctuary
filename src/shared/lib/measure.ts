@@ -1,5 +1,5 @@
-// Fuente única de verdad para la conversión físico↔píxel del mundo de las
-// herramientas (Boards, Cuadrícula, Recorte). 96 dpi: 1 cm ≈ 37.795 px.
+// Single source of truth for the physical↔pixel conversion shared by the
+// tools (Boards, Grid, Crop). 96 dpi: 1 cm ≈ 37.795 px.
 
 export const PX_PER_CM = 37.795
 
