@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
-import { saveImage } from '@/lib/upload/storage';
+import { auth } from '@backend/auth';
+import { saveImage } from '@backend/upload/storage';
 import crypto from 'crypto';
 
 export const runtime = 'nodejs';

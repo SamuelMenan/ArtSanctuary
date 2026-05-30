@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@backend/db/mongoose";
 import User from "@backend/models/User";
 import Notification from "@backend/models/Notification";
-import { auth } from "@/auth";
+import { auth } from "@backend/auth";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
   try {

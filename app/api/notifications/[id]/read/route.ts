@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@backend/db/mongoose";
 import Notification from "@backend/models/Notification";
-import { auth } from "@/auth";
+import { auth } from "@backend/auth";
 
 export async function PATCH(
   req: NextRequest,

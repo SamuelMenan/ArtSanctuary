@@ -3,7 +3,7 @@ import { connectDB } from "@backend/db/mongoose";
 import Artwork from "@backend/models/Artwork";
 import Notification from "@backend/models/Notification";
 import Collection from "@backend/models/Collection";
-import { auth } from "@/auth";
+import { auth } from "@backend/auth";
 import { Types } from "mongoose";
 
 export async function POST(

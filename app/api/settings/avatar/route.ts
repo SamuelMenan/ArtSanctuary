@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server";
-import { requireUser } from "@/lib/api/auth";
+import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@/lib/api/errors";
 import {
   AVATAR_ALLOWED_MIME,
   AVATAR_MAX_BYTES,
   deleteAvatarFile,
   saveAvatar,
-} from "@/lib/upload/avatar";
+} from "@backend/upload/avatar";
 
 export const runtime = "nodejs";
 

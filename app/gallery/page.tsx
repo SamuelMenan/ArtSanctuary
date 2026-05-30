@@ -4,7 +4,7 @@ import { connectDB } from '@backend/db/mongoose'
 import Artwork from '@backend/models/Artwork'
 import ArtworkGrid from '@/components/ui/ArtworkGrid'
 import { createTranslator, getCategoryLabel, getDictionary } from '@/lib/i18n'
-import { getRequestLocale } from '@/lib/requestPreferences'
+import { getRequestLocale } from '@backend/requestPreferences'
 
 // Definimos la interfaz para Next.js 13+ Server Components con searchParams
 export default async function GalleryPage({

@@ -1,7 +1,8 @@
-import { auth } from "@/auth";
+import "server-only";
+import { auth } from "@backend/auth";
 import { connectDB } from "@backend/db/mongoose";
 import User, { IUser } from "@backend/models/User";
-import { apiError } from "./errors";
+import { apiError } from '@/lib/api/errors';
 
 export type AuthResult =
   | { ok: true; user: IUser }

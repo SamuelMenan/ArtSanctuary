@@ -3,7 +3,7 @@ import Collection from "@backend/models/Collection";
 import ArtworkGrid from "@/components/ui/ArtworkGrid";
 import CollectionActions from "@/components/ui/CollectionActions";
 import AppShell from "@/components/layout/AppShell";
-import { auth } from "@/auth";
+import { auth } from "@backend/auth";
 import { notFound } from "next/navigation";
 
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {

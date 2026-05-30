@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/api/auth";
+import { requireUser } from "@backend/auth/requireUser";
 
 export async function GET() {
   const r = await requireUser();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@backend/db/mongoose";
 import Collection from "@backend/models/Collection";
-import { auth } from "@/auth";
+import { auth } from "@backend/auth";
 
 /**
  * GET /api/collections

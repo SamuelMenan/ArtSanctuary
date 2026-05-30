@@ -1,4 +1,4 @@
-import { auth } from '@/auth'
+import { auth } from '@backend/auth'
 import { connectDB } from '@backend/db/mongoose'
 import { normalizeLocale, normalizeTheme } from '@/lib/i18n'
 import User from '@backend/models/User'

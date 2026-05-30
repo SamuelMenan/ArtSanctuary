@@ -1,13 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import AppShell from "@/components/layout/AppShell";
-import { auth } from "@/auth";
+import { auth } from "@backend/auth";
 import { connectDB } from "@backend/db/mongoose";
 import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";
 import ArtworkGrid from "@/components/ui/ArtworkGrid";
 import { createTranslator, getCategoryLabel, getDictionary } from "@/lib/i18n";
-import { getRequestLocale } from "@/lib/requestPreferences";
+import { getRequestLocale } from "@backend/requestPreferences";
 import UploadButton from '@/components/ui/UploadButton';
 
 export default async function HomePage() {

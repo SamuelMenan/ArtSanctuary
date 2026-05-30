@@ -1,5 +1,5 @@
 import AppShell from '@/components/layout/AppShell'
-import { auth } from '@/auth'
+import { auth } from '@backend/auth'
 import { redirect } from 'next/navigation'
 import { connectDB } from '@backend/db/mongoose'
 import Artwork from '@backend/models/Artwork'
@@ -11,7 +11,7 @@ import { ProfileMetaBlock } from '@/components/profile/ProfileMetaBlock'
 import { ArtworkSectionHeader } from '@/components/profile/ArtworkSectionHeader'
 import { EmptyPortfolio } from '@/components/profile/EmptyPortfolio'
 import { createTranslator, getDictionary } from '@/lib/i18n'
-import { getRequestLocale } from '@/lib/requestPreferences'
+import { getRequestLocale } from '@backend/requestPreferences'
 
 export const metadata = {
   title: 'Mi Portfolio | ArtSanctuary',

@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { saveImage, deleteImage } from "@/lib/upload/storage";
+import { saveImage, deleteImage } from "@backend/upload/storage";
 
 export const AVATAR_MAX_BYTES = 3 * 1024 * 1024; // 3MB
 export const AVATAR_ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"] as const;

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import User from "@backend/models/User";
-import { requireUser } from "@/lib/api/auth";
+import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@/lib/api/errors";
 import { validateEmail } from "@/lib/validation/settings";
 

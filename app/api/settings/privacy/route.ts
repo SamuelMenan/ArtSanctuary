@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireUser } from "@/lib/api/auth";
+import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@/lib/api/errors";
 import { validatePrivacy } from "@/lib/validation/settings";
 

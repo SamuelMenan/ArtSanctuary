@@ -1,5 +1,6 @@
+import "server-only";
 import { cookies } from 'next/headers'
-import { LOCALE_COOKIE, THEME_COOKIE, defaultLocale, defaultTheme, type Locale, type ThemeMode } from './i18n'
+import { LOCALE_COOKIE, THEME_COOKIE, defaultLocale, defaultTheme, type Locale, type ThemeMode } from '@/lib/i18n'
 
 export async function getRequestLocale(): Promise<Locale> {
   const cookieStore = await cookies()
