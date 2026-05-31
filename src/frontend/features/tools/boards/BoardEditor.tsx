@@ -9,9 +9,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cmOf, pxOf } from '@shared/lib/measure'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
-import { Stage, Layer, Line, Image as KonvaImage, Text as KonvaText, Rect, Ellipse, Arrow, Group, Transformer } from 'react-konva'
+import { Stage, Layer, Line, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
+import ImageNode from './nodes/ImageNode'
+import TextNode from './nodes/TextNode'
+import StickyNode from './nodes/StickyNode'
+import ShapeNode from './nodes/ShapeNode'
 import {
   BoardData,
   BoardObject,
@@ -19,308 +23,12 @@ import {
   PX_PER_CM,
   BOARD_FONTS,
   DEFAULT_FONT,
-  konvaFontStyle,
 } from '@shared/lib/boards/types'
 
 const uid = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-
-/* ── Nodo imagen: gestiona su propio HTMLImageElement ── */
-function URLImage({
-  obj,
-  isSelected,
-  onSelect,
-  onChange,
-  snap,
-  snapVal,
-  draggable,
-}: {
-  obj: BoardObject
-  isSelected: boolean
-  onSelect: (additive: boolean) => void
-  onChange: (o: BoardObject) => void
-  snap: boolean
-  snapVal: (v: number) => number
-  draggable: boolean
-}) {
-  const [img, setImg] = useState<HTMLImageElement | null>(null)
-  const ref = useRef<Konva.Image>(null)
-
-  useEffect(() => {
-    if (!obj.src) return
-    const image = new window.Image()
-    image.crossOrigin = 'anonymous'
-    image.src = obj.src
-    image.onload = () => setImg(image)
-  }, [obj.src])
-
-  return (
-    <KonvaImage
-      ref={ref}
-      name={obj.id}
-      image={img ?? undefined}
-      x={obj.x}
-      y={obj.y}
-      width={obj.w}
-      height={obj.h}
-      rotation={obj.rotation}
-      opacity={(obj.opacity ?? 100) / 100}
-      visible={obj.visible !== false}
-      draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
-      onDragMove={(e) => {
-        if (snap) {
-          e.target.x(snapVal(e.target.x()))
-          e.target.y(snapVal(e.target.y()))
-        }
-      }}
-      onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}
-      onTransformEnd={() => {
-        const node = ref.current
-        if (!node) return
-        const scaleX = node.scaleX()
-        const scaleY = node.scaleY()
-        node.scaleX(1)
-        node.scaleY(1)
-        onChange({
-          ...obj,
-          x: node.x(),
-          y: node.y(),
-          w: Math.max(20, node.width() * scaleX),
-          h: Math.max(20, node.height() * scaleY),
-          rotation: node.rotation(),
-        })
-      }}
-      shadowColor={isSelected ? '#000' : undefined}
-      shadowBlur={isSelected ? 8 : 0}
-      shadowOpacity={0.3}
-    />
-  )
-}
-
-/* ── Nodo texto libre ── */
-function BoardText({
-  obj,
-  editing,
-  onSelect,
-  onEdit,
-  onChange,
-  snap,
-  snapVal,
-  draggable,
-}: {
-  obj: BoardObject
-  editing: boolean
-  onSelect: (additive: boolean) => void
-  onEdit: () => void
-  onChange: (o: BoardObject) => void
-  snap: boolean
-  snapVal: (v: number) => number
-  draggable: boolean
-}) {
-  const ref = useRef<Konva.Text>(null)
-  return (
-    <KonvaText
-      ref={ref}
-      name={obj.id}
-      text={obj.text || ' '}
-      x={obj.x}
-      y={obj.y}
-      width={obj.w}
-      rotation={obj.rotation}
-      opacity={(obj.opacity ?? 100) / 100}
-      visible={obj.visible !== false && !editing}
-      fontSize={obj.fontSize || 24}
-      fontFamily={obj.fontFamily || DEFAULT_FONT}
-      fontStyle={konvaFontStyle(obj)}
-      textDecoration={obj.underline ? 'underline' : ''}
-      fill={obj.color || '#e8e8e8'}
-      align={obj.align || 'left'}
-      draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
-      onDblClick={onEdit}
-      onDblTap={onEdit}
-      onDragMove={(e) => {
-        if (snap) {
-          e.target.x(snapVal(e.target.x()))
-          e.target.y(snapVal(e.target.y()))
-        }
-      }}
-      onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}
-      onTransformEnd={() => {
-        const node = ref.current
-        if (!node) return
-        const scaleX = node.scaleX()
-        node.scaleX(1)
-        node.scaleY(1)
-        onChange({ ...obj, x: node.x(), y: node.y(), w: Math.max(30, node.width() * scaleX), rotation: node.rotation() })
-      }}
-    />
-  )
-}
-
-/* ── Nota adhesiva (rect + texto) ── */
-function BoardSticky({
-  obj,
-  editing,
-  onSelect,
-  onEdit,
-  onChange,
-  snap,
-  snapVal,
-  draggable,
-}: {
-  obj: BoardObject
-  editing: boolean
-  onSelect: (additive: boolean) => void
-  onEdit: () => void
-  onChange: (o: BoardObject) => void
-  snap: boolean
-  snapVal: (v: number) => number
-  draggable: boolean
-}) {
-  const ref = useRef<Konva.Group>(null)
-  return (
-    <Group
-      ref={ref}
-      name={obj.id}
-      x={obj.x}
-      y={obj.y}
-      rotation={obj.rotation}
-      opacity={(obj.opacity ?? 100) / 100}
-      visible={obj.visible !== false}
-      draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
-      onDblClick={onEdit}
-      onDblTap={onEdit}
-      onDragMove={(e) => {
-        if (snap) {
-          e.target.x(snapVal(e.target.x()))
-          e.target.y(snapVal(e.target.y()))
-        }
-      }}
-      onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}
-      onTransformEnd={() => {
-        const node = ref.current
-        if (!node) return
-        const scaleX = node.scaleX()
-        const scaleY = node.scaleY()
-        node.scaleX(1)
-        node.scaleY(1)
-        onChange({
-          ...obj,
-          x: node.x(),
-          y: node.y(),
-          w: Math.max(40, obj.w * scaleX),
-          h: Math.max(40, obj.h * scaleY),
-          rotation: node.rotation(),
-        })
-      }}
-    >
-      <Rect width={obj.w} height={obj.h} fill={obj.color || '#FDE68A'} cornerRadius={4} shadowColor="#000" shadowBlur={6} shadowOpacity={0.2} shadowOffsetY={2} />
-      <KonvaText
-        visible={!editing}
-        text={obj.text || ' '}
-        width={obj.w}
-        height={obj.h}
-        padding={10}
-        fontSize={obj.fontSize || 18}
-        fontFamily={obj.fontFamily || DEFAULT_FONT}
-        fontStyle={konvaFontStyle(obj)}
-        textDecoration={obj.underline ? 'underline' : ''}
-        fill={obj.textColor || '#1f2937'}
-        align={obj.align || 'left'}
-        verticalAlign="top"
-      />
-    </Group>
-  )
-}
-
-/* ── Figura geométrica (rect / elipse / línea / flecha) ── */
-function BoardShape({
-  obj,
-  onSelect,
-  onChange,
-  snap,
-  snapVal,
-  draggable,
-}: {
-  obj: BoardObject
-  onSelect: (additive: boolean) => void
-  onChange: (o: BoardObject) => void
-  snap: boolean
-  snapVal: (v: number) => number
-  draggable: boolean
-}) {
-  const ref = useRef<Konva.Group>(null)
-  // 'transparent' (no undefined) mantiene el interior clicable aunque esté vacío.
-  const fill = obj.fill ?? 'transparent'
-  const stroke = obj.stroke ?? '#e8e8e8'
-  const strokeWidth = obj.strokeWidth ?? 2
-
-  // Geometría centrada en el origen del Group → rota/escala desde el centro
-  // (no desde la esquina). El modelo sigue guardando x,y como esquina sup-izq.
-  const cx = obj.w / 2
-  const cy = obj.h / 2
-
-  return (
-    <Group
-      ref={ref}
-      name={obj.id}
-      x={obj.x + cx}
-      y={obj.y + cy}
-      rotation={obj.rotation}
-      opacity={(obj.opacity ?? 100) / 100}
-      visible={obj.visible !== false}
-      draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
-      onDragMove={(e) => {
-        if (snap) {
-          e.target.x(snapVal(e.target.x() - cx) + cx)
-          e.target.y(snapVal(e.target.y() - cy) + cy)
-        }
-      }}
-      onDragEnd={(e) => onChange({ ...obj, x: e.target.x() - cx, y: e.target.y() - cy })}
-      onTransformEnd={() => {
-        const node = ref.current
-        if (!node) return
-        const scaleX = node.scaleX()
-        const scaleY = node.scaleY()
-        node.scaleX(1)
-        node.scaleY(1)
-        const w = Math.max(5, obj.w * scaleX)
-        const h = Math.max(0, obj.h * scaleY)
-        onChange({
-          ...obj,
-          w,
-          h,
-          rotation: node.rotation(),
-          x: node.x() - w / 2,
-          y: node.y() - h / 2,
-        })
-      }}
-    >
-      {obj.type === 'rect' && (
-        <Rect x={-cx} y={-cy} width={obj.w} height={obj.h} fill={fill} stroke={stroke} strokeWidth={strokeWidth} cornerRadius={4} />
-      )}
-      {obj.type === 'ellipse' && (
-        <Ellipse x={0} y={0} radiusX={cx} radiusY={cy} fill={fill} stroke={stroke} strokeWidth={strokeWidth} />
-      )}
-      {obj.type === 'line' && (
-        <Line points={[-cx, -cy, cx, cy]} stroke={stroke} strokeWidth={strokeWidth} lineCap="round" hitStrokeWidth={Math.max(12, strokeWidth)} />
-      )}
-      {obj.type === 'arrow' && (
-        <Arrow points={[-cx, -cy, cx, cy]} stroke={stroke} fill={stroke} strokeWidth={strokeWidth} pointerLength={10 + strokeWidth} pointerWidth={10 + strokeWidth} hitStrokeWidth={Math.max(12, strokeWidth)} />
-      )}
-    </Group>
-  )
-}
 
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
@@ -1235,13 +943,13 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
                 const onEdit = () => !readOnly && !obj.locked && (setSelectedIds([obj.id]), setEditingId(obj.id))
                 const draggable = tool === 'select' && !obj.locked && !readOnly
                 if (obj.type === 'image')
-                  return <URLImage key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
+                  return <ImageNode key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 if (obj.type === 'text')
-                  return <BoardText key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
+                  return <TextNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 if (obj.type === 'sticky')
-                  return <BoardSticky key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
+                  return <StickyNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 if (isShape(obj.type))
-                  return <BoardShape key={obj.id} obj={obj} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
+                  return <ShapeNode key={obj.id} obj={obj} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 return null
               })}
               {!readOnly && (
