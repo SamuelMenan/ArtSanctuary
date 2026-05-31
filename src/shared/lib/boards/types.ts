@@ -19,6 +19,12 @@ export type BoardObject = {
   h: number
   rotation: number
   z: number
+  // layer props
+  name?: string // editable layer name
+  visible?: boolean // default true; false hides + makes unselectable
+  opacity?: number // 0–100, default 100
+  locked?: boolean // blocks move/resize (still selectable to unlock)
+  blendMode?: string // (future) Konva globalCompositeOperation
   // type-specific
   src?: string
   text?: string

@@ -33,11 +33,17 @@ function URLImage({
   isSelected,
   onSelect,
   onChange,
+  snap,
+  snapVal,
+  draggable,
 }: {
   obj: BoardObject
   isSelected: boolean
   onSelect: (additive: boolean) => void
   onChange: (o: BoardObject) => void
+  snap: boolean
+  snapVal: (v: number) => number
+  draggable: boolean
 }) {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const ref = useRef<Konva.Image>(null)
@@ -60,9 +66,17 @@ function URLImage({
       width={obj.w}
       height={obj.h}
       rotation={obj.rotation}
-      draggable
+      opacity={(obj.opacity ?? 100) / 100}
+      visible={obj.visible !== false}
+      draggable={draggable}
       onClick={(e) => onSelect(e.evt.shiftKey)}
       onTap={(e) => onSelect(e.evt.shiftKey)}
+      onDragMove={(e) => {
+        if (snap) {
+          e.target.x(snapVal(e.target.x()))
+          e.target.y(snapVal(e.target.y()))
+        }
+      }}
       onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}
       onTransformEnd={() => {
         const node = ref.current
@@ -94,35 +108,48 @@ function BoardText({
   onSelect,
   onEdit,
   onChange,
+  snap,
+  snapVal,
+  draggable,
 }: {
   obj: BoardObject
   editing: boolean
   onSelect: (additive: boolean) => void
   onEdit: () => void
   onChange: (o: BoardObject) => void
+  snap: boolean
+  snapVal: (v: number) => number
+  draggable: boolean
 }) {
   const ref = useRef<Konva.Text>(null)
   return (
     <KonvaText
       ref={ref}
       name={obj.id}
-      visible={!editing}
       text={obj.text || ' '}
       x={obj.x}
       y={obj.y}
       width={obj.w}
       rotation={obj.rotation}
+      opacity={(obj.opacity ?? 100) / 100}
+      visible={obj.visible !== false && !editing}
       fontSize={obj.fontSize || 24}
       fontFamily={obj.fontFamily || DEFAULT_FONT}
       fontStyle={konvaFontStyle(obj)}
       textDecoration={obj.underline ? 'underline' : ''}
       fill={obj.color || '#e8e8e8'}
       align={obj.align || 'left'}
-      draggable
+      draggable={draggable}
       onClick={(e) => onSelect(e.evt.shiftKey)}
       onTap={(e) => onSelect(e.evt.shiftKey)}
       onDblClick={onEdit}
       onDblTap={onEdit}
+      onDragMove={(e) => {
+        if (snap) {
+          e.target.x(snapVal(e.target.x()))
+          e.target.y(snapVal(e.target.y()))
+        }
+      }}
       onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}
       onTransformEnd={() => {
         const node = ref.current
@@ -143,12 +170,18 @@ function BoardSticky({
   onSelect,
   onEdit,
   onChange,
+  snap,
+  snapVal,
+  draggable,
 }: {
   obj: BoardObject
   editing: boolean
   onSelect: (additive: boolean) => void
   onEdit: () => void
   onChange: (o: BoardObject) => void
+  snap: boolean
+  snapVal: (v: number) => number
+  draggable: boolean
 }) {
   const ref = useRef<Konva.Group>(null)
   return (
@@ -158,11 +191,19 @@ function BoardSticky({
       x={obj.x}
       y={obj.y}
       rotation={obj.rotation}
-      draggable
+      opacity={(obj.opacity ?? 100) / 100}
+      visible={obj.visible !== false}
+      draggable={draggable}
       onClick={(e) => onSelect(e.evt.shiftKey)}
       onTap={(e) => onSelect(e.evt.shiftKey)}
       onDblClick={onEdit}
       onDblTap={onEdit}
+      onDragMove={(e) => {
+        if (snap) {
+          e.target.x(snapVal(e.target.x()))
+          e.target.y(snapVal(e.target.y()))
+        }
+      }}
       onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}
       onTransformEnd={() => {
         const node = ref.current
@@ -205,10 +246,16 @@ function BoardShape({
   obj,
   onSelect,
   onChange,
+  snap,
+  snapVal,
+  draggable,
 }: {
   obj: BoardObject
   onSelect: (additive: boolean) => void
   onChange: (o: BoardObject) => void
+  snap: boolean
+  snapVal: (v: number) => number
+  draggable: boolean
 }) {
   const ref = useRef<Konva.Group>(null)
   // 'transparent' (no undefined) mantiene el interior clicable aunque esté vacío.
@@ -228,9 +275,17 @@ function BoardShape({
       x={obj.x + cx}
       y={obj.y + cy}
       rotation={obj.rotation}
-      draggable
+      opacity={(obj.opacity ?? 100) / 100}
+      visible={obj.visible !== false}
+      draggable={draggable}
       onClick={(e) => onSelect(e.evt.shiftKey)}
       onTap={(e) => onSelect(e.evt.shiftKey)}
+      onDragMove={(e) => {
+        if (snap) {
+          e.target.x(snapVal(e.target.x() - cx) + cx)
+          e.target.y(snapVal(e.target.y() - cy) + cy)
+        }
+      }}
       onDragEnd={(e) => onChange({ ...obj, x: e.target.x() - cx, y: e.target.y() - cy })}
       onTransformEnd={() => {
         const node = ref.current
@@ -290,7 +345,9 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const [name, setName] = useState('Board sin título')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [snap, setSnap] = useState(false)
+  const [snap, setSnap] = useState(true)
+  const [layersOpen, setLayersOpen] = useState(false)
+  const dragLayer = useRef<string | null>(null)
   const [tool, setTool] = useState<'select' | 'hand' | 'measure'>('select')
   const [spaceHeld, setSpaceHeld] = useState(false)
   const [selRect, setSelRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
@@ -352,7 +409,14 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
               const cx = -(vp?.x ?? 0) / z + 60
               const cy = -(vp?.y ?? 0) / z + 60
               const maxZ = Math.max(0, ...objs.map((o) => o.z))
-              objs = [...objs, { id: uid(), type: 'image', src: p.imageUrl, x: cx, y: cy, w, h, rotation: 0, z: maxZ + 1 }]
+              let newX = cx;
+              let newY = cy;
+              if (bg && bg.type === 'grid') {
+                const gridGap = Math.max(8, bg.squareCm * PX_PER_CM);
+                newX = Math.round(cx / gridGap) * gridGap;
+                newY = Math.round(cy / gridGap) * gridGap;
+              }
+              objs = [...objs, { id: uid(), type: 'image', src: p.imageUrl, x: newX, y: newY, w, h, rotation: 0, z: maxZ + 1 }]
             }
           }
         }
@@ -427,8 +491,13 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     }
     const nodes = selectedIds
       .map((id) => stage.findOne(`.${id}`))
-      .filter((n): n is Konva.Node => !!n)
+      .filter((n): n is Konva.Node => !!n && objects.find((o) => o.id === n.name())?.visible !== false)
     tr.nodes(nodes)
+    // Only enable resizing if ALL selected nodes are unlocked
+    tr.resizeEnabled(nodes.every(n => {
+      const obj = objects.find(o => o.id === n.name())
+      return !obj?.locked
+    }))
     tr.getLayer()?.batchDraw()
   }, [selectedIds, editingId, objects])
 
@@ -514,8 +583,16 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
   const deleteSelected = () => {
     if (!selectedIds.length) return
-    mutate((arr) => arr.filter((x) => !selectedIds.includes(x.id)))
-    setSelectedIds([])
+    const unlockedSel = objects.filter((o) => selectedIds.includes(o.id) && !o.locked).map((o) => o.id)
+    if (!unlockedSel.length) return
+    mutate((arr) => arr.filter((x) => !unlockedSel.includes(x.id)))
+    setSelectedIds((prev) => prev.filter((id) => !unlockedSel.includes(id)))
+  }
+
+  const toggleLock = () => {
+    if (!selectedIds.length) return
+    const isAnyUnlocked = objects.some((o) => selectedIds.includes(o.id) && !o.locked)
+    mutate((arr) => arr.map((o) => (selectedIds.includes(o.id) ? { ...o, locked: isAnyUnlocked } : o)))
   }
 
   const bringToFront = () => {
@@ -703,6 +780,38 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     mutate((arr) => arr.map((o) => (selectedIds.includes(o.id) ? { ...o, ...patch } : o)))
   }
 
+  /* ── Capas (panel tipo Photoshop) ── */
+  const patchObject = (id: string, patch: Partial<BoardObject>) =>
+    mutate((arr) => arr.map((o) => (o.id === id ? { ...o, ...patch } : o)))
+  const toggleLayerVisible = (id: string) => {
+    const o = objects.find((x) => x.id === id)
+    patchObject(id, { visible: o?.visible === false })
+  }
+  const toggleLayerLock = (id: string) =>
+    patchObject(id, { locked: !objects.find((x) => x.id === id)?.locked })
+
+  const LAYER_NAMES: Record<string, string> = {
+    image: 'Imagen', text: 'Texto', sticky: 'Nota',
+    rect: 'Rectángulo', ellipse: 'Elipse', line: 'Línea', arrow: 'Flecha',
+  }
+  const layerLabel = (o: BoardObject) => o.name || LAYER_NAMES[o.type] || 'Capa'
+  const LAYER_ICONS: Record<string, string> = {
+    image: 'image', text: 'title', sticky: 'sticky_note_2',
+    rect: 'rectangle', ellipse: 'circle', line: 'horizontal_rule', arrow: 'arrow_outward',
+  }
+
+  // Reordena por arrastre en el panel: recalcula z según el nuevo orden.
+  const moveLayer = (dragId: string, targetId: string) => {
+    if (dragId === targetId) return
+    const asc = [...objects].sort((a, b) => a.z - b.z)
+    const from = asc.findIndex((o) => o.id === dragId)
+    const to = asc.findIndex((o) => o.id === targetId)
+    if (from < 0 || to < 0) return
+    const [moved] = asc.splice(from, 1)
+    asc.splice(to, 0, moved)
+    mutate((arr) => arr.map((o) => ({ ...o, z: asc.findIndex((x) => x.id === o.id) })))
+  }
+
   /* ── Pan + zoom ── */
   const onWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault()
@@ -803,6 +912,39 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const resetView = () => {
     setPos({ x: 0, y: 0 })
     setScale(1)
+  }
+
+  /* ── Exportar a PNG ── */
+  const downloadBoard = () => {
+    const stage = stageRef.current
+    if (!stage) return
+    const tr = trRef.current
+    
+    // Ocultar elementos de UI antes de capturar
+    if (tr) {
+      tr.nodes([])
+      tr.getLayer()?.batchDraw()
+    }
+    
+    try {
+      const dataURL = stage.toDataURL({ pixelRatio: 2, mimeType: 'image/png' })
+      const a = document.createElement('a')
+      a.href = dataURL
+      a.download = `${name.trim() || 'board'}.png`
+      a.click()
+    } catch (e) {
+      console.error("Export failed", e)
+      alert("No se pudo exportar. Asegúrate de que todas las imágenes externas tienen permisos CORS.")
+    }
+
+    // Restaurar selección
+    if (tr && selectedIds.length) {
+      const nodes = selectedIds
+        .map((id) => stage.findOne(`.${id}`))
+        .filter((n): n is Konva.Node => !!n)
+      tr.nodes(nodes)
+      tr.getLayer()?.batchDraw()
+    }
   }
 
   /* ── Líneas de grid visibles (mayor = squareCm, menor = squareCm/2) ── */
@@ -907,6 +1049,13 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         )}
 
         {/* duplicar + z-order + borrar */}
+        <button onClick={toggleLock} disabled={!selectedIds.length || readOnly} className={iconBtn} title="Bloquear / Desbloquear selección">
+          <span className="material-symbols-outlined text-[20px]">
+            {selectedIds.length && objects.some((o) => selectedIds.includes(o.id) && o.locked) && !objects.some((o) => selectedIds.includes(o.id) && !o.locked) ? 'lock' : 'lock_open'}
+          </span>
+        </button>
+        <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
+
         <button onClick={duplicateSelection} disabled={!selectedIds.length || readOnly} className={iconBtn} title="Duplicar (Ctrl+D)">
           <span className="material-symbols-outlined text-[20px]">content_copy</span>
         </button>
@@ -967,14 +1116,15 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
             onClick={() => setSnap((s) => !s)}
             disabled={background.type !== 'grid'}
             aria-pressed={snap}
-            className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors shrink-0 disabled:opacity-40 ${
+            className={`flex items-center gap-1.5 px-3 h-10 rounded-lg border transition-colors shrink-0 disabled:opacity-40 font-mono text-[10px] uppercase tracking-wider font-semibold ${
               snap && background.type === 'grid'
                 ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] border-[var(--color-primary)]'
                 : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]'
             }`}
-            title="Ajustar a la cuadrícula"
+            title="Activar/Desactivar imán de cuadrícula"
           >
-            <span className="material-symbols-outlined text-[20px]">grid_4x4</span>
+            <span className="material-symbols-outlined text-[18px]">polyline</span>
+            IMÁN
           </button>
         )}
 
@@ -983,6 +1133,16 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">
           {readOnly ? 'Solo lectura' : saveState === 'saving' ? 'Guardando…' : saveState === 'saved' ? 'Guardado' : ''}
         </span>
+
+        <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 mx-1" />
+
+        {/* Exportar */}
+        <button onClick={downloadBoard} className={iconBtn} title="Descargar como PNG">
+          <span className="material-symbols-outlined text-[20px]">download</span>
+        </button>
+
+        <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 mx-1" />
+
         {/* Herramientas seleccionar / mover / medir */}
         <button
           onClick={() => { setTool('select'); setMeasure(null) }}
@@ -1020,6 +1180,21 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         >
           <span className="material-symbols-outlined text-[20px]">straighten</span>
         </button>
+
+        {!readOnly && (
+          <button
+            onClick={() => setLayersOpen((v) => !v)}
+            aria-pressed={layersOpen}
+            className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-colors shrink-0 ${
+              layersOpen
+                ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] border-[var(--color-primary)]'
+                : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]'
+            }`}
+            title="Capas"
+          >
+            <span className="material-symbols-outlined text-[20px]">layers</span>
+          </button>
+        )}
 
         <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{Math.round(scale * 100)}%</span>
         <button onClick={resetView} className={iconBtn} title="Centrar vista">
@@ -1219,15 +1394,16 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
             <Layer>
               {sorted.map((obj) => {
                 const onSelect = (additive: boolean) => !readOnly && selectObject(obj.id, additive)
-                const onEdit = () => !readOnly && (setSelectedIds([obj.id]), setEditingId(obj.id))
+                const onEdit = () => !readOnly && !obj.locked && (setSelectedIds([obj.id]), setEditingId(obj.id))
+                const draggable = tool === 'select' && !obj.locked && !readOnly
                 if (obj.type === 'image')
-                  return <URLImage key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelect} onChange={updateObject} />
+                  return <URLImage key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 if (obj.type === 'text')
-                  return <BoardText key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} />
+                  return <BoardText key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 if (obj.type === 'sticky')
-                  return <BoardSticky key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} />
+                  return <BoardSticky key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 if (isShape(obj.type))
-                  return <BoardShape key={obj.id} obj={obj} onSelect={onSelect} onChange={updateObject} />
+                  return <BoardShape key={obj.id} obj={obj} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
                 return null
               })}
               {!readOnly && (
@@ -1263,6 +1439,62 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           </Stage>
         )}
 
+        {/* Panel de capas (isla flotante) */}
+        {!readOnly && layersOpen && (
+          <div className="absolute bottom-4 right-4 w-64 max-h-[60%] bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-xl shadow-2xl flex flex-col z-30 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="flex items-center justify-between px-3 h-10 border-b border-[var(--color-outline-variant)] shrink-0">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">Capas</span>
+              <button onClick={() => setLayersOpen(false)} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            <ul className="flex-1 overflow-y-auto custom-scrollbar">
+              {[...objects].sort((a, b) => b.z - a.z).map((o) => {
+                const sel = selectedIds.includes(o.id)
+                const hidden = o.visible === false
+                return (
+                  <li
+                    key={o.id}
+                    draggable
+                    onDragStart={() => { dragLayer.current = o.id }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => { if (dragLayer.current) moveLayer(dragLayer.current, o.id); dragLayer.current = null }}
+                    onClick={() => setSelectedIds([o.id])}
+                    className={`group flex items-center gap-1.5 px-2 h-9 cursor-pointer border-l-2 ${
+                      sel ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]' : 'border-transparent hover:bg-[var(--color-surface-container-high)]'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px] text-[var(--color-on-surface-variant)]/40 cursor-grab">drag_indicator</span>
+                    <button onClick={(e) => { e.stopPropagation(); toggleLayerVisible(o.id) }} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] shrink-0" title={hidden ? 'Mostrar' : 'Ocultar'}>
+                      <span className="material-symbols-outlined text-[18px]">{hidden ? 'visibility_off' : 'visibility'}</span>
+                    </button>
+                    <span className={`material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] shrink-0 ${hidden ? 'opacity-40' : ''}`}>{LAYER_ICONS[o.type]}</span>
+                    <input
+                      value={layerLabel(o)}
+                      onChange={(e) => patchObject(o.id, { name: e.target.value })}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`flex-1 min-w-0 bg-transparent text-xs text-[var(--color-on-surface)] outline-none truncate focus:text-[var(--color-primary)] ${hidden ? 'opacity-40' : ''}`}
+                    />
+                    <button onClick={(e) => { e.stopPropagation(); toggleLayerLock(o.id) }} className={`shrink-0 hover:text-[var(--color-primary)] ${o.locked ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)]/40 group-hover:text-[var(--color-on-surface-variant)]'}`} title={o.locked ? 'Desbloquear' : 'Bloquear'}>
+                      <span className="material-symbols-outlined text-[16px]">{o.locked ? 'lock' : 'lock_open'}</span>
+                    </button>
+                  </li>
+                )
+              })}
+              {objects.length === 0 && (
+                <li className="px-3 py-5 text-center text-[10px] font-mono uppercase tracking-widest text-[var(--color-on-surface-variant)]/60">Sin capas</li>
+              )}
+            </ul>
+            {selectedObj && (
+              <div className="border-t border-[var(--color-outline-variant)] px-3 py-2 shrink-0 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
+                <input type="range" min={0} max={100} value={selectedObj.opacity ?? 100} onChange={(e) => patchObject(selectedObj.id, { opacity: Number(e.target.value) })} className="flex-1 custom-range" />
+                <span className="font-mono text-[10px] text-[var(--color-primary)] w-9 text-right">{selectedObj.opacity ?? 100}%</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Recuadro de selección (rubber band) */}
         {selRect && (selRect.w > 0 || selRect.h > 0) && (
           <div
@@ -1276,9 +1508,13 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           const distCm = round1(cmOf(Math.hypot(measure.bx - measure.ax, measure.by - measure.ay)))
           const mx = pos.x + ((measure.ax + measure.bx) / 2) * scale
           const my = pos.y + ((measure.ay + measure.by) / 2) * scale
+          
+          const m = distCm / 100
+          const mStr = Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')
+          
           return (
             <div className="absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap shadow" style={{ left: mx, top: my }}>
-              {distCm} cm
+              {distCm} cm {distCm >= 10 && `(${mStr} m)`}
             </div>
           )
         })()}
@@ -1287,9 +1523,20 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {selectedObj && !editingId && (() => {
           const o = selectedObj
           const isLin = o.type === 'line' || o.type === 'arrow'
+          const wCm = round1(cmOf(o.w))
+          const hCm = round1(cmOf(o.h))
+          const diagCm = round1(cmOf(Math.hypot(o.w, o.h)))
+          
+          const fmtM = (cm: number) => {
+            if (cm < 10) return ''
+            const m = cm / 100
+            return ` (${Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')} m)`
+          }
+
           const label = isLin
-            ? `${round1(cmOf(Math.hypot(o.w, o.h)))} cm`
-            : `${round1(cmOf(o.w))} × ${round1(cmOf(o.h))} cm`
+            ? `${diagCm} cm${fmtM(diagCm)}`
+            : `${wCm} cm${fmtM(wCm)} × ${hCm} cm${fmtM(hCm)}`
+            
           const left = pos.x + (o.x + o.w / 2) * scale
           const top = pos.y + (o.y + o.h) * scale + 8
           return (
