@@ -12,19 +12,89 @@ import { cmOf } from '@shared/lib/measure'
 export default function CutoutTool() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [wand, setWand] = useState(false)
+  const [aiModel, setAiModel] = useState<'isnet' | 'isnet_fp16'>('isnet')
+  const [aiRescale, setAiRescale] = useState(true)
+  const [toolMode, setToolMode] = useState<'wand' | 'erase' | 'restore' | null>(null)
   const [tolerance, setTolerance] = useState(30)
+  const [brushSize, setBrushSize] = useState(40)
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
   const work = useRef<HTMLCanvasElement | null>(null) // imagen de trabajo (full-res, con alfa)
+  const original = useRef<HTMLCanvasElement | null>(null) // copia intacta para restaurar
   const displayRef = useRef<HTMLCanvasElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
   const [stage, setStage] = useState({ w: 0, h: 0 })
   const [ready, setReady] = useState(false)
+
+  // Pincel
+  const dragging = useRef(false)
+  const lastPos = useRef<{ x: number; y: number } | null>(null)
+
+  // Historial
+  const pastData = useRef<ImageData[]>([])
+  const futureData = useRef<ImageData[]>([])
+  // Forzar re-render de botones si cambian las pilas
+  const [historyTick, setHistoryTick] = useState(0)
+
+  const pushSnapshot = () => {
+    const w = work.current
+    if (!w) return
+    const ctx = w.getContext('2d')
+    if (!ctx) return
+    pastData.current.push(ctx.getImageData(0, 0, w.width, w.height))
+    if (pastData.current.length > 20) pastData.current.shift()
+    futureData.current = []
+    setHistoryTick((t) => t + 1)
+  }
+
+  const undo = () => {
+    const w = work.current
+    if (!w || pastData.current.length === 0) return
+    const ctx = w.getContext('2d')
+    if (!ctx) return
+    futureData.current.push(ctx.getImageData(0, 0, w.width, w.height))
+    const past = pastData.current.pop()!
+    w.width = past.width
+    w.height = past.height
+    ctx.putImageData(past, 0, 0)
+    setHistoryTick((t) => t + 1)
+    render()
+  }
+
+  const redo = () => {
+    const w = work.current
+    if (!w || futureData.current.length === 0) return
+    const ctx = w.getContext('2d')
+    if (!ctx) return
+    pastData.current.push(ctx.getImageData(0, 0, w.width, w.height))
+    const future = futureData.current.pop()!
+    w.width = future.width
+    w.height = future.height
+    ctx.putImageData(future, 0, 0)
+    setHistoryTick((t) => t + 1)
+    render()
+  }
+
+  // Atajos teclado
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Handoff entrante (?handoff=1)
   useEffect(() => {
@@ -82,6 +152,7 @@ export default function CutoutTool() {
       .then((img) => {
         if (!active) return
         work.current = imageToCanvas(img)
+        original.current = imageToCanvas(img)
         setError(null)
         setStatus(null)
         setReady(true)
@@ -102,9 +173,13 @@ export default function CutoutTool() {
       const { removeBackground } = await import('@imgly/background-removal')
       setStatus('Procesando…')
       const absoluteUrl = new URL(imageUrl, window.location.href).href
-      const blob = await removeBackground(absoluteUrl)
+      const blob = await removeBackground(absoluteUrl, {
+        model: aiModel,
+        rescale: aiRescale,
+      })
       const url = URL.createObjectURL(blob)
       const img = await loadImage(url)
+      pushSnapshot()
       work.current = imageToCanvas(img)
       URL.revokeObjectURL(url)
       render()
@@ -117,21 +192,76 @@ export default function CutoutTool() {
     }
   }
 
-  // Varita mágica: click → borra fondo contiguo
-  const onCanvasClick = (e: React.MouseEvent) => {
-    if (!wand || !work.current) return
+  // Herramientas de ratón
+  const getPos = (e: React.PointerEvent) => {
     const f = fit()
     const disp = displayRef.current
-    if (!f || !disp) return
+    if (!f || !disp) return null
     const rect = disp.getBoundingClientRect()
-    const ix = (e.clientX - rect.left - f.ox) / f.scale
-    const iy = (e.clientY - rect.top - f.oy) / f.scale
-    if (ix < 0 || iy < 0 || ix >= work.current.width || iy >= work.current.height) return
+    return {
+      x: (e.clientX - rect.left - f.ox) / f.scale,
+      y: (e.clientY - rect.top - f.oy) / f.scale,
+    }
+  }
+
+  const drawBrush = (x1: number, y1: number, x2: number, y2: number) => {
+    if (!work.current) return
     const ctx = work.current.getContext('2d')!
-    const data = ctx.getImageData(0, 0, work.current.width, work.current.height)
-    floodErase(data, ix, iy, tolerance)
-    ctx.putImageData(data, 0, 0)
+    ctx.save()
+    ctx.lineWidth = brushSize
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    if (toolMode === 'erase') {
+      ctx.globalCompositeOperation = 'destination-out'
+      ctx.strokeStyle = 'rgba(0,0,0,1)'
+    } else if (toolMode === 'restore' && original.current) {
+      ctx.globalCompositeOperation = 'source-over'
+      const pat = ctx.createPattern(original.current, 'no-repeat')
+      ctx.strokeStyle = pat || '#000'
+    }
+    ctx.beginPath()
+    ctx.moveTo(x1, y1)
+    ctx.lineTo(x2, y2)
+    ctx.stroke()
+    ctx.restore()
     render()
+  }
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!toolMode || !work.current) return
+    const p = getPos(e)
+    if (!p) return
+
+    if (toolMode === 'wand') {
+      if (p.x < 0 || p.y < 0 || p.x >= work.current.width || p.y >= work.current.height) return
+      pushSnapshot()
+      const ctx = work.current.getContext('2d')!
+      const data = ctx.getImageData(0, 0, work.current.width, work.current.height)
+      floodErase(data, p.x, p.y, tolerance)
+      ctx.putImageData(data, 0, 0)
+      render()
+      return
+    }
+
+    // Pincel
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    pushSnapshot()
+    dragging.current = true
+    lastPos.current = p
+    drawBrush(p.x, p.y, p.x + 0.1, p.y + 0.1) // Dot
+  }
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current || !lastPos.current) return
+    const p = getPos(e)
+    if (!p) return
+    drawBrush(lastPos.current.x, lastPos.current.y, p.x, p.y)
+    lastPos.current = p
+  }
+
+  const onPointerUp = () => {
+    dragging.current = false
+    lastPos.current = null
   }
 
   // Sinergia: recorta el lienzo al sujeto (bounding box no transparente)
@@ -142,7 +272,9 @@ export default function CutoutTool() {
     const data = ctx.getImageData(0, 0, w.width, w.height)
     const b = computeContentBounds(data, 18)
     if (!b) return
+    pushSnapshot()
     work.current = cropCanvas(w, b)
+    if (original.current) original.current = cropCanvas(original.current, b)
     setStatus('Recortado al sujeto')
     render()
   }
@@ -178,11 +310,8 @@ export default function CutoutTool() {
         setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
         router.push('/dashboard/tools/grid?handoff=1')
       } else {
-        const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Desde recorte' }) })
-        if (!res.ok) throw new Error()
-        const { board } = await res.json()
         setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
-        router.push(`/dashboard/boards/${board._id}?handoff=1`)
+        router.push('/dashboard/boards')
       }
     } catch {
       setError('No se pudo enviar.')
@@ -197,27 +326,69 @@ export default function CutoutTool() {
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       {/* Controles */}
       <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90">
-          <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
-          IMAGEN
-        </button>
+          <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-[var(--text-label-sm)] font-semibold transition-colors">
+            <span className="material-symbols-outlined text-[18px]">imagesmode</span>
+            CAMBIAR FOTO
+          </button>
+          
+          <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
 
+          <button onClick={undo} disabled={pastData.current.length === 0} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title="Deshacer (Ctrl+Z)">
+            <span className="material-symbols-outlined text-[20px]">undo</span>
+          </button>
+          <button onClick={redo} disabled={futureData.current.length === 0} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title="Rehacer (Ctrl+Shift+Z)">
+            <span className="material-symbols-outlined text-[20px]">redo</span>
+          </button>
         {ready && (
           <>
             <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
+            <div className="flex items-center gap-2 bg-[var(--color-surface-container-low)] px-2 py-1 rounded border border-[var(--color-outline-variant)]/50">
+              <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">memory</span>
+              <select value={aiModel} onChange={(e) => setAiModel(e.target.value as any)} className="bg-transparent text-[var(--text-label-sm)] font-mono text-[var(--color-on-surface)] outline-none cursor-pointer">
+                <option value="isnet">ISNet (Mejor)</option>
+                <option value="isnet_fp16">ISNet FP16</option>
+              </select>
+              <label className="flex items-center gap-1.5 ml-2 cursor-pointer border-l border-[var(--color-outline-variant)]/50 pl-3">
+                <input type="checkbox" checked={!aiRescale} onChange={(e) => setAiRescale(!e.target.checked)} className="accent-[var(--color-primary)] cursor-pointer" />
+                <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">Res. Original (Lento)</span>
+              </label>
+            </div>
             <button onClick={removeBgAI} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
               <span className="material-symbols-outlined text-[18px]">{busy ? 'hourglass_top' : 'auto_fix_high'}</span>
               QUITAR FONDO (IA)
             </button>
-            <button onClick={() => setWand((v) => !v)} aria-pressed={wand} className={`${ctrlBtn} ${wand ? '!text-[var(--color-primary)] !border-[var(--color-primary)] bg-[var(--color-primary)]/10' : ''}`} title="Varita mágica (click en el fondo)">
+            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
+
+            <button onClick={() => setToolMode((v) => (v === 'wand' ? null : 'wand'))} className={`${ctrlBtn} ${toolMode === 'wand' ? '!text-[var(--color-primary)] !border-[var(--color-primary)] bg-[var(--color-primary)]/10' : ''}`} title="Varita mágica (click para borrar color similar)">
               <span className="material-symbols-outlined text-[18px]">colorize</span>
               VARITA
             </button>
-            <label className="flex items-center gap-1.5 shrink-0" title="Tolerancia de la varita">
-              <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">tune</span>
-              <input type="range" min={0} max={120} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="w-20 custom-range" />
-              <span className="font-mono text-[10px] text-[var(--color-primary)] w-6">{tolerance}</span>
-            </label>
+            <button onClick={() => setToolMode((v) => (v === 'erase' ? null : 'erase'))} className={`${ctrlBtn} ${toolMode === 'erase' ? '!text-[var(--color-primary)] !border-[var(--color-primary)] bg-[var(--color-primary)]/10' : ''}`} title="Goma de borrar manual">
+              <span className="material-symbols-outlined text-[18px]">ink_eraser</span>
+              BORRAR
+            </button>
+            <button onClick={() => setToolMode((v) => (v === 'restore' ? null : 'restore'))} className={`${ctrlBtn} ${toolMode === 'restore' ? '!text-[var(--color-primary)] !border-[var(--color-primary)] bg-[var(--color-primary)]/10' : ''}`} title="Pincel para restaurar imagen original">
+              <span className="material-symbols-outlined text-[18px]">brush</span>
+              RESTAURAR
+            </button>
+
+            {toolMode === 'wand' && (
+              <label className="flex items-center gap-1.5 shrink-0 bg-[var(--color-surface-container-low)] px-2 rounded border border-[var(--color-outline-variant)]/50" title="Tolerancia de la varita">
+                <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">tune</span>
+                <input type="range" min={0} max={120} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="w-20 custom-range" />
+                <span className="font-mono text-[10px] text-[var(--color-primary)] w-6">{tolerance}</span>
+              </label>
+            )}
+
+            {(toolMode === 'erase' || toolMode === 'restore') && (
+              <label className="flex items-center gap-1.5 shrink-0 bg-[var(--color-surface-container-low)] px-2 rounded border border-[var(--color-outline-variant)]/50" title="Tamaño del pincel">
+                <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">line_weight</span>
+                <input type="range" min={5} max={200} value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} className="w-20 custom-range" />
+                <span className="font-mono text-[10px] text-[var(--color-primary)] w-6">{brushSize}px</span>
+              </label>
+            )}
+
+            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
             <button onClick={autoTrim} className={ctrlBtn} title="Recortar al sujeto (quita el borde transparente)">
               <span className="material-symbols-outlined text-[18px]">crop_free</span>
               AJUSTAR
@@ -262,8 +433,13 @@ export default function CutoutTool() {
         {ready ? (
           <canvas
             ref={displayRef}
-            onClick={onCanvasClick}
-            className={`absolute inset-0 ${wand ? 'cursor-crosshair' : ''}`}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerUp}
+            className={`absolute inset-0 touch-none ${
+              toolMode ? 'cursor-crosshair' : ''
+            }`}
           />
         ) : (
           <button onClick={() => setModalOpen(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">

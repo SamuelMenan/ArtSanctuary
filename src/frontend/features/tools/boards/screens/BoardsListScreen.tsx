@@ -5,6 +5,7 @@ import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { peekHandoff } from '@shared/lib/tools/handoff'
 
 type BoardMeta = {
   _id: string
@@ -20,8 +21,10 @@ export default function BoardsListPage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasHandoff, setHasHandoff] = useState(false)
 
   useEffect(() => {
+    setHasHandoff(!!peekHandoff())
     fetch('/api/boards')
       .then((r) => (r.ok ? r.json() : { boards: [] }))
       .then((d) => setBoards(d.boards ?? []))
@@ -39,7 +42,7 @@ export default function BoardsListPage() {
     const data = await res.json().catch(() => ({}))
     setCreating(false)
     if (res.ok) {
-      router.push(`/dashboard/boards/${data.board._id}`)
+      router.push(`/dashboard/boards/${data.board._id}${hasHandoff ? '?handoff=1' : ''}`)
     } else {
       setError(data.error ?? 'No se pudo crear el board')
     }
@@ -82,6 +85,20 @@ export default function BoardsListPage() {
           </button>
         </header>
 
+        {hasHandoff && (
+          <div className="mb-8 p-4 bg-[var(--color-primary)]/10 border border-[var(--color-primary)] rounded-[var(--radius-lg)] flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[var(--color-primary)] text-2xl">file_download</span>
+              <div>
+                <h3 className="font-sans font-bold text-[var(--color-primary)]">Imagen lista para colocar</h3>
+                <p className="font-mono text-xs text-[var(--color-on-surface-variant)] uppercase tracking-widest mt-1">
+                  Selecciona un board existente o crea uno nuevo para pegar la imagen.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {error && (
           <p className="mb-6 font-sans text-sm text-red-500 bg-red-500/10 border border-red-500/30 rounded-md px-4 py-2">
             {error}
@@ -107,7 +124,7 @@ export default function BoardsListPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[var(--spacing-grid-gutter)]">
             {boards.map((b) => (
-              <Link href={`/dashboard/boards/${b._id}`} key={b._id} className="block group">
+              <Link href={`/dashboard/boards/${b._id}${hasHandoff ? '?handoff=1' : ''}`} key={b._id} className="block group">
                 <div className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-[var(--radius-xl)] overflow-hidden transition-all duration-300 group-hover:border-[var(--color-outline)] group-hover:-translate-y-1">
                   <div className="aspect-video bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] flex items-center justify-center overflow-hidden">
                     {b.thumbnailUrl ? (

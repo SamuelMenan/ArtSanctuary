@@ -36,3 +36,12 @@ export function takeHandoff(): PhysicalImage | null {
     return null
   }
 }
+export function peekHandoff(): PhysicalImage | null {
+  try {
+    const s = sessionStorage.getItem(KEY)
+    if (!s) return null
+    return JSON.parse(s) as PhysicalImage
+  } catch {
+    return null
+  }
+}

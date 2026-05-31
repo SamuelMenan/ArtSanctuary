@@ -184,11 +184,8 @@ export default function CropTool() {
         setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
         router.push('/dashboard/tools/grid?handoff=1')
       } else {
-        const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Desde recorte' }) })
-        if (!res.ok) throw new Error()
-        const { board } = await res.json()
         setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
-        router.push(`/dashboard/boards/${board._id}?handoff=1`)
+        router.push('/dashboard/boards')
       }
     } catch {
       setError('No se pudo enviar.')

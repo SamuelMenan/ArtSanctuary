@@ -58,3 +58,8 @@ next-env.d.ts
 /mcp/index.d.ts
 /mcp/index.d.ts.map
 /mcp/*.html
+
+# editor/agent + screenshots
+.agents/
+.trae/
+docs/pr/*.png

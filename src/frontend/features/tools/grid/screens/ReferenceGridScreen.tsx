@@ -31,8 +31,97 @@ export default function ReferenceGridScreen() {
   const [color, setColor] = useState('#ffffff')
   const [showNumbers, setShowNumbers] = useState(false)
 
+  // Cargar preferencias guardadas
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('grid-prefs')
+      if (saved) {
+        const p = JSON.parse(saved)
+        if (p.opacity !== undefined) setOpacity(p.opacity)
+        if (p.color !== undefined) setColor(p.color)
+        if (p.showNumbers !== undefined) setShowNumbers(p.showNumbers)
+        if (p.squareCm !== undefined) {
+          setSquareCm(p.squareCm)
+          setRealWidthCm((w) => Math.max(p.squareCm, Math.round(w / p.squareCm) * p.squareCm))
+          setTargetCm((t) => Math.max(p.squareCm, Math.round(t / p.squareCm) * p.squareCm))
+        }
+      }
+    } catch {}
+  }, [])
+
+  // Guardar preferencias
+  useEffect(() => {
+    localStorage.setItem('grid-prefs', JSON.stringify({ opacity, color, showNumbers, squareCm }))
+  }, [opacity, color, showNumbers, squareCm])
+
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
+
+  const prevColor = useRef(color)
+  const prevOpacity = useRef(opacity)
+
+  // Historial
+  type GridSnapshot = {
+    realWidthCm: number; squareCm: number; targetCm: number;
+    opacity: number; color: string; showNumbers: boolean;
+    pan: { x: number; y: number }; zoom: number;
+  }
+  const currentState = useRef<GridSnapshot>({ realWidthCm, squareCm, targetCm, opacity, color, showNumbers, pan, zoom })
+  currentState.current = { realWidthCm, squareCm, targetCm, opacity, color, showNumbers, pan, zoom }
+  
+  const pastData = useRef<GridSnapshot[]>([])
+  const futureData = useRef<GridSnapshot[]>([])
+  const [historyTick, setHistoryTick] = useState(0)
+
+  const pushSnapshot = (override?: Partial<GridSnapshot>) => {
+    pastData.current.push({ ...currentState.current, ...override })
+    if (pastData.current.length > 20) pastData.current.shift()
+    futureData.current = []
+    setHistoryTick(t => t + 1)
+  }
+
+  const applyState = (s: GridSnapshot) => {
+    setRealWidthCm(s.realWidthCm)
+    setSquareCm(s.squareCm)
+    setTargetCm(s.targetCm)
+    setOpacity(s.opacity)
+    setColor(s.color)
+    setShowNumbers(s.showNumbers)
+    setPan(s.pan)
+    setZoom(s.zoom)
+  }
+
+  const undo = () => {
+    if (pastData.current.length === 0) return
+    futureData.current.push(currentState.current)
+    applyState(pastData.current.pop()!)
+    setHistoryTick(t => t + 1)
+  }
+
+  const redo = () => {
+    if (futureData.current.length === 0) return
+    pastData.current.push(currentState.current)
+    applyState(futureData.current.pop()!)
+    setHistoryTick(t => t + 1)
+  }
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT') return
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [modalOpen, setModalOpen] = useState(false)
   const [exportWarning, setExportWarning] = useState<string | null>(null)
@@ -97,10 +186,11 @@ export default function ReferenceGridScreen() {
   const refH = rows * squareCm
   const finW = cols * targetCm
   const finH = rows * targetCm
-  // cm -> "750 cm (7,5 m)"
+  // cm -> "150 cm (1.5 m)", only shows meters if >= 10
   const fmt = (cm: number) => {
+    if (cm < 10) return `${+cm.toFixed(2)} cm`
     const m = cm / 100
-    const mStr = (Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')).replace('.', ',')
+    const mStr = Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')
     return `${+cm.toFixed(2)} cm (${mStr} m)`
   }
 
@@ -114,6 +204,7 @@ export default function ReferenceGridScreen() {
   // ── Pan + zoom ──
   const onPointerDown = (e: React.PointerEvent) => {
     if (!imageUrl) return
+    pushSnapshot()
     ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
     dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y }
   }
@@ -127,12 +218,38 @@ export default function ReferenceGridScreen() {
   const onPointerUp = () => {
     dragging.current = null
   }
+  const wheeling = useRef(false)
   const onWheel = (e: React.WheelEvent) => {
     if (!imageUrl) return
-    const next = Math.min(5, Math.max(0.2, zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)))
-    setZoom(next)
+    e.preventDefault() // prevent page scroll
+    if (!wheeling.current) {
+      pushSnapshot()
+      wheeling.current = true
+    }
+    const delta = e.deltaY * -0.001
+    const nextZoom = Math.min(Math.max(0.1, zoom * (1 + delta)), 5)
+    
+    // Zoom toward pointer
+    const f = frameRef.current
+    if (f) {
+      const rect = f.getBoundingClientRect()
+      const px = e.clientX - rect.left - rect.width / 2
+      const py = e.clientY - rect.top - rect.height / 2
+      // offset shift to keep pointer stationary
+      const scaleChange = nextZoom - zoom
+      setPan((p) => ({
+        x: p.x - (px * scaleChange) / zoom,
+        y: p.y - (py * scaleChange) / zoom,
+      }))
+    }
+    setZoom(nextZoom)
+    
+    clearTimeout((onWheel as any).t)
+    ;(onWheel as any).t = setTimeout(() => { wheeling.current = false }, 500)
   }
+
   const resetView = () => {
+    pushSnapshot()
     setPan({ x: 0, y: 0 })
     setZoom(1)
   }
@@ -145,87 +262,96 @@ export default function ReferenceGridScreen() {
     setTargetCm((t) => Math.max(squareCm, Math.round(t / squareCm) * squareCm))
   }, [squareCm])
 
-  // ── Exportar PNG ──
-  const exportPNG = () => {
-    if (!imageUrl || !frameRef.current) return
-    setExportWarning(null)
-    const fr = frameRef.current.getBoundingClientRect()
-    const cellPx = 120
-    const EW = cols * cellPx
-    const EH = rows * cellPx
-    const k = EW / fr.width // factor pantalla -> export
+  // ── Generador de Blob (Cuadrícula Renderizada) ──
+  const generateGridBlob = (): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      if (!imageUrl || !frameRef.current) return reject(new Error('No image'))
+      const fr = frameRef.current.getBoundingClientRect()
+      const cellPx = 120
+      const EW = cols * cellPx
+      const EH = rows * cellPx
+      const k = EW / fr.width // factor pantalla -> export
 
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = EW
-      canvas.height = EH
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = EW
+        canvas.height = EH
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('No ctx'))
 
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, EW, EH)
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, EW, EH)
 
-      // Imagen con el mismo contain + pan/zoom que en pantalla
-      const containScale = Math.min(EW / img.naturalWidth, EH / img.naturalHeight)
-      const dw = img.naturalWidth * containScale * zoom
-      const dh = img.naturalHeight * containScale * zoom
-      const dx = EW / 2 + pan.x * k - dw / 2
-      const dy = EH / 2 + pan.y * k - dh / 2
-      ctx.drawImage(img, dx, dy, dw, dh)
+        // Imagen con el mismo contain + pan/zoom que en pantalla
+        const containScale = Math.min(EW / img.naturalWidth, EH / img.naturalHeight)
+        const dw = img.naturalWidth * containScale * zoom
+        const dh = img.naturalHeight * containScale * zoom
+        const dx = EW / 2 + pan.x * k - dw / 2
+        const dy = EH / 2 + pan.y * k - dh / 2
+        ctx.drawImage(img, dx, dy, dw, dh)
 
-      ctx.strokeStyle = color
-      ctx.globalAlpha = opacity / 100
-      ctx.lineWidth = 1
-      for (let c = 0; c <= cols; c++) {
-        const x = Math.round((c * EW) / cols) + 0.5
-        ctx.beginPath()
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, EH)
-        ctx.stroke()
-      }
-      for (let r = 0; r <= rows; r++) {
-        const y = Math.round((r * EH) / rows) + 0.5
-        ctx.beginPath()
-        ctx.moveTo(0, y)
-        ctx.lineTo(EW, y)
-        ctx.stroke()
-      }
-      ctx.globalAlpha = 1
-
-      if (showNumbers) {
-        ctx.fillStyle = color
-        ctx.globalAlpha = Math.min(1, opacity / 100 + 0.3)
-        ctx.font = `${Math.round(cellPx / 6)}px monospace`
-        ctx.textBaseline = 'top'
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            ctx.fillText(`${colLabel(c)}${r + 1}`, (c * EW) / cols + 4, (r * EH) / rows + 4)
-          }
+        ctx.strokeStyle = color
+        ctx.globalAlpha = opacity / 100
+        ctx.lineWidth = 1
+        for (let c = 0; c <= cols; c++) {
+          const x = Math.round((c * EW) / cols) + 0.5
+          ctx.beginPath()
+          ctx.moveTo(x, 0)
+          ctx.lineTo(x, EH)
+          ctx.stroke()
+        }
+        for (let r = 0; r <= rows; r++) {
+          const y = Math.round((r * EH) / rows) + 0.5
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(EW, y)
+          ctx.stroke()
         }
         ctx.globalAlpha = 1
-      }
 
-      try {
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            setExportWarning('No se pudo exportar (imagen externa sin permiso CORS).')
-            return
+        if (showNumbers) {
+          ctx.fillStyle = color
+          ctx.globalAlpha = Math.min(1, opacity / 100 + 0.3)
+          ctx.font = `${Math.round(cellPx / 6)}px monospace`
+          ctx.textBaseline = 'top'
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              ctx.fillText(`${colLabel(c)}${r + 1}`, (c * EW) / cols + 4, (r * EH) / rows + 4)
+            }
           }
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = 'grid.png'
-          a.click()
-          URL.revokeObjectURL(url)
-        }, 'image/png')
-      } catch {
-        setExportWarning('No se pudo exportar (imagen externa sin permiso CORS).')
+          ctx.globalAlpha = 1
+        }
+
+        try {
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob)
+            else reject(new Error('Blob failed'))
+          }, 'image/png')
+        } catch (e) {
+          reject(e)
+        }
       }
+      img.onerror = () => reject(new Error('Image load failed'))
+      img.src = imageUrl
+    })
+  }
+
+  // ── Exportar PNG ──
+  const exportPNG = async () => {
+    setExportWarning(null)
+    try {
+      const blob = await generateGridBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'grid.png'
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setExportWarning('No se pudo exportar (imagen externa sin permiso CORS).')
     }
-    img.onerror = () => setExportWarning('No se pudo cargar la imagen para exportar.')
-    img.src = imageUrl
   }
 
   // Enviar a Boards conservando el tamaño real (refW × refH cm = cols × rows cuadros).
@@ -234,16 +360,22 @@ export default function ReferenceGridScreen() {
     setSending(true)
     setExportWarning(null)
     try {
-      const payload = { imageUrl, widthCm: refW, heightCm: refH, squareCm, source: 'grid' as const }
+      const blob = await generateGridBlob()
+      
+      // Subir la imagen renderizada (con la cuadrícula quemada)
+      const fd = new FormData()
+      fd.append('file', new File([blob], 'grid.png', { type: 'image/png' }))
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+      if (!uploadRes.ok) throw new Error('Upload failed')
+      const { imageUrl: newImageUrl } = await uploadRes.json()
+      // Exportar al board usando las dimensiones finales (Destino)
+      const payload = { imageUrl: newImageUrl, widthCm: finW, heightCm: finH, squareCm: targetCm, source: 'grid' as const }
       if (back.current?.boardId) {
         setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId })
         router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
       } else {
-        const res = await fetch('/api/boards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Desde cuadrícula' }) })
-        if (!res.ok) throw new Error()
-        const { board } = await res.json()
         setHandoff(payload)
-        router.push(`/dashboard/boards/${board._id}?handoff=1`)
+        router.push('/dashboard/boards')
       }
     } catch {
       setExportWarning('No se pudo enviar a Boards.')
@@ -267,16 +399,22 @@ export default function ReferenceGridScreen() {
   return (
     <AppShell>
       <ToolActiveLayout>
-        {/* Barra de controles agrupada */}
         <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-          {/* Fuente */}
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 transition-opacity"
-          >
-            <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
-            IMAGEN
+          <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-[var(--text-label-sm)] font-semibold transition-colors">
+            <span className="material-symbols-outlined text-[18px]">imagesmode</span>
+            CAMBIAR FOTO
           </button>
+          
+          <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
+
+          <button onClick={undo} disabled={pastData.current.length === 0} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title="Deshacer (Ctrl+Z)">
+            <span className="material-symbols-outlined text-[20px]">undo</span>
+          </button>
+          <button onClick={redo} disabled={futureData.current.length === 0} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title="Rehacer (Ctrl+Shift+Z)">
+            <span className="material-symbols-outlined text-[20px]">redo</span>
+          </button>
+
+          <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
 
           {/* Medidas */}
           <Cluster name="Medidas">
@@ -284,19 +422,20 @@ export default function ReferenceGridScreen() {
               <span className={lbl}>Ancho</span>
               <button
                 type="button"
-                onClick={() => setRealWidthCm((w) => snapMul(w - squareCm))}
+                onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }}
                 className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
                 aria-label="Menos un cuadro"
               >remove</button>
               <input
                 type="number" min={squareCm} step={squareCm} value={realWidthCm}
+                onFocus={() => pushSnapshot()}
                 onChange={(e) => setRealWidthCm(Number(e.target.value))}
                 onBlur={(e) => setRealWidthCm(snapMul(Number(e.target.value)))}
                 className={numInput}
               />
               <button
                 type="button"
-                onClick={() => setRealWidthCm((w) => snapMul(w + squareCm))}
+                onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w + squareCm)); }}
                 className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
                 aria-label="Más un cuadro"
               >add</button>
@@ -305,7 +444,7 @@ export default function ReferenceGridScreen() {
             <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
             <label className="flex items-center gap-1.5">
               <span className={lbl}>Cuadro</span>
-              <input type="number" min={0.1} step={0.5} value={squareCm} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
+              <input type="number" min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
               <span className={lbl}>cm</span>
             </label>
             <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
@@ -313,19 +452,20 @@ export default function ReferenceGridScreen() {
               <span className={lbl}>Destino</span>
               <button
                 type="button"
-                onClick={() => setTargetCm((t) => snapMul(t - squareCm))}
+                onClick={() => { pushSnapshot(); setTargetCm((t) => snapMul(t - squareCm)); }}
                 className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
                 aria-label="Menos un cuadro"
               >remove</button>
               <input
                 type="number" min={squareCm} step={squareCm} value={targetCm}
+                onFocus={() => pushSnapshot()}
                 onChange={(e) => setTargetCm(Number(e.target.value))}
                 onBlur={(e) => setTargetCm(snapMul(Number(e.target.value)))}
                 className={numInput}
               />
               <button
                 type="button"
-                onClick={() => setTargetCm((t) => snapMul(t + squareCm))}
+                onClick={() => { pushSnapshot(); setTargetCm((t) => snapMul(t + squareCm)); }}
                 className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
                 aria-label="Más un cuadro"
               >add</button>
@@ -336,15 +476,24 @@ export default function ReferenceGridScreen() {
           {/* Estilo */}
           <Cluster name="Estilo">
             <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
-            <input className="w-20 custom-range" max="100" min="0" type="range" value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} />
+            <input className="w-20 custom-range" max="100" min="0" type="range" value={opacity} 
+              onPointerDown={() => { prevOpacity.current = opacity }} 
+              onPointerUp={() => { if (opacity !== prevOpacity.current) pushSnapshot({ opacity: prevOpacity.current }) }} 
+              onChange={(e) => setOpacity(Number(e.target.value))} 
+            />
             <span className="font-mono text-[10px] text-[var(--color-primary)] w-7 text-right">{opacity}%</span>
             <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
             <div className="w-5 h-5 rounded-sm border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden">
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-[-10px] w-10 h-10 cursor-pointer" />
+              <input type="color" value={color} 
+                onFocus={() => { prevColor.current = color }} 
+                onBlur={() => { if (color !== prevColor.current) pushSnapshot({ color: prevColor.current }) }} 
+                onChange={(e) => setColor(e.target.value)} 
+                className="absolute inset-[-10px] w-10 h-10 cursor-pointer" 
+              />
             </div>
             <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
             <button
-              onClick={() => setShowNumbers((v) => !v)}
+              onClick={() => { pushSnapshot(); setShowNumbers((v) => !v); }}
               aria-pressed={showNumbers}
               className={`flex items-center gap-1.5 px-2 py-1 rounded-md font-mono text-[10px] uppercase tracking-[0.08em] transition-colors ${
                 showNumbers ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]'
