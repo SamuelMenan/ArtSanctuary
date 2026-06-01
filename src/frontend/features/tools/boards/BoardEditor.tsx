@@ -30,6 +30,9 @@ import TopBar from './toolbars/TopBar'
 import ToolIsland from './toolbars/ToolIsland'
 import InspectorIsland from './toolbars/InspectorIsland'
 import ZoomIsland from './toolbars/ZoomIsland'
+import { useHistory } from './hooks/useHistory'
+import { useClipboard } from './hooks/useClipboard'
+import { uid } from './lib/uid'
 import { buildGridLines } from './lib/grid'
 import {
   BoardData,
@@ -38,11 +41,6 @@ import {
   PX_PER_CM,
   DEFAULT_FONT,
 } from '@shared/lib/boards/types'
-
-const uid = () =>
-  typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
@@ -80,10 +78,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const panning = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
   const editTextRef = useRef<HTMLTextAreaElement>(null)
 
-  // Historial (undo/redo) + portapapeles
-  const past = useRef<BoardObject[][]>([])
-  const future = useRef<BoardObject[][]>([])
-  const clipboard = useRef<BoardObject[]>([])
 
   const [loaded, setLoaded] = useState(false)
   const [notFound, setNotFound] = useState(false)
@@ -283,30 +277,8 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     }
   }, [editingId])
 
-  /* ── Mutación con historial ── */
-  // Snapshot del estado actual antes de mutar (closure = pre-estado correcto).
-  const mutate = (updater: (prev: BoardObject[]) => BoardObject[]) => {
-    past.current.push(objects)
-    if (past.current.length > 60) past.current.shift()
-    future.current = []
-    setObjects(updater)
-  }
-
-  const undo = () => {
-    if (!past.current.length) return
-    const prev = past.current.pop() as BoardObject[]
-    future.current.push(objects)
-    setObjects(prev)
-    setSelectedIds([])
-    setEditingId(null)
-  }
-  const redo = () => {
-    if (!future.current.length) return
-    const nxt = future.current.pop() as BoardObject[]
-    past.current.push(objects)
-    setObjects(nxt)
-    setSelectedIds([])
-  }
+  /* ── Mutación con historial (undo/redo) ── */
+  const { mutate, undo, redo } = useHistory(objects, setObjects, setSelectedIds, setEditingId)
 
   /* ── Snap a cuadrícula ── */
   const gridGap = Math.max(8, background.squareCm * PX_PER_CM)
@@ -394,19 +366,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   }
 
   /* ── Copiar / pegar / duplicar ── */
-  const copySelection = () => {
-    const sel = objects.filter((o) => selectedIds.includes(o.id))
-    if (sel.length) clipboard.current = sel.map((o) => ({ ...o }))
-  }
-  const placeClones = (src: BoardObject[]) => {
-    if (!src.length) return
-    const baseZ = Math.max(0, ...objects.map((o) => o.z)) + 1
-    const clones = src.map((o, i) => ({ ...o, id: uid(), x: o.x + 24, y: o.y + 24, z: baseZ + i }))
-    mutate((arr) => [...arr, ...clones])
-    setSelectedIds(clones.map((c) => c.id))
-  }
-  const pasteClipboard = () => placeClones(clipboard.current)
-  const duplicateSelection = () => placeClones(objects.filter((o) => selectedIds.includes(o.id)))
+  const { copySelection, pasteClipboard, duplicateSelection } = useClipboard(objects, selectedIds, setSelectedIds, mutate)
 
   /* ── Atajos de teclado ── */
   useEffect(() => {
