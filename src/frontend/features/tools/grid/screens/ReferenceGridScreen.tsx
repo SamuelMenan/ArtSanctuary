@@ -10,6 +10,9 @@ import { applyScale, formatCm, formatScaled } from '@shared/lib/measure'
 import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
 import { computeGridGeometry, snapToSquare } from '@frontend/features/tools/grid/lib/gridGeometry'
 import { renderGridBlob } from '@frontend/features/tools/grid/lib/renderGridBlob'
+import { useGridPrefs } from '@frontend/features/tools/grid/hooks/useGridPrefs'
+import { useGridHistory } from '@frontend/features/tools/grid/hooks/useGridHistory'
+import { useGridPanZoom } from '@frontend/features/tools/grid/hooks/useGridPanZoom'
 
 const CM_PRESETS = [1.5, 28] as const
 
@@ -24,95 +27,20 @@ export default function ReferenceGridScreen() {
   const [color, setColor] = useState('#ffffff')
   const [showNumbers, setShowNumbers] = useState(false)
 
-  // Cargar preferencias guardadas
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('grid-prefs')
-      if (saved) {
-        const p = JSON.parse(saved)
-        if (p.opacity !== undefined) setOpacity(p.opacity)
-        if (p.color !== undefined) setColor(p.color)
-        if (p.showNumbers !== undefined) setShowNumbers(p.showNumbers)
-        if (p.squareCm !== undefined) {
-          setSquareCm(p.squareCm)
-          setRealWidthCm((w) => Math.max(p.squareCm, Math.round(w / p.squareCm) * p.squareCm))
-        }
-      }
-    } catch {}
-  }, [])
-
-  // Guardar preferencias
-  useEffect(() => {
-    localStorage.setItem('grid-prefs', JSON.stringify({ opacity, color, showNumbers, squareCm }))
-  }, [opacity, color, showNumbers, squareCm])
-
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
 
   const prevColor = useRef(color)
   const prevOpacity = useRef(opacity)
 
-  // Historial
-  type GridSnapshot = {
-    realWidthCm: number; squareCm: number;
-    opacity: number; color: string; showNumbers: boolean;
-    pan: { x: number; y: number }; zoom: number;
-  }
-  const currentState = useRef<GridSnapshot>({ realWidthCm, squareCm, opacity, color, showNumbers, pan, zoom })
-  currentState.current = { realWidthCm, squareCm, opacity, color, showNumbers, pan, zoom }
-  
-  const pastData = useRef<GridSnapshot[]>([])
-  const futureData = useRef<GridSnapshot[]>([])
-  const [historyTick, setHistoryTick] = useState(0)
+  // Preferencias en localStorage (cargar/guardar).
+  useGridPrefs({ opacity, color, showNumbers, squareCm, setOpacity, setColor, setShowNumbers, setSquareCm, setRealWidthCm })
 
-  const pushSnapshot = (override?: Partial<GridSnapshot>) => {
-    pastData.current.push({ ...currentState.current, ...override })
-    if (pastData.current.length > 20) pastData.current.shift()
-    futureData.current = []
-    setHistoryTick(t => t + 1)
-  }
-
-  const applyState = (s: GridSnapshot) => {
-    setRealWidthCm(s.realWidthCm)
-    setSquareCm(s.squareCm)
-    setOpacity(s.opacity)
-    setColor(s.color)
-    setShowNumbers(s.showNumbers)
-    setPan(s.pan)
-    setZoom(s.zoom)
-  }
-
-  const undo = () => {
-    if (pastData.current.length === 0) return
-    futureData.current.push(currentState.current)
-    applyState(pastData.current.pop()!)
-    setHistoryTick(t => t + 1)
-  }
-
-  const redo = () => {
-    if (futureData.current.length === 0) return
-    pastData.current.push(currentState.current)
-    applyState(futureData.current.pop()!)
-    setHistoryTick(t => t + 1)
-  }
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName
-      if (tag === 'INPUT') return
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
-        e.preventDefault()
-        if (e.shiftKey) redo()
-        else undo()
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
-        e.preventDefault()
-        redo()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Historial undo/redo (snapshots del estado completo) + atajos.
+  const { pushSnapshot, undo, redo, pastData, futureData } = useGridHistory(
+    { realWidthCm, squareCm, opacity, color, showNumbers, pan, zoom },
+    { setRealWidthCm, setSquareCm, setOpacity, setColor, setShowNumbers, setPan, setZoom },
+  )
 
   const [modalOpen, setModalOpen] = useState(false)
   const [exportWarning, setExportWarning] = useState<string | null>(null)
@@ -120,7 +48,6 @@ export default function ReferenceGridScreen() {
   const router = useRouter()
   const stageRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
-  const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
   const [sending, setSending] = useState(false)
   // Destino de retorno si llegamos desde un board (round-trip).
   const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
@@ -159,57 +86,9 @@ export default function ReferenceGridScreen() {
     computeGridGeometry({ realWidthCm, squareCm, imgNatural, stage, opacity, color })
 
   // ── Pan + zoom ──
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (!imageUrl) return
-    pushSnapshot()
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-    dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y }
-  }
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current) return
-    setPan({
-      x: dragging.current.panX + (e.clientX - dragging.current.startX),
-      y: dragging.current.panY + (e.clientY - dragging.current.startY),
-    })
-  }
-  const onPointerUp = () => {
-    dragging.current = null
-  }
-  const wheeling = useRef(false)
-  const onWheel = (e: React.WheelEvent) => {
-    if (!imageUrl) return
-    e.preventDefault() // prevent page scroll
-    if (!wheeling.current) {
-      pushSnapshot()
-      wheeling.current = true
-    }
-    const delta = e.deltaY * -0.001
-    const nextZoom = Math.min(Math.max(0.1, zoom * (1 + delta)), 5)
-    
-    // Zoom toward pointer
-    const f = frameRef.current
-    if (f) {
-      const rect = f.getBoundingClientRect()
-      const px = e.clientX - rect.left - rect.width / 2
-      const py = e.clientY - rect.top - rect.height / 2
-      // offset shift to keep pointer stationary
-      const scaleChange = nextZoom - zoom
-      setPan((p) => ({
-        x: p.x - (px * scaleChange) / zoom,
-        y: p.y - (py * scaleChange) / zoom,
-      }))
-    }
-    setZoom(nextZoom)
-    
-    clearTimeout((onWheel as any).t)
-    ;(onWheel as any).t = setTimeout(() => { wheeling.current = false }, 500)
-  }
-
-  const resetView = () => {
-    pushSnapshot()
-    setPan({ x: 0, y: 0 })
-    setZoom(1)
-  }
+  const { onPointerDown, onPointerMove, onPointerUp, onWheel, resetView } = useGridPanZoom({
+    imageUrl, frameRef, zoom, pan, setZoom, setPan, pushSnapshot,
+  })
 
   // Ancho siempre múltiplo del cuadro
   const snapMul = (cm: number) => snapToSquare(cm, squareCm)
