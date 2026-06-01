@@ -5,15 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { applyScale } from '@shared/lib/measure'
 import { setHandoff } from '@shared/lib/tools/handoff'
-import { Stage, Layer, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
-import ImageNode from './nodes/ImageNode'
-import TextNode from './nodes/TextNode'
-import StickyNode from './nodes/StickyNode'
-import ShapeNode from './nodes/ShapeNode'
-import GridLayer from './layers/GridLayer'
-import MeasureLayer from './layers/MeasureLayer'
+import BoardStage from './components/BoardStage'
 import TextFormatBar from './toolbars/TextFormatBar'
 import ShapeStyleBar from './toolbars/ShapeStyleBar'
 import SelectionRect from './overlays/SelectionRect'
@@ -298,63 +292,32 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
       {/* Escenario */}
       <div ref={containerRef} className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${panMode ? 'cursor-grab active:cursor-grabbing' : tool === 'measure' ? 'cursor-crosshair' : ''}`}>
-        {stageSize.w > 0 && (
-          <Stage
-            ref={stageRef}
-            width={stageSize.w}
-            height={stageSize.h}
-            x={pos.x}
-            y={pos.y}
-            scaleX={scale}
-            scaleY={scale}
-            onWheel={onWheel}
-            onMouseDown={onStagePointerDown}
-            onTouchStart={onStagePointerDown}
-            onMouseMove={onStagePointerMove}
-            onTouchMove={onStagePointerMove}
-            onMouseUp={onStagePointerUp}
-            onTouchEnd={onStagePointerUp}
-          >
-            {/* Capa de fondo (grid milimetrado: menores 1cm + mayores 2cm) */}
-            <GridLayer lines={gridLines} color={gridColor} scale={scale} opacity={background.opacity} />
-
-            {/* Capa de objetos */}
-            <Layer>
-              {sorted.map((obj) => {
-                const onSelect = (additive: boolean) => !readOnly && selectObject(obj.id, additive)
-                const onEdit = () => !readOnly && !obj.locked && (setSelectedIds([obj.id]), setEditingId(obj.id))
-                const draggable = tool === 'select' && !obj.locked && !readOnly
-                if (obj.type === 'image')
-                  return <ImageNode key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
-                if (obj.type === 'text')
-                  return <TextNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
-                if (obj.type === 'sticky')
-                  return <StickyNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
-                if (isShape(obj.type))
-                  return <ShapeNode key={obj.id} obj={obj} onSelect={onSelect} onChange={updateObject} snap={snap} snapVal={snapVal} draggable={draggable} />
-                return null
-              })}
-              {!readOnly && (
-                <Transformer
-                  ref={trRef}
-                  rotateEnabled
-                  keepRatio={false}
-                  rotationSnapTolerance={4}
-                  rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
-                  ignoreStroke
-                  boundBoxFunc={(oldBox, newBox) =>
-                    // Rechaza solo si ambas dimensiones son diminutas (permite
-                    // líneas/flechas finas, cuyo alto ≈ grosor).
-                    Math.abs(newBox.width) < 5 && Math.abs(newBox.height) < 5 ? oldBox : newBox
-                  }
-                />
-              )}
-            </Layer>
-
-            {/* Capa de medición (regla) */}
-            {measure && <MeasureLayer measure={measure} scale={scale} />}
-          </Stage>
-        )}
+        <BoardStage
+          stageRef={stageRef}
+          trRef={trRef}
+          stageSize={stageSize}
+          pos={pos}
+          scale={scale}
+          onWheel={onWheel}
+          onPointerDown={onStagePointerDown}
+          onPointerMove={onStagePointerMove}
+          onPointerUp={onStagePointerUp}
+          gridLines={gridLines}
+          gridColor={gridColor}
+          background={background}
+          sorted={sorted}
+          readOnly={readOnly}
+          selectedIds={selectedIds}
+          editingId={editingId}
+          tool={tool}
+          snap={snap}
+          snapVal={snapVal}
+          measure={measure}
+          onSelectObject={selectObject}
+          setSelectedIds={setSelectedIds}
+          setEditingId={setEditingId}
+          onUpdateObject={updateObject}
+        />
 
         {/* Isla izquierda: herramientas + creación */}
         {!readOnly && (
