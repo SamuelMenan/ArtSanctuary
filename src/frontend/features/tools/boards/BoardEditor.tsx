@@ -23,7 +23,9 @@ import ShapeStyleBar from './toolbars/ShapeStyleBar'
 import SelectionRect from './overlays/SelectionRect'
 import MeasureLabel from './overlays/MeasureLabel'
 import DimensionLabel from './overlays/DimensionLabel'
+import TextEditor from './overlays/TextEditor'
 import LayersPanel from './components/LayersPanel'
+import DimensionsFooter from './toolbars/DimensionsFooter'
 import { buildGridLines } from './lib/grid'
 import {
   BoardData,
@@ -1037,85 +1039,19 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
         {/* Edición de texto inline (textarea sobre el nodo) */}
         {editingObj && (
-          <textarea
-            ref={editTextRef}
-            value={editingObj.text || ''}
-            onChange={(e) => commitEditText(e.target.value)}
-            onBlur={finishEditing}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' || (e.key === 'Enter' && !e.shiftKey)) {
-                e.preventDefault()
-                finishEditing()
-              }
-            }}
-            placeholder="Escribe…"
-            className="absolute z-20 resize-none outline-none border border-[var(--color-primary)] overflow-hidden"
-            style={{
-              left: pos.x + editingObj.x * scale,
-              top: pos.y + editingObj.y * scale,
-              width: editingObj.w * scale,
-              minHeight: editingObj.h * scale,
-              fontSize: (editingObj.fontSize || 20) * scale,
-              fontFamily: editingObj.fontFamily || DEFAULT_FONT,
-              fontWeight: editingObj.bold ? 700 : 400,
-              fontStyle: editingObj.italic ? 'italic' : 'normal',
-              textDecoration: editingObj.underline ? 'underline' : 'none',
-              textAlign: editingObj.align || 'left',
-              lineHeight: 1.2,
-              padding: (editingObj.type === 'sticky' ? 10 : 0) * scale,
-              color: editingObj.type === 'sticky' ? editingObj.textColor || '#1f2937' : editingObj.color || '#e8e8e8',
-              background: editingObj.type === 'sticky' ? editingObj.color || '#FDE68A' : 'rgba(0,0,0,0.4)',
-              transform: editingObj.rotation ? `rotate(${editingObj.rotation}deg)` : undefined,
-              transformOrigin: 'top left',
-            }}
-          />
+          <TextEditor o={editingObj} pos={pos} scale={scale} editRef={editTextRef} onChange={commitEditText} onFinish={finishEditing} />
         )}
       </div>
 
       {/* Footer: escala + dimensiones exactas del objeto seleccionado */}
-      <div className="bg-[var(--color-surface-container)] border-t border-[var(--color-outline-variant)] shrink-0 px-4 py-1.5 flex items-center gap-4 overflow-x-auto whitespace-nowrap font-mono text-[10px] text-[var(--color-on-surface-variant)]">
-        <span className="shrink-0">
-          1 cuadro = <span className="text-[var(--color-primary)]">{round1(background.squareCm)} cm</span>
-        </span>
-        <span className="opacity-40">·</span>
-        <span className="shrink-0">{objects.length} objeto{objects.length === 1 ? '' : 's'}</span>
-        {selectedIds.length > 1 && (
-          <>
-            <span className="opacity-40">·</span>
-            <span className="shrink-0 text-[var(--color-primary)]">{selectedIds.length} seleccionados</span>
-          </>
-        )}
-
-        <div className="flex-1" />
-
-        {!readOnly && selectedObj && (() => {
-          const o = selectedObj
-          const dim =
-            'w-16 h-7 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded px-1.5 font-mono text-[11px] text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]'
-          const field = (label: string, value: number, set: (cm: number) => void, unit = 'cm') => (
-            <label className="flex items-center gap-1 shrink-0">
-              <span className="uppercase tracking-[0.08em]">{label}</span>
-              <input
-                type="number"
-                step={0.1}
-                value={round1(value)}
-                onChange={(e) => set(Number(e.target.value) || 0)}
-                className={dim}
-              />
-              <span className="opacity-60">{unit}</span>
-            </label>
-          )
-          return (
-            <div className="flex items-center gap-2.5 shrink-0">
-              {field('X', cmOf(o.x), (cm) => patchSelected({ x: pxOf(cm) }))}
-              {field('Y', cmOf(o.y), (cm) => patchSelected({ y: pxOf(cm) }))}
-              {field('An', cmOf(o.w), (cm) => patchSelected({ w: Math.max(0, pxOf(cm)) }))}
-              {field('Al', cmOf(o.h), (cm) => patchSelected({ h: Math.max(0, pxOf(cm)) }))}
-              {field('∠', o.rotation || 0, (deg) => patchSelected({ rotation: deg }), '°')}
-            </div>
-          )
-        })()}
-      </div>
+      <DimensionsFooter
+        squareCm={background.squareCm}
+        objectCount={objects.length}
+        selectedCount={selectedIds.length}
+        selectedObj={selectedObj}
+        readOnly={readOnly}
+        onPatch={patchSelected}
+      />
 
       {modalOpen && (
         <ImageSourceModal
