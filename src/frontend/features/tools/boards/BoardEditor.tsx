@@ -34,6 +34,9 @@ import { useBoardData } from './hooks/useBoardData'
 import { useStagePointer } from './hooks/useStagePointer'
 import { useObjectCreation } from './hooks/useObjectCreation'
 import { useObjectActions } from './hooks/useObjectActions'
+import { useTransformerSync } from './hooks/useTransformerSync'
+import { useSpacePan } from './hooks/useSpacePan'
+import { useTextEditing } from './hooks/useTextEditing'
 import { buildGridLines } from './lib/grid'
 import {
   BoardObject,
@@ -116,56 +119,9 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     setObjects, setBackground, setName, setPos, setScale, setFitTarget,
   })
 
-  /* ── Transformer sigue a la selección ── */
-  useEffect(() => {
-    const tr = trRef.current
-    const stage = stageRef.current
-    if (!tr || !stage) return
-    if (!selectedIds.length || editingId) {
-      tr.nodes([])
-      tr.getLayer()?.batchDraw()
-      return
-    }
-    const nodes = selectedIds
-      .map((id) => stage.findOne(`.${id}`))
-      .filter((n): n is Konva.Node => !!n && objects.find((o) => o.id === n.name())?.visible !== false)
-    tr.nodes(nodes)
-    // Only enable resizing if ALL selected nodes are unlocked
-    tr.resizeEnabled(nodes.every(n => {
-      const obj = objects.find(o => o.id === n.name())
-      return !obj?.locked
-    }))
-    tr.getLayer()?.batchDraw()
-  }, [selectedIds, editingId, objects])
-
-  /* ── Espacio mantenido = modo paneo ── */
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.code !== 'Space') return
-      const tag = (e.target as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      e.preventDefault()
-      setSpaceHeld(true)
-    }
-    const up = (e: KeyboardEvent) => {
-      if (e.code === 'Space') setSpaceHeld(false)
-    }
-    window.addEventListener('keydown', down)
-    window.addEventListener('keyup', up)
-    return () => {
-      window.removeEventListener('keydown', down)
-      window.removeEventListener('keyup', up)
-    }
-  }, [])
-
-  /* ── Foco al entrar en edición de texto ── */
-  useEffect(() => {
-    if (editingId && editTextRef.current) {
-      const ta = editTextRef.current
-      ta.focus()
-      ta.select()
-    }
-  }, [editingId])
+  /* ── Transformer sigue a la selección · espacio = paneo ── */
+  useTransformerSync(trRef, stageRef, selectedIds, editingId, objects)
+  useSpacePan(setSpaceHeld)
 
   /* ── Mutación con historial (undo/redo) ── */
   const { mutate, undo, redo } = useHistory(objects, setObjects, setSelectedIds, setEditingId)
@@ -237,22 +193,10 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const editingObj = editingId ? objects.find((o) => o.id === editingId) : null
   const selectedObj = selectedId ? objects.find((o) => o.id === selectedId) : null
 
-  // Texto en vivo: sin historial por pulsación (evita inundar undo).
-  const commitEditText = (value: string) => {
-    if (!editingId) return
-    setObjects((arr) => arr.map((o) => (o.id === editingId ? { ...o, text: value } : o)))
-  }
-  // Cierra la edición; borra el texto si quedó vacío (las notas se conservan).
-  const finishEditing = () => {
-    const id = editingId
-    setEditingId(null)
-    if (!id) return
-    const o = objects.find((x) => x.id === id)
-    if (o && o.type === 'text' && !(o.text || '').trim()) {
-      setObjects((arr) => arr.filter((x) => x.id !== id))
-      setSelectedIds((sel) => sel.filter((s) => s !== id))
-    }
-  }
+  /* ── Edición de texto inline ── */
+  const { commitEditText, finishEditing } = useTextEditing(
+    editingId, objects, editTextRef, setObjects, setEditingId, setSelectedIds,
+  )
 
   /* ── Pan + zoom ── */
   const { onWheel, resetView, zoomBy } = usePanZoom(scale, pos, stageSize, stageRef, setScale, setPos)
