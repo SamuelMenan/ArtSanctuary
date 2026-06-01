@@ -7,18 +7,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { applyScale, formatCm, formatScaled } from '@shared/lib/measure'
-
-// Etiqueta de columna estilo hoja de cálculo: 0->A, 25->Z, 26->AA…
-function colLabel(n: number): string {
-  let s = ''
-  n += 1
-  while (n > 0) {
-    const r = (n - 1) % 26
-    s = String.fromCharCode(65 + r) + s
-    n = Math.floor((n - 1) / 26)
-  }
-  return s
-}
+import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
+import { computeGridGeometry, snapToSquare } from '@frontend/features/tools/grid/lib/gridGeometry'
+import { renderGridBlob } from '@frontend/features/tools/grid/lib/renderGridBlob'
 
 const CM_PRESETS = [1.5, 28] as const
 
@@ -163,37 +154,9 @@ export default function ReferenceGridScreen() {
     return () => ro.disconnect()
   }, [])
 
-  // ── Geometría de la cuadrícula ──
-  // El ancho real debe ser múltiplo del cuadro: cols es entero exacto y la
-  // proporción cols:rows se mantiene para escalar el mismo dibujo más grande.
-  const aspect = imgNatural.h / imgNatural.w
-  const cols = Math.max(1, Math.round(realWidthCm / squareCm))
-  const effWidthCm = cols * squareCm // ancho efectivo, ya múltiplo del cuadro
-  const realHeightCm = Math.max(1, effWidthCm * aspect)
-  const rows = Math.max(1, Math.round(realHeightCm / squareCm))
-  
-  const targetCm = applyScale(squareCm)
-  const factor = targetCm / squareCm
-  const canvasW = Math.round(cols * targetCm)
-  const canvasH = Math.round(rows * targetCm)
-
-  // Tamaño REAL del lienzo en px: encaja cols:rows dentro del escenario.
-  // Garantiza celdas perfectamente cuadradas = idéntico al PNG exportado.
-  const fit = Math.min((Math.min(stage.w, 920) || 0) / cols, (stage.h || 0) / rows)
-  const frameW = fit > 0 ? cols * fit : 0
-  const frameH = fit > 0 ? rows * fit : 0
-
-  // Calculadora de tamaño: ancho/alto = nº cuadros × tamaño cuadro
-  const refW = cols * squareCm
-  const refH = rows * squareCm
-  // Use shared formatting helpers: referencia = solo cm; final = cm + (m) cuando aplica
-
-  const alphaHex = Math.round(opacity * 2.55).toString(16).padStart(2, '0')
-  const gridStyle = {
-    backgroundImage: `linear-gradient(to right, ${color}${alphaHex} 1px, transparent 1px),
-                      linear-gradient(to bottom, ${color}${alphaHex} 1px, transparent 1px)`,
-    backgroundSize: `${100 / cols}% ${100 / rows}%`,
-  }
+  // ── Geometría de la cuadrícula (pura) ──
+  const { cols, rows, targetCm, factor, canvasW, canvasH, frameW, frameH, refW, refH, gridStyle } =
+    computeGridGeometry({ realWidthCm, squareCm, imgNatural, stage, opacity, color })
 
   // ── Pan + zoom ──
   const onPointerDown = (e: React.PointerEvent) => {
@@ -249,85 +212,19 @@ export default function ReferenceGridScreen() {
   }
 
   // Ancho siempre múltiplo del cuadro
-  const snapMul = (cm: number) => Math.max(squareCm, Math.round(cm / squareCm) * squareCm)
+  const snapMul = (cm: number) => snapToSquare(cm, squareCm)
   // Re-ajusta ancho cuando cambia el tamaño del cuadro
   useEffect(() => {
-    setRealWidthCm((w) => Math.max(squareCm, Math.round(w / squareCm) * squareCm))
+    setRealWidthCm((w) => snapToSquare(w, squareCm))
   }, [squareCm])
 
-  // ── Generador de Blob (Cuadrícula Renderizada) ──
+  // ── Generador de Blob (cuadrícula renderizada) ──
   const generateGridBlob = (): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      if (!imageUrl || !frameRef.current) return reject(new Error('No image'))
-      const fr = frameRef.current.getBoundingClientRect()
-      const cellPx = 120
-      const EW = cols * cellPx
-      const EH = rows * cellPx
-      const k = EW / fr.width // factor pantalla -> export
-
-      const img = new Image()
-      img.crossOrigin = 'anonymous'
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = EW
-        canvas.height = EH
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return reject(new Error('No ctx'))
-
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, EW, EH)
-
-        // Imagen con el mismo contain + pan/zoom que en pantalla
-        const containScale = Math.min(EW / img.naturalWidth, EH / img.naturalHeight)
-        const dw = img.naturalWidth * containScale * zoom
-        const dh = img.naturalHeight * containScale * zoom
-        const dx = EW / 2 + pan.x * k - dw / 2
-        const dy = EH / 2 + pan.y * k - dh / 2
-        ctx.drawImage(img, dx, dy, dw, dh)
-
-        ctx.strokeStyle = color
-        ctx.globalAlpha = opacity / 100
-        ctx.lineWidth = 1
-        for (let c = 0; c <= cols; c++) {
-          const x = Math.round((c * EW) / cols) + 0.5
-          ctx.beginPath()
-          ctx.moveTo(x, 0)
-          ctx.lineTo(x, EH)
-          ctx.stroke()
-        }
-        for (let r = 0; r <= rows; r++) {
-          const y = Math.round((r * EH) / rows) + 0.5
-          ctx.beginPath()
-          ctx.moveTo(0, y)
-          ctx.lineTo(EW, y)
-          ctx.stroke()
-        }
-        ctx.globalAlpha = 1
-
-        if (showNumbers) {
-          ctx.fillStyle = color
-          ctx.globalAlpha = Math.min(1, opacity / 100 + 0.3)
-          ctx.font = `${Math.round(cellPx / 6)}px monospace`
-          ctx.textBaseline = 'top'
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-              ctx.fillText(`${colLabel(c)}${r + 1}`, (c * EW) / cols + 4, (r * EH) / rows + 4)
-            }
-          }
-          ctx.globalAlpha = 1
-        }
-
-        try {
-          canvas.toBlob((blob) => {
-            if (blob) resolve(blob)
-            else reject(new Error('Blob failed'))
-          }, 'image/png')
-        } catch (e) {
-          reject(e)
-        }
-      }
-      img.onerror = () => reject(new Error('Image load failed'))
-      img.src = imageUrl
+    if (!imageUrl || !frameRef.current) return Promise.reject(new Error('No image'))
+    return renderGridBlob({
+      imageUrl,
+      frameRect: { width: frameRef.current.getBoundingClientRect().width },
+      cols, rows, color, opacity, showNumbers, zoom, pan,
     })
   }
 
