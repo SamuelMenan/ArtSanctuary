@@ -2,9 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { applyScale } from '@shared/lib/measure'
-import { setHandoff } from '@shared/lib/tools/handoff'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import BoardStage from './components/BoardStage'
@@ -31,18 +28,14 @@ import { useObjectActions } from './hooks/useObjectActions'
 import { useTransformerSync } from './hooks/useTransformerSync'
 import { useSpacePan } from './hooks/useSpacePan'
 import { useTextEditing } from './hooks/useTextEditing'
+import { useBoardExport } from './hooks/useBoardExport'
 import { buildGridLines } from './lib/grid'
-import {
-  BoardObject,
-  BoardBackground,
-  PX_PER_CM,
-} from '@shared/lib/boards/types'
+import { BoardObject, BoardBackground } from '@shared/lib/boards/types'
 
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
 
 export default function BoardEditor({ boardId }: { boardId: string }) {
-  const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<Konva.Stage>(null)
   const trRef = useRef<Konva.Transformer>(null)
@@ -127,8 +120,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     toggleLayerVisible, toggleLayerLock, moveLayer,
   } = useObjectActions(objects, selectedIds, setSelectedIds, background, snap, stageSize, pos, scale, mutate, setBackground)
 
-  /* ── Medidas: 1 cuadro = squareCm cm. Conversión px(mundo) ↔ cm ── */
-  const cmOf = (px: number) => px / PX_PER_CM
   // pantalla → mundo
   const toWorld = (sx: number, sy: number) => ({ x: (sx - pos.x) / scale, y: (sy - pos.y) / scale })
 
@@ -162,27 +153,12 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
   // Selección simple (los paneles de formato solo aplican a un objeto).
   const selectedId = selectedIds.length === 1 ? selectedIds[0] : null
-  // Enviar el objeto imagen seleccionado a otra herramienta (round-trip).
-  const editIn = (tool: 'crop' | 'grid') => {
-    const o = selectedId ? objects.find((x) => x.id === selectedId) : null
-    if (!o || o.type !== 'image' || !o.src) return
-    const widthCm = cmOf(o.w)
-    const heightCm = cmOf(o.h)
-    const widthScaledCm = applyScale(widthCm)
-    const heightScaledCm = applyScale(heightCm)
-    setHandoff({
-      imageUrl: o.src,
-      widthCm,
-      heightCm,
-      widthScaledCm,
-      heightScaledCm,
-      squareCm: background.squareCm,
-      source: 'boards',
-      boardId,
-      objectId: o.id,
-    })
-    router.push(`/dashboard/tools/${tool}?handoff=1`)
-  }
+
+  /* ── Salidas del board: exportar PNG + enviar a otra herramienta ── */
+  const { editIn, downloadBoard } = useBoardExport({
+    boardId, name, objects, selectedId, selectedIds,
+    squareCm: background.squareCm, stageRef, trRef,
+  })
 
   const editingObj = editingId ? objects.find((o) => o.id === editingId) : null
   const selectedObj = selectedId ? objects.find((o) => o.id === selectedId) : null
@@ -201,39 +177,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     setMeasure, setPos, setSelectedIds, setSelRect,
   })
 
-
-  /* ── Exportar a PNG ── */
-  const downloadBoard = () => {
-    const stage = stageRef.current
-    if (!stage) return
-    const tr = trRef.current
-    
-    // Ocultar elementos de UI antes de capturar
-    if (tr) {
-      tr.nodes([])
-      tr.getLayer()?.batchDraw()
-    }
-    
-    try {
-      const dataURL = stage.toDataURL({ pixelRatio: 2, mimeType: 'image/png' })
-      const a = document.createElement('a')
-      a.href = dataURL
-      a.download = `${name.trim() || 'board'}.png`
-      a.click()
-    } catch (e) {
-      console.error("Export failed", e)
-      alert("No se pudo exportar. Asegúrate de que todas las imágenes externas tienen permisos CORS.")
-    }
-
-    // Restaurar selección
-    if (tr && selectedIds.length) {
-      const nodes = selectedIds
-        .map((id) => stage.findOne(`.${id}`))
-        .filter((n): n is Konva.Node => !!n)
-      tr.nodes(nodes)
-      tr.getLayer()?.batchDraw()
-    }
-  }
 
   /* ── Líneas de grid visibles (mayor = squareCm, menor = squareCm/2) ── */
   // Color blanco (default viejo) → invisible en tema claro; cae a gris legible.
