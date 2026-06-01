@@ -9,19 +9,23 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { cmOf, pxOf, applyScale, formatScaled, formatCm } from '@shared/lib/measure'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
-import { Stage, Layer, Line, Transformer } from 'react-konva'
+import { Stage, Layer, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import ImageNode from './nodes/ImageNode'
 import TextNode from './nodes/TextNode'
 import StickyNode from './nodes/StickyNode'
 import ShapeNode from './nodes/ShapeNode'
+import GridLayer from './layers/GridLayer'
+import MeasureLayer from './layers/MeasureLayer'
+import TextFormatBar from './toolbars/TextFormatBar'
+import ShapeStyleBar from './toolbars/ShapeStyleBar'
+import { buildGridLines } from './lib/grid'
 import {
   BoardData,
   BoardObject,
   BoardBackground,
   PX_PER_CM,
-  BOARD_FONTS,
   DEFAULT_FONT,
 } from '@shared/lib/boards/types'
 
@@ -737,25 +741,18 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const gridColor =
     !background.color || background.color.toLowerCase() === '#ffffff' ? '#94a3b8' : background.color
 
-  const gridLines = useMemo(() => {
-    if (background.type !== 'grid' || stageSize.w === 0) return { minor: [], major: [] }
-    const major = Math.max(8, background.squareCm * PX_PER_CM)
-    const minor = major / 2
-    const left = -pos.x / scale
-    const top = -pos.y / scale
-    const right = (stageSize.w - pos.x) / scale
-    const bottom = (stageSize.h - pos.y) / scale
-    const build = (gap: number) => {
-      const out: { points: number[]; key: string }[] = []
-      const sx = Math.floor(left / gap) * gap
-      const sy = Math.floor(top / gap) * gap
-      for (let x = sx; x <= right; x += gap) out.push({ points: [x, top, x, bottom], key: `v${x}` })
-      for (let y = sy; y <= bottom; y += gap) out.push({ points: [left, y, right, y], key: `h${y}` })
-      return out
-    }
-    // Oculta las menores cuando quedan demasiado juntas en pantalla.
-    return { minor: minor * scale > 6 ? build(minor) : [], major: build(major) }
-  }, [background.type, background.squareCm, stageSize, pos, scale])
+  const gridLines = useMemo(
+    () =>
+      buildGridLines({
+        type: background.type,
+        squareCm: background.squareCm,
+        stageW: stageSize.w,
+        stageH: stageSize.h,
+        pos,
+        scale,
+      }),
+    [background.type, background.squareCm, stageSize, pos, scale],
+  )
 
   const sorted = useMemo(() => [...objects].sort((a, b) => a.z - b.z), [objects])
 
@@ -816,163 +813,14 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       </div>
 
       {/* Panel de formato de texto (texto / nota seleccionados) */}
-      {!readOnly && selectedObj && (selectedObj.type === 'text' || selectedObj.type === 'sticky') && (() => {
-        const o = selectedObj
-        const isSticky = o.type === 'sticky'
-        const textColor = isSticky ? o.textColor || '#1f2937' : o.color || '#e8e8e8'
-        const setTextColor = (v: string) => patchSelected(isSticky ? { textColor: v } : { color: v })
-        const tog = (active: boolean) =>
-          `flex items-center justify-center w-9 h-9 rounded-md border transition-colors shrink-0 ${
-            active
-              ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] border-[var(--color-primary)]'
-              : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]'
-          }`
-        const swatch =
-          'w-9 h-9 rounded-md border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden shrink-0'
-        return (
-          <div className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap animate-in fade-in slide-in-from-top-2 duration-200">
-            {/* Fuente */}
-            <select
-              value={o.fontFamily || DEFAULT_FONT}
-              onChange={(e) => patchSelected({ fontFamily: e.target.value })}
-              className="h-9 px-2 rounded-md bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] font-sans text-sm text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
-              title="Fuente"
-              style={{ fontFamily: o.fontFamily || DEFAULT_FONT }}
-            >
-              {BOARD_FONTS.map((f) => (
-                <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-
-            {/* Tamaño */}
-            <div className="flex items-center gap-1 shrink-0">
-              <button onClick={() => patchSelected({ fontSize: Math.max(8, (o.fontSize || 20) - 2) })} className={tog(false)} title="Menos">
-                <span className="material-symbols-outlined text-[18px]">remove</span>
-              </button>
-              <input
-                type="number"
-                min={8}
-                max={400}
-                value={o.fontSize || 20}
-                onChange={(e) => patchSelected({ fontSize: Math.max(8, Math.min(400, Number(e.target.value) || 20)) })}
-                className="w-14 h-9 bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
-                title="Tamaño"
-              />
-              <button onClick={() => patchSelected({ fontSize: Math.min(400, (o.fontSize || 20) + 2) })} className={tog(false)} title="Más">
-                <span className="material-symbols-outlined text-[18px]">add</span>
-              </button>
-            </div>
-
-            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 shrink-0" />
-
-            {/* Negrita / Cursiva / Subrayado */}
-            <button onClick={() => patchSelected({ bold: !o.bold })} className={tog(!!o.bold)} title="Negrita">
-              <span className="material-symbols-outlined text-[18px]">format_bold</span>
-            </button>
-            <button onClick={() => patchSelected({ italic: !o.italic })} className={tog(!!o.italic)} title="Cursiva">
-              <span className="material-symbols-outlined text-[18px]">format_italic</span>
-            </button>
-            <button onClick={() => patchSelected({ underline: !o.underline })} className={tog(!!o.underline)} title="Subrayado">
-              <span className="material-symbols-outlined text-[18px]">format_underlined</span>
-            </button>
-
-            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 shrink-0" />
-
-            {/* Alineación */}
-            <button onClick={() => patchSelected({ align: 'left' })} className={tog(o.align === 'left' || !o.align)} title="Izquierda">
-              <span className="material-symbols-outlined text-[18px]">format_align_left</span>
-            </button>
-            <button onClick={() => patchSelected({ align: 'center' })} className={tog(o.align === 'center')} title="Centro">
-              <span className="material-symbols-outlined text-[18px]">format_align_center</span>
-            </button>
-            <button onClick={() => patchSelected({ align: 'right' })} className={tog(o.align === 'right')} title="Derecha">
-              <span className="material-symbols-outlined text-[18px]">format_align_right</span>
-            </button>
-
-            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 shrink-0" />
-
-            {/* Color de texto */}
-            <label className={swatch} title="Color de texto" style={{ background: textColor }}>
-              <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="absolute inset-[-8px] w-16 h-16 cursor-pointer opacity-0" />
-            </label>
-
-            {/* Color de fondo (solo nota) */}
-            {isSticky && (
-              <label className={swatch} title="Color de nota" style={{ background: o.color || '#FDE68A' }}>
-                <input type="color" value={o.color || '#FDE68A'} onChange={(e) => patchSelected({ color: e.target.value })} className="absolute inset-[-8px] w-16 h-16 cursor-pointer opacity-0" />
-              </label>
-            )}
-          </div>
-        )
-      })()}
+      {!readOnly && selectedObj && (selectedObj.type === 'text' || selectedObj.type === 'sticky') && (
+        <TextFormatBar o={selectedObj} patch={patchSelected} />
+      )}
 
       {/* Panel de estilo de figuras */}
-      {!readOnly && selectedObj && isShape(selectedObj.type) && (() => {
-        const o = selectedObj
-        const hasFill = o.type === 'rect' || o.type === 'ellipse'
-        const filled = !!o.fill && o.fill !== 'transparent'
-        const swatch =
-          'w-9 h-9 rounded-md border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden shrink-0'
-        const tog =
-          'flex items-center justify-center w-9 h-9 rounded-md border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0'
-        return (
-          <div className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap animate-in fade-in slide-in-from-top-2 duration-200">
-            {hasFill && (
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">Relleno</span>
-                {/* Toggle: vacío ↔ relleno */}
-                <button
-                  onClick={() => patchSelected({ fill: filled ? 'transparent' : o.stroke || '#60a5fa' })}
-                  className={`flex items-center justify-center w-9 h-9 rounded-md border transition-colors shrink-0 ${
-                    filled
-                      ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] border-[var(--color-primary)]'
-                      : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]'
-                  }`}
-                  title={filled ? 'Quitar relleno' : 'Rellenar'}
-                >
-                  <span className="material-symbols-outlined text-[18px]">{filled ? 'format_color_fill' : 'format_color_reset'}</span>
-                </button>
-                {/* Swatch (solo si está relleno) */}
-                {filled && (
-                  <span className={swatch} style={{ background: o.fill }}>
-                    <input type="color" value={o.fill || '#60a5fa'} onChange={(e) => patchSelected({ fill: e.target.value })} className="absolute inset-[-8px] w-16 h-16 cursor-pointer opacity-0" />
-                  </span>
-                )}
-                <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 shrink-0" />
-              </div>
-            )}
-
-            <label className="flex items-center gap-2 shrink-0">
-              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">Borde</span>
-              <span className={swatch} style={{ background: o.stroke || '#1e293b' }}>
-                <input type="color" value={o.stroke || '#1e293b'} onChange={(e) => patchSelected({ stroke: e.target.value })} className="absolute inset-[-8px] w-16 h-16 cursor-pointer opacity-0" />
-              </span>
-            </label>
-
-            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 shrink-0" />
-
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">Grosor</span>
-              <button onClick={() => patchSelected({ strokeWidth: Math.max(0, (o.strokeWidth ?? 2) - 1) })} className={tog} title="Menos">
-                <span className="material-symbols-outlined text-[18px]">remove</span>
-              </button>
-              <input
-                type="number"
-                min={0}
-                max={60}
-                value={o.strokeWidth ?? 2}
-                onChange={(e) => patchSelected({ strokeWidth: Math.max(0, Math.min(60, Number(e.target.value) || 0)) })}
-                className="w-14 h-9 bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
-              />
-              <button onClick={() => patchSelected({ strokeWidth: Math.min(60, (o.strokeWidth ?? 2) + 1) })} className={tog} title="Más">
-                <span className="material-symbols-outlined text-[18px]">add</span>
-              </button>
-            </div>
-          </div>
-        )
-      })()}
+      {!readOnly && selectedObj && isShape(selectedObj.type) && (
+        <ShapeStyleBar o={selectedObj} patch={patchSelected} />
+      )}
 
       {/* Escenario */}
       <div ref={containerRef} className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${panMode ? 'cursor-grab active:cursor-grabbing' : tool === 'measure' ? 'cursor-crosshair' : ''}`}>
@@ -994,14 +842,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
             onTouchEnd={onStagePointerUp}
           >
             {/* Capa de fondo (grid milimetrado: menores 1cm + mayores 2cm) */}
-            <Layer listening={false}>
-              {gridLines.minor.map((l) => (
-                <Line key={`mi${l.key}`} points={l.points} stroke={gridColor} strokeWidth={1 / scale} opacity={(background.opacity / 100) * 0.45} />
-              ))}
-              {gridLines.major.map((l) => (
-                <Line key={`ma${l.key}`} points={l.points} stroke={gridColor} strokeWidth={1.25 / scale} opacity={background.opacity / 100} />
-              ))}
-            </Layer>
+            <GridLayer lines={gridLines} color={gridColor} scale={scale} opacity={background.opacity} />
 
             {/* Capa de objetos */}
             <Layer>
@@ -1037,18 +878,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
             </Layer>
 
             {/* Capa de medición (regla) */}
-            {measure && (
-              <Layer listening={false}>
-                <Line
-                  points={[measure.ax, measure.ay, measure.bx, measure.by]}
-                  stroke="#f43f5e"
-                  strokeWidth={1.5 / scale}
-                  dash={[6 / scale, 4 / scale]}
-                />
-                <Line points={[measure.ax, measure.ay, measure.ax, measure.ay]} stroke="#f43f5e" strokeWidth={6 / scale} lineCap="round" />
-                <Line points={[measure.bx, measure.by, measure.bx, measure.by]} stroke="#f43f5e" strokeWidth={6 / scale} lineCap="round" />
-              </Layer>
-            )}
+            {measure && <MeasureLayer measure={measure} scale={scale} />}
           </Stage>
         )}
 
