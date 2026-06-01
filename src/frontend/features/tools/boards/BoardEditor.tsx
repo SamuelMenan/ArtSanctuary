@@ -26,6 +26,10 @@ import DimensionLabel from './overlays/DimensionLabel'
 import TextEditor from './overlays/TextEditor'
 import LayersPanel from './components/LayersPanel'
 import DimensionsFooter from './toolbars/DimensionsFooter'
+import TopBar from './toolbars/TopBar'
+import ToolIsland from './toolbars/ToolIsland'
+import InspectorIsland from './toolbars/InspectorIsland'
+import ZoomIsland from './toolbars/ZoomIsland'
 import { buildGridLines } from './lib/grid'
 import {
   BoardData,
@@ -42,7 +46,6 @@ const uid = () =>
 
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
-const CM_PRESETS = [2, 50] as const
 
 export default function BoardEditor({ boardId }: { boardId: string }) {
   const router = useRouter()
@@ -314,7 +317,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   /* ── Medidas: 1 cuadro = squareCm cm. Conversión px(mundo) ↔ cm ── */
   const cmOf = (px: number) => px / PX_PER_CM
   const pxOf = (cm: number) => cm * PX_PER_CM
-  const round1 = (n: number) => Math.round(n * 10) / 10
   // pantalla → mundo
   const toWorld = (sx: number, sy: number) => ({ x: (sx - pos.x) / scale, y: (sy - pos.y) / scale })
 
@@ -764,49 +766,18 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     )
   }
 
-  const iconBtn =
-    'flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40'
-
-  // Islas flotantes (estilo Figma): glassmorphism + sombra.
-  const island = 'absolute z-30 bg-[var(--color-surface-container)]/85 backdrop-blur-md border border-[var(--color-outline-variant)] shadow-xl'
-  const islandIdle =
-    'flex items-center justify-center w-10 h-10 rounded-xl text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-primary)] transition-colors disabled:opacity-40'
-  const islandOn = (on: boolean) =>
-    `flex items-center justify-center w-10 h-10 rounded-xl transition-colors disabled:opacity-40 ${
-      on ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]' : 'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-high)] hover:text-[var(--color-primary)]'
-    }`
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       {/* Barra superior (mínima): documento global */}
-      <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-3">
-        <Link href="/dashboard/boards" className={iconBtn} title="Volver al dashboard">
-          <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-        </Link>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={readOnly}
-          className="bg-transparent font-sans font-semibold text-[var(--color-primary)] border-b border-transparent hover:border-[var(--color-outline-variant)] focus:border-[var(--color-primary)] outline-none px-1 py-0.5 min-w-[120px] max-w-[320px]"
-        />
-        <div className="flex-1" />
-        <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">
-          {readOnly ? 'Solo lectura' : saveState === 'saving' ? 'Guardando…' : saveState === 'saved' ? 'Guardado' : ''}
-        </span>
-        {!readOnly && (
-          <>
-            <button onClick={undo} className={iconBtn} title="Deshacer (Ctrl+Z)">
-              <span className="material-symbols-outlined text-[20px]">undo</span>
-            </button>
-            <button onClick={redo} className={iconBtn} title="Rehacer (Ctrl+Shift+Z)">
-              <span className="material-symbols-outlined text-[20px]">redo</span>
-            </button>
-          </>
-        )}
-        <button onClick={downloadBoard} className={iconBtn} title="Descargar como PNG">
-          <span className="material-symbols-outlined text-[20px]">download</span>
-        </button>
-      </div>
+      <TopBar
+        name={name}
+        onName={setName}
+        readOnly={readOnly}
+        saveState={saveState}
+        onUndo={undo}
+        onRedo={redo}
+        onDownload={downloadBoard}
+      />
 
       {/* Panel de formato de texto (texto / nota seleccionados) */}
       {!readOnly && selectedObj && (selectedObj.type === 'text' || selectedObj.type === 'sticky') && (
@@ -880,128 +851,41 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
         {/* Isla izquierda: herramientas + creación */}
         {!readOnly && (
-          <div className={`${island} left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 p-1.5 rounded-2xl`}>
-            <button onClick={() => { setTool('select'); setMeasure(null) }} title="Seleccionar (V)" className={islandOn(tool === 'select')}>
-              <span className="material-symbols-outlined text-[20px]">arrow_selector_tool</span>
-            </button>
-            <button onClick={() => { setTool('hand'); setMeasure(null) }} title="Mover tablero (H · Espacio · botón central)" className={islandOn(tool === 'hand')}>
-              <span className="material-symbols-outlined text-[20px]">pan_tool</span>
-            </button>
-            <button onClick={() => setTool('measure')} title="Medir distancia (M)" className={islandOn(tool === 'measure')}>
-              <span className="material-symbols-outlined text-[20px]">straighten</span>
-            </button>
-            <span className="h-px w-7 mx-auto bg-[var(--color-outline-variant)]/60 my-0.5" />
-            <button onClick={() => setModalOpen(true)} title="Añadir imagen" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-            </button>
-            <button onClick={addText} title="Añadir texto" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">title</span>
-            </button>
-            <button onClick={addSticky} title="Añadir nota" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">sticky_note_2</span>
-            </button>
-            <button onClick={() => addShape('rect')} title="Rectángulo" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">rectangle</span>
-            </button>
-            <button onClick={() => addShape('ellipse')} title="Elipse" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">circle</span>
-            </button>
-            <button onClick={() => addShape('line')} title="Línea" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">horizontal_rule</span>
-            </button>
-            <button onClick={() => addShape('arrow')} title="Flecha" className={islandIdle}>
-              <span className="material-symbols-outlined text-[20px]">arrow_outward</span>
-            </button>
-          </div>
+          <ToolIsland
+            tool={tool}
+            onTool={(t) => { setTool(t); if (t !== 'measure') setMeasure(null) }}
+            onAddImage={() => setModalOpen(true)}
+            onAddText={addText}
+            onAddSticky={addSticky}
+            onAddShape={addShape}
+          />
         )}
 
         {/* Isla derecha: inspector contextual + capas */}
         {!readOnly && (
-          <div className={`${island} right-3 top-3 flex flex-col gap-1 p-1.5 rounded-2xl w-[52px] items-center`}>
-            {selectedIds.length ? (
-              <>
-                <button onClick={toggleLock} title="Bloquear / Desbloquear" className={islandOn(selectedIds.every((id) => objects.find((o) => o.id === id)?.locked))}>
-                  <span className="material-symbols-outlined text-[20px]">{selectedIds.every((id) => objects.find((o) => o.id === id)?.locked) ? 'lock' : 'lock_open'}</span>
-                </button>
-                <button onClick={duplicateSelection} title="Duplicar (Ctrl+D)" className={islandIdle}>
-                  <span className="material-symbols-outlined text-[20px]">content_copy</span>
-                </button>
-                <button onClick={bringToFront} title="Traer al frente" className={islandIdle}>
-                  <span className="material-symbols-outlined text-[20px]">flip_to_front</span>
-                </button>
-                <button onClick={sendToBack} title="Enviar al fondo" className={islandIdle}>
-                  <span className="material-symbols-outlined text-[20px]">flip_to_back</span>
-                </button>
-                {selectedObj?.type === 'image' && (
-                  <>
-                    <button onClick={() => editIn('crop')} title="Editar en Recorte / Quitar fondo" className={islandIdle}>
-                      <span className="material-symbols-outlined text-[20px]">crop</span>
-                    </button>
-                    <button onClick={() => editIn('grid')} title="Medir en Cuadrícula" className={islandIdle}>
-                      <span className="material-symbols-outlined text-[20px]">grid_on</span>
-                    </button>
-                  </>
-                )}
-                <button onClick={deleteSelected} title="Borrar (Supr)" className={`${islandIdle} hover:!bg-red-500/15 hover:!text-red-500`}>
-                  <span className="material-symbols-outlined text-[20px]">delete</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => setBackground((b) => ({ ...b, type: b.type === 'grid' ? 'plain' : 'grid' }))} title="Fondo: milimetrado / liso" className={islandOn(background.type === 'grid')}>
-                  <span className="material-symbols-outlined text-[20px]">grid_on</span>
-                </button>
-                <button onClick={() => setSnap((s) => !s)} disabled={background.type !== 'grid'} title="Imán a la cuadrícula" className={islandOn(snap && background.type === 'grid')}>
-                  <span className="material-symbols-outlined text-[20px]">polyline</span>
-                </button>
-                {background.type === 'grid' && (
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min={0.1}
-                      step={0.5}
-                      value={round1(background.squareCm)}
-                      onChange={(e) => setSquareCm(Number(e.target.value))}
-                      title="cm por cuadro"
-                      className="w-10 h-8 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-1 font-mono text-[11px] text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
-                    />
-                    {CM_PRESETS.map((preset) => {
-                      const active = Math.abs(background.squareCm - preset) < 0.01
-                      return (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => setSquareCm(preset)}
-                          title={`Usar ${preset} cm por cuadro`}
-                          className={`h-8 px-2 rounded-md border text-[10px] font-semibold transition-colors ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
-                        >
-                          {preset} cm
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-              </>
-            )}
-            <span className="h-px w-7 bg-[var(--color-outline-variant)]/60 my-0.5" />
-            <button onClick={() => setLayersOpen((v) => !v)} title="Capas" className={islandOn(layersOpen)}>
-              <span className="material-symbols-outlined text-[20px]">layers</span>
-            </button>
-          </div>
+          <InspectorIsland
+            selectedIds={selectedIds}
+            objects={objects}
+            selectedObj={selectedObj}
+            backgroundType={background.type}
+            squareCm={background.squareCm}
+            snap={snap}
+            layersOpen={layersOpen}
+            onToggleLock={toggleLock}
+            onDuplicate={duplicateSelection}
+            onBringToFront={bringToFront}
+            onSendToBack={sendToBack}
+            onEditIn={editIn}
+            onDelete={deleteSelected}
+            onToggleBackground={() => setBackground((b) => ({ ...b, type: b.type === 'grid' ? 'plain' : 'grid' }))}
+            onToggleSnap={() => setSnap((s) => !s)}
+            onSetSquareCm={setSquareCm}
+            onToggleLayers={() => setLayersOpen((v) => !v)}
+          />
         )}
 
         {/* Isla inferior izquierda: controles de vista */}
-        <div className={`${island} left-3 bottom-3 flex items-center gap-0.5 p-1 rounded-full`}>
-          <button onClick={() => zoomBy(1 / 1.2)} title="Alejar" className={islandIdle}>
-            <span className="material-symbols-outlined text-[20px]">remove</span>
-          </button>
-          <button onClick={resetView} title="Centrar vista" className="font-mono text-[11px] text-[var(--color-on-surface)] px-2 h-10 min-w-[48px] hover:text-[var(--color-primary)] transition-colors">
-            {Math.round(scale * 100)}%
-          </button>
-          <button onClick={() => zoomBy(1.2)} title="Acercar" className={islandIdle}>
-            <span className="material-symbols-outlined text-[20px]">add</span>
-          </button>
-        </div>
+        <ZoomIsland scale={scale} onZoomIn={() => zoomBy(1.2)} onZoomOut={() => zoomBy(1 / 1.2)} onReset={resetView} />
 
         {/* Panel de capas (isla flotante) */}
         {!readOnly && layersOpen && (
