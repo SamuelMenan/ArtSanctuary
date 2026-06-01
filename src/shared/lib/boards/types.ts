@@ -66,7 +66,7 @@ export function konvaFontStyle(o: { bold?: boolean; italic?: boolean }): string 
 
 export type BoardBackground = {
   type: 'grid' | 'dots' | 'plain'
-  squareCm: number
+  squareCm: number // escala activa de la cuadrícula (cm por cuadro)
   color: string
   opacity: number
 }

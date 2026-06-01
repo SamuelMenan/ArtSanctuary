@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { cmOf, pxOf } from '@shared/lib/measure'
+import { cmOf, pxOf, applyScale, formatScaled, formatCm } from '@shared/lib/measure'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { Stage, Layer, Line, Transformer } from 'react-konva'
 import type Konva from 'konva'
@@ -32,6 +32,7 @@ const uid = () =>
 
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
+const CM_PRESETS = [2, 50] as const
 
 export default function BoardEditor({ boardId }: { boardId: string }) {
   const router = useRouter()
@@ -46,7 +47,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const [objects, setObjects] = useState<BoardObject[]>([])
   const [background, setBackground] = useState<BoardBackground>({
     type: 'grid',
-    squareCm: 2,
+    squareCm: 1.5,
     color: '#94a3b8',
     opacity: 35,
   })
@@ -76,6 +77,9 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const [readOnly, setReadOnly] = useState(false)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [modalOpen, setModalOpen] = useState(false)
+  // Encuadre pendiente: imagen entrante por handoff a enmarcar cuando el
+  // escenario ya tenga tamaño (las imágenes físicas pueden ser enormes en px).
+  const [fitTarget, setFitTarget] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
 
   /* ── Tamaño del escenario ── */
   useEffect(() => {
@@ -89,6 +93,24 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     return () => ro.disconnect()
   }, [])
 
+  /* ── Encuadre de imagen entrante (handoff) ──
+     Las imágenes físicas pueden ser enormes (p. ej. 4 m = ~15 000 px); a zoom 1
+     solo se ve una esquina. Ajusta zoom/posición para enmarcar la imagen con
+     margen en cuanto el escenario tenga tamaño. */
+  useEffect(() => {
+    if (!fitTarget || stageSize.w === 0 || stageSize.h === 0) return
+    const pad = 80
+    const sx = (stageSize.w - pad * 2) / fitTarget.w
+    const sy = (stageSize.h - pad * 2) / fitTarget.h
+    const next = Math.min(5, Math.max(0.02, Math.min(sx, sy)))
+    setScale(next)
+    setPos({
+      x: stageSize.w / 2 - (fitTarget.x + fitTarget.w / 2) * next,
+      y: stageSize.h / 2 - (fitTarget.y + fitTarget.h / 2) * next,
+    })
+    setFitTarget(null)
+  }, [fitTarget, stageSize])
+
   /* ── Carga inicial ── */
   useEffect(() => {
     let active = true
@@ -99,6 +121,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         let objs = d.board.objects ?? []
         let bg = d.board.background
         const vp = d.board.viewport
+        let pendingFit: { x: number; y: number; w: number; h: number } | null = null
 
         // Handoff: imagen entrante de otra herramienta (?handoff=1).
         const params = new URLSearchParams(window.location.search)
@@ -108,10 +131,15 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           if (p) {
             const w = pxOf(p.widthCm)
             const h = pxOf(p.heightCm)
-            if (p.squareCm && bg) bg = { ...bg, squareCm: p.squareCm }
+            if (p.squareCm && bg)
+              bg = {
+                ...bg,
+                squareCm: p.squareCm,
+              }
             const target = p.objectId ? objs.find((o) => o.id === p.objectId) : null
             if (target) {
               objs = objs.map((o) => (o.id === p.objectId ? { ...o, src: p.imageUrl, w, h } : o))
+              pendingFit = { x: target.x, y: target.y, w, h }
             } else {
               const z = (vp?.zoom || 1)
               const cx = -(vp?.x ?? 0) / z + 60
@@ -125,6 +153,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
                 newY = Math.round(cy / gridGap) * gridGap;
               }
               objs = [...objs, { id: uid(), type: 'image', src: p.imageUrl, x: newX, y: newY, w, h, rotation: 0, z: maxZ + 1 }]
+              pendingFit = { x: newX, y: newY, w, h }
             }
           }
         }
@@ -136,6 +165,9 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           setPos({ x: vp.x, y: vp.y })
           setScale(vp.zoom || 1)
         }
+        // Si llegó imagen por handoff, enmarcarla (el efecto de fit aplica
+        // pos/scale cuando el escenario ya tiene tamaño) — anula el vp guardado.
+        if (pendingFit) setFitTarget(pendingFit)
         setReadOnly(!d.isOwner)
         setLoaded(true)
       })
@@ -275,6 +307,35 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const round1 = (n: number) => Math.round(n * 10) / 10
   // pantalla → mundo
   const toWorld = (sx: number, sy: number) => ({ x: (sx - pos.x) / scale, y: (sy - pos.y) / scale })
+
+  /* ── Cambiar cm/cuadro: reescala los objetos para conservar su tamaño
+     relativo a la cuadrícula. Sin esto, al pasar de 50→2 cm/cuadro el
+     gridGap encoge 25× pero la imagen no, y queda gigante. El reescalado
+     se hace alrededor del centro visible (no del origen) para que la zona
+     que estás mirando se quede en su sitio. ── */
+  const setSquareCm = (raw: number) => {
+    const next = Math.max(0.1, raw || 0.1)
+    const prev = background.squareCm
+    if (next !== prev) {
+      const k = next / prev
+      // Pivote = centro del viewport en coordenadas de mundo.
+      const cx = (stageSize.w / 2 - pos.x) / scale
+      const cy = (stageSize.h / 2 - pos.y) / scale
+      mutate((os) =>
+        os.map((o) => ({
+          ...o,
+          x: cx + (o.x - cx) * k,
+          y: cy + (o.y - cy) * k,
+          w: o.w * k,
+          h: o.h * k,
+          fontSize: o.fontSize != null ? o.fontSize * k : o.fontSize,
+          strokeWidth: o.strokeWidth != null ? o.strokeWidth * k : o.strokeWidth,
+          points: o.points ? o.points.map((p) => p * k) : o.points,
+        })),
+      )
+    }
+    setBackground((b) => ({ ...b, squareCm: next }))
+  }
 
   /* ── Mutadores de objetos ── */
   const updateObject = (o: BoardObject) => {
@@ -450,10 +511,16 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const editIn = (tool: 'crop' | 'grid') => {
     const o = selectedId ? objects.find((x) => x.id === selectedId) : null
     if (!o || o.type !== 'image' || !o.src) return
+    const widthCm = cmOf(o.w)
+    const heightCm = cmOf(o.h)
+    const widthScaledCm = applyScale(widthCm)
+    const heightScaledCm = applyScale(heightCm)
     setHandoff({
       imageUrl: o.src,
-      widthCm: cmOf(o.w),
-      heightCm: cmOf(o.h),
+      widthCm,
+      heightCm,
+      widthScaledCm,
+      heightScaledCm,
       squareCm: background.squareCm,
       source: 'boards',
       boardId,
@@ -532,7 +599,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       x: (pointer.x - pos.x) / oldScale,
       y: (pointer.y - pos.y) / oldScale,
     }
-    const next = Math.min(5, Math.max(0.1, oldScale * (e.evt.deltaY < 0 ? 1.08 : 1 / 1.08)))
+    const next = Math.min(5, Math.max(0.02, oldScale * (e.evt.deltaY < 0 ? 1.08 : 1 / 1.08)))
     setScale(next)
     setPos({
       x: pointer.x - mousePoint.x * next,
@@ -623,7 +690,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   }
   // Zoom centrado en el escenario (botones de la isla de vista).
   const zoomBy = (factor: number) => {
-    const next = Math.min(5, Math.max(0.1, scale * factor))
+    const next = Math.min(5, Math.max(0.02, scale * factor))
     const cx = stageSize.w / 2
     const cy = stageSize.h / 2
     const wx = (cx - pos.x) / scale
@@ -1062,15 +1129,31 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
                   <span className="material-symbols-outlined text-[20px]">polyline</span>
                 </button>
                 {background.type === 'grid' && (
-                  <input
-                    type="number"
-                    min={0.1}
-                    step={0.5}
-                    value={round1(background.squareCm)}
-                    onChange={(e) => setBackground((b) => ({ ...b, squareCm: Math.max(0.1, Number(e.target.value) || 0.1) }))}
-                    title="cm por cuadro"
-                    className="w-10 h-8 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-1 font-mono text-[11px] text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
-                  />
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min={0.1}
+                      step={0.5}
+                      value={round1(background.squareCm)}
+                      onChange={(e) => setSquareCm(Number(e.target.value))}
+                      title="cm por cuadro"
+                      className="w-10 h-8 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-1 font-mono text-[11px] text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
+                    />
+                    {CM_PRESETS.map((preset) => {
+                      const active = Math.abs(background.squareCm - preset) < 0.01
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setSquareCm(preset)}
+                          title={`Usar ${preset} cm por cuadro`}
+                          className={`h-8 px-2 rounded-md border text-[10px] font-semibold transition-colors ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+                        >
+                          {preset} cm
+                        </button>
+                      )
+                    })}
+                  </div>
                 )}
               </>
             )}
@@ -1163,13 +1246,27 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           const distCm = round1(cmOf(Math.hypot(measure.bx - measure.ax, measure.by - measure.ay)))
           const mx = pos.x + ((measure.ax + measure.bx) / 2) * scale
           const my = pos.y + ((measure.ay + measure.by) / 2) * scale
-          
-          const m = distCm / 100
-          const mStr = Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')
-          
+          const fmtM = (cm: number) => {
+            if (cm < 10) return ''
+            const m = cm / 100
+            return ` (${Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')} m)`
+          }
+          // Mostrar ambas escalas (Referencia + Final).
+          if (background.type === 'grid') {
+            return (
+              <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap overflow-hidden shadow text-center" style={{ left: mx, top: my }}>
+                <div className="px-2 py-0.5 opacity-90 border-b border-white/25">
+                  Referencia: {formatCm(distCm)}
+                </div>
+                <div className="px-2 py-0.5">
+                  Final: {formatScaled(distCm)}
+                </div>
+              </div>
+            )
+          }
           return (
             <div className="absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap shadow" style={{ left: mx, top: my }}>
-              {distCm} cm {distCm >= 10 && `(${mStr} m)`}
+              {distCm} cm{fmtM(distCm)}
             </div>
           )
         })()}
@@ -1188,12 +1285,34 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
             return ` (${Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')} m)`
           }
 
+          const dimStr = (a: number, b: number) => `${a} cm${fmtM(a)} × ${b} cm${fmtM(b)}`
           const label = isLin
             ? `${diagCm} cm${fmtM(diagCm)}`
-            : `${wCm} cm${fmtM(wCm)} × ${hCm} cm${fmtM(hCm)}`
-            
+            : dimStr(wCm, hCm)
+
           const left = pos.x + (o.x + o.w / 2) * scale
           const top = pos.y + (o.y + o.h) * scale + 8
+
+          // Cota doble (Referencia + Final): ambas escalas SIEMPRE visibles en cuadrícula.
+          if (background.type === 'grid') {
+            const sLabelRef = () => {
+              return isLin ? formatCm(diagCm) : `${formatCm(wCm)} × ${formatCm(hCm)}`
+            }
+            const sLabelFin = () => {
+              return isLin ? formatScaled(diagCm) : `${formatScaled(wCm)} × ${formatScaled(hCm)}`
+            }
+            return (
+              <div className="absolute -translate-x-1/2 rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[10px] pointer-events-none z-20 whitespace-nowrap overflow-hidden" style={{ left, top }}>
+                <div className="px-1.5 py-0.5 opacity-90 border-b border-[var(--color-on-primary)]/20">
+                  Referencia: {sLabelRef()}
+                </div>
+                <div className="px-1.5 py-0.5">
+                  Final: {sLabelFin()}
+                </div>
+              </div>
+            )
+          }
+
           return (
             <div className="absolute -translate-x-1/2 px-1.5 py-0.5 rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[10px] pointer-events-none z-20 whitespace-nowrap" style={{ left, top }}>
               {label}

@@ -6,7 +6,7 @@ import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
 import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/autocrop'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
-import { cmOf } from '@shared/lib/measure'
+import { cmOf, applyScale, formatCm, formatScaled } from '@shared/lib/measure'
 
 type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se' | null
 
@@ -177,14 +177,16 @@ export default function CropTool() {
       const url = await uploadBlob(blob, 'crop.png')
       const widthCm = cmOf(crop.w)
       const heightCm = cmOf(crop.h)
+      const widthScaledCm = applyScale(widthCm)
+      const heightScaledCm = applyScale(heightCm)
       if (dest === 'back' && back.current?.boardId) {
-        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
         router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
       } else if (dest === 'grid') {
-        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
         router.push('/dashboard/tools/grid?handoff=1')
       } else {
-        setHandoff({ imageUrl: url, widthCm, heightCm, source: 'crop' })
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
         router.push('/dashboard/boards')
       }
     } catch {
@@ -238,7 +240,11 @@ export default function CropTool() {
             </button>
 
             <div className="flex-1" />
-            <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{Math.round(crop.w)} × {Math.round(crop.h)} px</span>
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{Math.round(crop.w)} × {Math.round(crop.h)} px</span>
+              <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">Referencia · {formatCm(cmOf(crop.w))} × {formatCm(cmOf(crop.h))}</span>
+              <span className="font-mono text-[10px] text-[var(--color-primary)] shrink-0">Final · {formatScaled(cmOf(crop.w))} × {formatScaled(cmOf(crop.h))}</span>
+            </div>
             {back.current?.boardId ? (
               <button onClick={() => sendTo('back')} disabled={busy} className={`${ctrlBtn} !text-[var(--color-primary)] !border-[var(--color-primary)]`} title="Volver al board">
                 <span className="material-symbols-outlined text-[18px]">undo</span>

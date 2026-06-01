@@ -8,7 +8,10 @@ export interface PhysicalImage {
   imageUrl: string // persistent URL (Blob or /storage)
   widthCm: number
   heightCm: number
-  squareCm?: number // suggested grid square (from grid/board)
+  // Medidas escaladas (Final) según la escala global
+  widthScaledCm?: number
+  heightScaledCm?: number
+  squareCm?: number // suggested grid square (from grid/board) = FINAL square
   source: ToolSource
   // round-trip back to Boards:
   boardId?: string

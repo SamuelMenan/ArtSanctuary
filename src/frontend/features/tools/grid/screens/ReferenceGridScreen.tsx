@@ -6,6 +6,7 @@ import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
+import { applyScale, formatCm, formatScaled } from '@shared/lib/measure'
 
 // Etiqueta de columna estilo hoja de cálculo: 0->A, 25->Z, 26->AA…
 function colLabel(n: number): string {
@@ -19,13 +20,14 @@ function colLabel(n: number): string {
   return s
 }
 
+const CM_PRESETS = [1.5, 28] as const
+
 export default function ReferenceGridScreen() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imgNatural, setImgNatural] = useState({ w: 4, h: 3 })
 
-  const [realWidthCm, setRealWidthCm] = useState(20)
-  const [squareCm, setSquareCm] = useState(2)
-  const [targetCm, setTargetCm] = useState(50)
+  const [realWidthCm, setRealWidthCm] = useState(15)
+  const [squareCm, setSquareCm] = useState(1.5)
 
   const [opacity, setOpacity] = useState(30)
   const [color, setColor] = useState('#ffffff')
@@ -43,7 +45,6 @@ export default function ReferenceGridScreen() {
         if (p.squareCm !== undefined) {
           setSquareCm(p.squareCm)
           setRealWidthCm((w) => Math.max(p.squareCm, Math.round(w / p.squareCm) * p.squareCm))
-          setTargetCm((t) => Math.max(p.squareCm, Math.round(t / p.squareCm) * p.squareCm))
         }
       }
     } catch {}
@@ -62,12 +63,12 @@ export default function ReferenceGridScreen() {
 
   // Historial
   type GridSnapshot = {
-    realWidthCm: number; squareCm: number; targetCm: number;
+    realWidthCm: number; squareCm: number;
     opacity: number; color: string; showNumbers: boolean;
     pan: { x: number; y: number }; zoom: number;
   }
-  const currentState = useRef<GridSnapshot>({ realWidthCm, squareCm, targetCm, opacity, color, showNumbers, pan, zoom })
-  currentState.current = { realWidthCm, squareCm, targetCm, opacity, color, showNumbers, pan, zoom }
+  const currentState = useRef<GridSnapshot>({ realWidthCm, squareCm, opacity, color, showNumbers, pan, zoom })
+  currentState.current = { realWidthCm, squareCm, opacity, color, showNumbers, pan, zoom }
   
   const pastData = useRef<GridSnapshot[]>([])
   const futureData = useRef<GridSnapshot[]>([])
@@ -83,7 +84,6 @@ export default function ReferenceGridScreen() {
   const applyState = (s: GridSnapshot) => {
     setRealWidthCm(s.realWidthCm)
     setSquareCm(s.squareCm)
-    setTargetCm(s.targetCm)
     setOpacity(s.opacity)
     setColor(s.color)
     setShowNumbers(s.showNumbers)
@@ -171,6 +171,8 @@ export default function ReferenceGridScreen() {
   const effWidthCm = cols * squareCm // ancho efectivo, ya múltiplo del cuadro
   const realHeightCm = Math.max(1, effWidthCm * aspect)
   const rows = Math.max(1, Math.round(realHeightCm / squareCm))
+  
+  const targetCm = applyScale(squareCm)
   const factor = targetCm / squareCm
   const canvasW = Math.round(cols * targetCm)
   const canvasH = Math.round(rows * targetCm)
@@ -181,18 +183,10 @@ export default function ReferenceGridScreen() {
   const frameW = fit > 0 ? cols * fit : 0
   const frameH = fit > 0 ? rows * fit : 0
 
-  // Calculadora de tamaño: ancho/alto = nº cuadros × tamaño cuadro, en ambas escalas
+  // Calculadora de tamaño: ancho/alto = nº cuadros × tamaño cuadro
   const refW = cols * squareCm
   const refH = rows * squareCm
-  const finW = cols * targetCm
-  const finH = rows * targetCm
-  // cm -> "150 cm (1.5 m)", only shows meters if >= 10
-  const fmt = (cm: number) => {
-    if (cm < 10) return `${+cm.toFixed(2)} cm`
-    const m = cm / 100
-    const mStr = Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')
-    return `${+cm.toFixed(2)} cm (${mStr} m)`
-  }
+  // Use shared formatting helpers: referencia = solo cm; final = cm + (m) cuando aplica
 
   const alphaHex = Math.round(opacity * 2.55).toString(16).padStart(2, '0')
   const gridStyle = {
@@ -254,12 +248,11 @@ export default function ReferenceGridScreen() {
     setZoom(1)
   }
 
-  // Ancho y destino siempre múltiplos del cuadro (factor de escala entero)
+  // Ancho siempre múltiplo del cuadro
   const snapMul = (cm: number) => Math.max(squareCm, Math.round(cm / squareCm) * squareCm)
-  // Re-ajusta ancho y destino cuando cambia el tamaño del cuadro
+  // Re-ajusta ancho cuando cambia el tamaño del cuadro
   useEffect(() => {
     setRealWidthCm((w) => Math.max(squareCm, Math.round(w / squareCm) * squareCm))
-    setTargetCm((t) => Math.max(squareCm, Math.round(t / squareCm) * squareCm))
   }, [squareCm])
 
   // ── Generador de Blob (Cuadrícula Renderizada) ──
@@ -368,8 +361,10 @@ export default function ReferenceGridScreen() {
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
       if (!uploadRes.ok) throw new Error('Upload failed')
       const { imageUrl: newImageUrl } = await uploadRes.json()
-      // Exportar al board usando las dimensiones finales (Destino)
-      const payload = { imageUrl: newImageUrl, widthCm: finW, heightCm: finH, squareCm: targetCm, source: 'grid' as const }
+      // Exportar al board usando las dimensiones finales
+      const finW = applyScale(refW)
+      const finH = applyScale(refH)
+      const payload = { imageUrl: newImageUrl, widthCm: refW, heightCm: refH, widthScaledCm: finW, heightScaledCm: finH, squareCm, source: 'grid' as const }
       if (back.current?.boardId) {
         setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId })
         router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
@@ -445,30 +440,22 @@ export default function ReferenceGridScreen() {
             <label className="flex items-center gap-1.5">
               <span className={lbl}>Cuadro</span>
               <input type="number" min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
-              <span className={lbl}>cm</span>
-            </label>
-            <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
-            <label className="flex items-center gap-1">
-              <span className={lbl}>Destino</span>
-              <button
-                type="button"
-                onClick={() => { pushSnapshot(); setTargetCm((t) => snapMul(t - squareCm)); }}
-                className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
-                aria-label="Menos un cuadro"
-              >remove</button>
-              <input
-                type="number" min={squareCm} step={squareCm} value={targetCm}
-                onFocus={() => pushSnapshot()}
-                onChange={(e) => setTargetCm(Number(e.target.value))}
-                onBlur={(e) => setTargetCm(snapMul(Number(e.target.value)))}
-                className={numInput}
-              />
-              <button
-                type="button"
-                onClick={() => { pushSnapshot(); setTargetCm((t) => snapMul(t + squareCm)); }}
-                className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
-                aria-label="Más un cuadro"
-              >add</button>
+              <div className="flex items-center gap-1">
+                {CM_PRESETS.map((preset) => {
+                  const active = Math.abs(squareCm - preset) < 0.01
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => { pushSnapshot(); setSquareCm(preset) }}
+                      title={`Usar ${preset} cm`}
+                      className={`h-8 px-2 rounded-md border text-[10px] font-semibold transition-colors ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+                    >
+                      {preset} cm
+                    </button>
+                  )
+                })}
+              </div>
               <span className={lbl}>cm</span>
             </label>
           </Cluster>
@@ -612,11 +599,11 @@ export default function ReferenceGridScreen() {
           <div className="flex items-stretch gap-3 font-mono text-[10px] shrink-0">
             <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60">
               <span className="text-[var(--color-on-surface-variant)] uppercase tracking-[0.1em] mb-0.5">Referencia · {squareCm}cm</span>
-              <span className="text-[var(--color-on-surface)]">A {fmt(refW)} · Al {fmt(refH)}</span>
+              <span className="text-[var(--color-on-surface)]">A {formatCm(refW)} · Al {formatCm(refH)}</span>
             </div>
             <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/40">
-              <span className="text-[var(--color-primary)] uppercase tracking-[0.1em] mb-0.5">Final · {targetCm}cm</span>
-              <span className="text-[var(--color-primary)]">A {fmt(finW)} · Al {fmt(finH)}</span>
+              <span className="text-[var(--color-primary)] uppercase tracking-[0.1em] mb-0.5">Final · {formatScaled(squareCm)}</span>
+              <span className="text-[var(--color-primary)]">A {formatScaled(refW)} · Al {formatScaled(refH)}</span>
             </div>
           </div>
         </div>
