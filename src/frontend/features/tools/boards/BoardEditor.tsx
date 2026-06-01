@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { cmOf, pxOf, applyScale, formatScaled, formatCm } from '@shared/lib/measure'
+import { cmOf, pxOf, applyScale } from '@shared/lib/measure'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { Stage, Layer, Transformer } from 'react-konva'
 import type Konva from 'konva'
@@ -20,6 +20,10 @@ import GridLayer from './layers/GridLayer'
 import MeasureLayer from './layers/MeasureLayer'
 import TextFormatBar from './toolbars/TextFormatBar'
 import ShapeStyleBar from './toolbars/ShapeStyleBar'
+import SelectionRect from './overlays/SelectionRect'
+import MeasureLabel from './overlays/MeasureLabel'
+import DimensionLabel from './overlays/DimensionLabel'
+import LayersPanel from './components/LayersPanel'
 import { buildGridLines } from './lib/grid'
 import {
   BoardData,
@@ -569,16 +573,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const toggleLayerLock = (id: string) =>
     patchObject(id, { locked: !objects.find((x) => x.id === id)?.locked })
 
-  const LAYER_NAMES: Record<string, string> = {
-    image: 'Imagen', text: 'Texto', sticky: 'Nota',
-    rect: 'Rectángulo', ellipse: 'Elipse', line: 'Línea', arrow: 'Flecha',
-  }
-  const layerLabel = (o: BoardObject) => o.name || LAYER_NAMES[o.type] || 'Capa'
-  const LAYER_ICONS: Record<string, string> = {
-    image: 'image', text: 'title', sticky: 'sticky_note_2',
-    rect: 'rectangle', ellipse: 'circle', line: 'horizontal_rule', arrow: 'arrow_outward',
-  }
-
   // Reordena por arrastre en el panel: recalcula z según el nuevo orden.
   const moveLayer = (dragId: string, targetId: string) => {
     if (dragId === targetId) return
@@ -1009,146 +1003,30 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
         {/* Panel de capas (isla flotante) */}
         {!readOnly && layersOpen && (
-          <div className="absolute bottom-4 right-4 w-64 max-h-[60%] bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-xl shadow-2xl flex flex-col z-30 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-            <div className="flex items-center justify-between px-3 h-10 border-b border-[var(--color-outline-variant)] shrink-0">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">Capas</span>
-              <button onClick={() => setLayersOpen(false)} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-            <ul className="flex-1 overflow-y-auto custom-scrollbar">
-              {[...objects].sort((a, b) => b.z - a.z).map((o) => {
-                const sel = selectedIds.includes(o.id)
-                const hidden = o.visible === false
-                return (
-                  <li
-                    key={o.id}
-                    draggable
-                    onDragStart={() => { dragLayer.current = o.id }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => { if (dragLayer.current) moveLayer(dragLayer.current, o.id); dragLayer.current = null }}
-                    onClick={() => setSelectedIds([o.id])}
-                    className={`group flex items-center gap-1.5 px-2 h-9 cursor-pointer border-l-2 ${
-                      sel ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]' : 'border-transparent hover:bg-[var(--color-surface-container-high)]'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[14px] text-[var(--color-on-surface-variant)]/40 cursor-grab">drag_indicator</span>
-                    <button onClick={(e) => { e.stopPropagation(); toggleLayerVisible(o.id) }} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] shrink-0" title={hidden ? 'Mostrar' : 'Ocultar'}>
-                      <span className="material-symbols-outlined text-[18px]">{hidden ? 'visibility_off' : 'visibility'}</span>
-                    </button>
-                    <span className={`material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] shrink-0 ${hidden ? 'opacity-40' : ''}`}>{LAYER_ICONS[o.type]}</span>
-                    <input
-                      value={layerLabel(o)}
-                      onChange={(e) => patchObject(o.id, { name: e.target.value })}
-                      onClick={(e) => e.stopPropagation()}
-                      className={`flex-1 min-w-0 bg-transparent text-xs text-[var(--color-on-surface)] outline-none truncate focus:text-[var(--color-primary)] ${hidden ? 'opacity-40' : ''}`}
-                    />
-                    <button onClick={(e) => { e.stopPropagation(); toggleLayerLock(o.id) }} className={`shrink-0 hover:text-[var(--color-primary)] ${o.locked ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)]/40 group-hover:text-[var(--color-on-surface-variant)]'}`} title={o.locked ? 'Desbloquear' : 'Bloquear'}>
-                      <span className="material-symbols-outlined text-[16px]">{o.locked ? 'lock' : 'lock_open'}</span>
-                    </button>
-                  </li>
-                )
-              })}
-              {objects.length === 0 && (
-                <li className="px-3 py-5 text-center text-[10px] font-mono uppercase tracking-widest text-[var(--color-on-surface-variant)]/60">Sin capas</li>
-              )}
-            </ul>
-            {selectedObj && (
-              <div className="border-t border-[var(--color-outline-variant)] px-3 py-2 shrink-0 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
-                <input type="range" min={0} max={100} value={selectedObj.opacity ?? 100} onChange={(e) => patchObject(selectedObj.id, { opacity: Number(e.target.value) })} className="flex-1 custom-range" />
-                <span className="font-mono text-[10px] text-[var(--color-primary)] w-9 text-right">{selectedObj.opacity ?? 100}%</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Recuadro de selección (rubber band) */}
-        {selRect && (selRect.w > 0 || selRect.h > 0) && (
-          <div
-            className="absolute border border-[var(--color-primary)] bg-[var(--color-primary)]/10 pointer-events-none z-10"
-            style={{ left: selRect.x, top: selRect.y, width: selRect.w, height: selRect.h }}
+          <LayersPanel
+            objects={objects}
+            selectedIds={selectedIds}
+            selectedObj={selectedObj}
+            dragRef={dragLayer}
+            onSelect={(id) => setSelectedIds([id])}
+            onClose={() => setLayersOpen(false)}
+            onMove={moveLayer}
+            onToggleVisible={toggleLayerVisible}
+            onToggleLock={toggleLayerLock}
+            onPatch={patchObject}
           />
         )}
 
+        {/* Recuadro de selección (rubber band) */}
+        {selRect && <SelectionRect rect={selRect} />}
+
         {/* Etiqueta de distancia de la regla */}
-        {measure && (() => {
-          const distCm = round1(cmOf(Math.hypot(measure.bx - measure.ax, measure.by - measure.ay)))
-          const mx = pos.x + ((measure.ax + measure.bx) / 2) * scale
-          const my = pos.y + ((measure.ay + measure.by) / 2) * scale
-          const fmtM = (cm: number) => {
-            if (cm < 10) return ''
-            const m = cm / 100
-            return ` (${Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')} m)`
-          }
-          // Mostrar ambas escalas (Referencia + Final).
-          if (background.type === 'grid') {
-            return (
-              <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap overflow-hidden shadow text-center" style={{ left: mx, top: my }}>
-                <div className="px-2 py-0.5 opacity-90 border-b border-white/25">
-                  Referencia: {formatCm(distCm)}
-                </div>
-                <div className="px-2 py-0.5">
-                  Final: {formatScaled(distCm)}
-                </div>
-              </div>
-            )
-          }
-          return (
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap shadow" style={{ left: mx, top: my }}>
-              {distCm} cm{fmtM(distCm)}
-            </div>
-          )
-        })()}
+        {measure && <MeasureLabel measure={measure} pos={pos} scale={scale} isGrid={background.type === 'grid'} />}
 
         {/* Cota de tamaño real del objeto seleccionado */}
-        {selectedObj && !editingId && (() => {
-          const o = selectedObj
-          const isLin = o.type === 'line' || o.type === 'arrow'
-          const wCm = round1(cmOf(o.w))
-          const hCm = round1(cmOf(o.h))
-          const diagCm = round1(cmOf(Math.hypot(o.w, o.h)))
-          
-          const fmtM = (cm: number) => {
-            if (cm < 10) return ''
-            const m = cm / 100
-            return ` (${Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')} m)`
-          }
-
-          const dimStr = (a: number, b: number) => `${a} cm${fmtM(a)} × ${b} cm${fmtM(b)}`
-          const label = isLin
-            ? `${diagCm} cm${fmtM(diagCm)}`
-            : dimStr(wCm, hCm)
-
-          const left = pos.x + (o.x + o.w / 2) * scale
-          const top = pos.y + (o.y + o.h) * scale + 8
-
-          // Cota doble (Referencia + Final): ambas escalas SIEMPRE visibles en cuadrícula.
-          if (background.type === 'grid') {
-            const sLabelRef = () => {
-              return isLin ? formatCm(diagCm) : `${formatCm(wCm)} × ${formatCm(hCm)}`
-            }
-            const sLabelFin = () => {
-              return isLin ? formatScaled(diagCm) : `${formatScaled(wCm)} × ${formatScaled(hCm)}`
-            }
-            return (
-              <div className="absolute -translate-x-1/2 rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[10px] pointer-events-none z-20 whitespace-nowrap overflow-hidden" style={{ left, top }}>
-                <div className="px-1.5 py-0.5 opacity-90 border-b border-[var(--color-on-primary)]/20">
-                  Referencia: {sLabelRef()}
-                </div>
-                <div className="px-1.5 py-0.5">
-                  Final: {sLabelFin()}
-                </div>
-              </div>
-            )
-          }
-
-          return (
-            <div className="absolute -translate-x-1/2 px-1.5 py-0.5 rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[10px] pointer-events-none z-20 whitespace-nowrap" style={{ left, top }}>
-              {label}
-            </div>
-          )
-        })()}
+        {selectedObj && !editingId && (
+          <DimensionLabel o={selectedObj} pos={pos} scale={scale} isGrid={background.type === 'grid'} />
+        )}
 
         {loaded && objects.length === 0 && !readOnly && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none text-[var(--color-on-surface-variant)]">
