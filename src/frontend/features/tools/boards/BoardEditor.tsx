@@ -1,14 +1,10 @@
 'use client'
 
-/* eslint-disable react-hooks/refs --
-   Las pilas de historial (undo/redo) y el portapapeles son refs que solo se
-   leen/escriben dentro de event handlers, nunca durante el render. */
-
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { cmOf, pxOf, applyScale } from '@shared/lib/measure'
-import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
+import { applyScale } from '@shared/lib/measure'
+import { setHandoff } from '@shared/lib/tools/handoff'
 import { Stage, Layer, Transformer } from 'react-konva'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
@@ -34,10 +30,10 @@ import { useHistory } from './hooks/useHistory'
 import { useClipboard } from './hooks/useClipboard'
 import { useShortcuts } from './hooks/useShortcuts'
 import { usePanZoom } from './hooks/usePanZoom'
+import { useBoardData } from './hooks/useBoardData'
 import { uid } from './lib/uid'
 import { buildGridLines } from './lib/grid'
 import {
-  BoardData,
   BoardObject,
   BoardBackground,
   PX_PER_CM,
@@ -81,10 +77,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const editTextRef = useRef<HTMLTextAreaElement>(null)
 
 
-  const [loaded, setLoaded] = useState(false)
-  const [notFound, setNotFound] = useState(false)
-  const [readOnly, setReadOnly] = useState(false)
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [modalOpen, setModalOpen] = useState(false)
   // Encuadre pendiente: imagen entrante por handoff a enmarcar cuando el
   // escenario ya tenga tamaño (las imágenes físicas pueden ser enormes en px).
@@ -120,113 +112,11 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     setFitTarget(null)
   }, [fitTarget, stageSize])
 
-  /* ── Carga inicial ── */
-  useEffect(() => {
-    let active = true
-    fetch(`/api/boards/${boardId}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d: { board: BoardData; isOwner: boolean }) => {
-        if (!active) return
-        let objs = d.board.objects ?? []
-        let bg = d.board.background
-        const vp = d.board.viewport
-        let pendingFit: { x: number; y: number; w: number; h: number } | null = null
-
-        // Handoff: imagen entrante de otra herramienta (?handoff=1).
-        const params = new URLSearchParams(window.location.search)
-        if (d.isOwner && params.get('handoff') === '1') {
-          window.history.replaceState(null, '', `/dashboard/boards/${boardId}`)
-          const p = takeHandoff()
-          if (p) {
-            const w = pxOf(p.widthCm)
-            const h = pxOf(p.heightCm)
-            if (p.squareCm && bg)
-              bg = {
-                ...bg,
-                squareCm: p.squareCm,
-              }
-            const target = p.objectId ? objs.find((o) => o.id === p.objectId) : null
-            if (target) {
-              objs = objs.map((o) => (o.id === p.objectId ? { ...o, src: p.imageUrl, w, h } : o))
-              pendingFit = { x: target.x, y: target.y, w, h }
-            } else {
-              const z = (vp?.zoom || 1)
-              const cx = -(vp?.x ?? 0) / z + 60
-              const cy = -(vp?.y ?? 0) / z + 60
-              const maxZ = Math.max(0, ...objs.map((o) => o.z))
-              let newX = cx;
-              let newY = cy;
-              if (bg && bg.type === 'grid') {
-                const gridGap = Math.max(8, bg.squareCm * PX_PER_CM);
-                newX = Math.round(cx / gridGap) * gridGap;
-                newY = Math.round(cy / gridGap) * gridGap;
-              }
-              objs = [...objs, { id: uid(), type: 'image', src: p.imageUrl, x: newX, y: newY, w, h, rotation: 0, z: maxZ + 1 }]
-              pendingFit = { x: newX, y: newY, w, h }
-            }
-          }
-        }
-
-        setObjects(objs)
-        if (bg) setBackground(bg)
-        setName(d.board.name)
-        if (vp) {
-          setPos({ x: vp.x, y: vp.y })
-          setScale(vp.zoom || 1)
-        }
-        // Si llegó imagen por handoff, enmarcarla (el efecto de fit aplica
-        // pos/scale cuando el escenario ya tiene tamaño) — anula el vp guardado.
-        if (pendingFit) setFitTarget(pendingFit)
-        setReadOnly(!d.isOwner)
-        setLoaded(true)
-      })
-      .catch(() => active && setNotFound(true))
-    return () => {
-      active = false
-    }
-  }, [boardId])
-
-  /* ── Autosave (debounce) ── */
-  const firstSave = useRef(true)
-  useEffect(() => {
-    if (!loaded || readOnly) return
-    if (firstSave.current) {
-      firstSave.current = false
-      return
-    }
-    setSaveState('saving')
-    const t = setTimeout(() => {
-      // Miniatura del lienzo (best-effort; falla en silencio si el canvas está
-      // "tainted" por imágenes sin CORS).
-      let thumbnailUrl: string | undefined
-      try {
-        const stage = stageRef.current
-        const tr = trRef.current
-        if (stage) {
-          tr?.visible(false) // no capturar los manejadores de selección
-          thumbnailUrl = stage.toDataURL({ pixelRatio: 0.25, mimeType: 'image/jpeg', quality: 0.6 })
-          tr?.visible(true)
-          tr?.getLayer()?.batchDraw()
-        }
-      } catch {
-        thumbnailUrl = undefined
-      }
-      fetch(`/api/boards/${boardId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          objects,
-          background,
-          name,
-          viewport: { x: pos.x, y: pos.y, zoom: scale },
-          ...(thumbnailUrl ? { thumbnailUrl } : {}),
-        }),
-      })
-        .then(() => setSaveState('saved'))
-        .catch(() => setSaveState('idle'))
-    }, 800)
-    return () => clearTimeout(t)
-  }, [objects, background, name, pos, scale, loaded, readOnly, boardId])
+  /* ── Carga inicial + autosave ── */
+  const { loaded, notFound, readOnly, saveState } = useBoardData(boardId, stageRef, trRef, {
+    objects, background, name, pos, scale,
+    setObjects, setBackground, setName, setPos, setScale, setFitTarget,
+  })
 
   /* ── Transformer sigue a la selección ── */
   useEffect(() => {
@@ -290,7 +180,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
   /* ── Medidas: 1 cuadro = squareCm cm. Conversión px(mundo) ↔ cm ── */
   const cmOf = (px: number) => px / PX_PER_CM
-  const pxOf = (cm: number) => cm * PX_PER_CM
   // pantalla → mundo
   const toWorld = (sx: number, sy: number) => ({ x: (sx - pos.x) / scale, y: (sy - pos.y) / scale })
 
