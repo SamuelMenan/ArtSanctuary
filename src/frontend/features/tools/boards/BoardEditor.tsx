@@ -32,6 +32,8 @@ import InspectorIsland from './toolbars/InspectorIsland'
 import ZoomIsland from './toolbars/ZoomIsland'
 import { useHistory } from './hooks/useHistory'
 import { useClipboard } from './hooks/useClipboard'
+import { useShortcuts } from './hooks/useShortcuts'
+import { usePanZoom } from './hooks/usePanZoom'
 import { uid } from './lib/uid'
 import { buildGridLines } from './lib/grid'
 import {
@@ -369,52 +371,24 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const { copySelection, pasteClipboard, duplicateSelection } = useClipboard(objects, selectedIds, setSelectedIds, mutate)
 
   /* ── Atajos de teclado ── */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (readOnly) return
-      const tag = (e.target as HTMLElement)?.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      const mod = e.ctrlKey || e.metaKey
-      const k = e.key.toLowerCase()
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length) {
-        e.preventDefault()
-        deleteSelected()
-      } else if (mod && k === 'z') {
-        e.preventDefault()
-        if (e.shiftKey) redo()
-        else undo()
-      } else if (mod && k === 'y') {
-        e.preventDefault()
-        redo()
-      } else if (mod && k === 'c') {
-        e.preventDefault()
-        copySelection()
-      } else if (mod && k === 'v') {
-        e.preventDefault()
-        pasteClipboard()
-      } else if (mod && k === 'd') {
-        e.preventDefault()
-        duplicateSelection()
-      } else if (mod && k === 'a') {
-        e.preventDefault()
-        setSelectedIds(objects.map((o) => o.id))
-      } else if (!mod && k === 'h') {
-        setTool('hand')
-        setMeasure(null)
-      } else if (!mod && k === 'v') {
-        setTool('select')
-        setMeasure(null)
-      } else if (!mod && k === 'm') {
-        setTool('measure')
-      } else if (e.key === 'Escape') {
-        setMeasure(null)
-        setSelectedIds([])
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedIds, readOnly, objects, snap, background])
+  useShortcuts(
+    {
+      readOnly,
+      hasSelection: selectedIds.length > 0,
+      onDelete: deleteSelected,
+      onUndo: undo,
+      onRedo: redo,
+      onCopy: copySelection,
+      onPaste: pasteClipboard,
+      onDuplicate: duplicateSelection,
+      onSelectAll: () => setSelectedIds(objects.map((o) => o.id)),
+      onHandTool: () => { setTool('hand'); setMeasure(null) },
+      onSelectTool: () => { setTool('select'); setMeasure(null) },
+      onMeasureTool: () => setTool('measure'),
+      onEscape: () => { setMeasure(null); setSelectedIds([]) },
+    },
+    [selectedIds, readOnly, objects, snap, background],
+  )
 
   /* ── Centro de la vista en coords de mundo ── */
   const viewCenter = () => ({
@@ -550,24 +524,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   }
 
   /* ── Pan + zoom ── */
-  const onWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
-    e.evt.preventDefault()
-    const stage = stageRef.current
-    if (!stage) return
-    const oldScale = scale
-    const pointer = stage.getPointerPosition()
-    if (!pointer) return
-    const mousePoint = {
-      x: (pointer.x - pos.x) / oldScale,
-      y: (pointer.y - pos.y) / oldScale,
-    }
-    const next = Math.min(5, Math.max(0.02, oldScale * (e.evt.deltaY < 0 ? 1.08 : 1 / 1.08)))
-    setScale(next)
-    setPos({
-      x: pointer.x - mousePoint.x * next,
-      y: pointer.y - mousePoint.y * next,
-    })
-  }
+  const { onWheel, resetView, zoomBy } = usePanZoom(scale, pos, stageSize, stageRef, setScale, setPos)
 
   /* ── Selección por recuadro (rubber band) ── */
   const rectsIntersect = (
@@ -646,20 +603,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     setSelectedIds((prev) => (s.additive ? Array.from(new Set([...prev, ...ids])) : ids))
   }
 
-  const resetView = () => {
-    setPos({ x: 0, y: 0 })
-    setScale(1)
-  }
-  // Zoom centrado en el escenario (botones de la isla de vista).
-  const zoomBy = (factor: number) => {
-    const next = Math.min(5, Math.max(0.02, scale * factor))
-    const cx = stageSize.w / 2
-    const cy = stageSize.h / 2
-    const wx = (cx - pos.x) / scale
-    const wy = (cy - pos.y) / scale
-    setScale(next)
-    setPos({ x: cx - wx * next, y: cy - wy * next })
-  }
 
   /* ── Exportar a PNG ── */
   const downloadBoard = () => {
