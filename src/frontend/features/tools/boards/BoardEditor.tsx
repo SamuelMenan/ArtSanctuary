@@ -31,6 +31,7 @@ import { useClipboard } from './hooks/useClipboard'
 import { useShortcuts } from './hooks/useShortcuts'
 import { usePanZoom } from './hooks/usePanZoom'
 import { useBoardData } from './hooks/useBoardData'
+import { useStagePointer } from './hooks/useStagePointer'
 import { uid } from './lib/uid'
 import { buildGridLines } from './lib/grid'
 import {
@@ -71,9 +72,6 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const [selRect, setSelRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   // Medición (regla): puntos A→B en coordenadas de mundo.
   const [measure, setMeasure] = useState<{ ax: number; ay: number; bx: number; by: number } | null>(null)
-  const measuring = useRef(false)
-  const selStart = useRef<{ x: number; y: number; additive: boolean } | null>(null)
-  const panning = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
   const editTextRef = useRef<HTMLTextAreaElement>(null)
 
 
@@ -415,82 +413,11 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   /* ── Pan + zoom ── */
   const { onWheel, resetView, zoomBy } = usePanZoom(scale, pos, stageSize, stageRef, setScale, setPos)
 
-  /* ── Selección por recuadro (rubber band) ── */
-  const rectsIntersect = (
-    a: { x: number; y: number; width: number; height: number },
-    b: { x: number; y: number; w: number; h: number }
-  ) => !(a.x + a.width < b.x || a.x > b.x + b.w || a.y + a.height < b.y || a.y > b.y + b.h)
-
-  const panMode = spaceHeld || tool === 'hand'
-
-  const onStagePointerDown = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (readOnly) return
-    const p = stageRef.current?.getPointerPosition()
-    if (!p) return
-    const isMiddle = 'button' in e.evt && e.evt.button === 1
-    // Herramienta regla: traza A→B (no panea/selecciona salvo botón central).
-    if (tool === 'measure' && !isMiddle && !spaceHeld) {
-      const w = toWorld(p.x, p.y)
-      measuring.current = true
-      setMeasure({ ax: w.x, ay: w.y, bx: w.x, by: w.y })
-      return
-    }
-    // Paneo: herramienta mano, espacio mantenido o botón central (sobre lo que sea).
-    if (panMode || isMiddle) {
-      e.evt.preventDefault?.()
-      panning.current = { x: p.x, y: p.y, px: pos.x, py: pos.y }
-      return
-    }
-    // Selección por recuadro: solo sobre lienzo vacío.
-    if (e.target !== e.target.getStage()) return
-    const additive = 'shiftKey' in e.evt ? e.evt.shiftKey : false
-    selStart.current = { x: p.x, y: p.y, additive }
-    if (!additive) setSelectedIds([])
-    setSelRect({ x: p.x, y: p.y, w: 0, h: 0 })
-  }
-
-  const onStagePointerMove = () => {
-    const p = stageRef.current?.getPointerPosition()
-    if (!p) return
-    if (measuring.current) {
-      const w = toWorld(p.x, p.y)
-      setMeasure((m) => (m ? { ...m, bx: w.x, by: w.y } : m))
-      return
-    }
-    if (panning.current) {
-      const pn = panning.current
-      setPos({ x: pn.px + (p.x - pn.x), y: pn.py + (p.y - pn.y) })
-      return
-    }
-    const s = selStart.current
-    if (!s) return
-    setSelRect({ x: Math.min(s.x, p.x), y: Math.min(s.y, p.y), w: Math.abs(p.x - s.x), h: Math.abs(p.y - s.y) })
-  }
-
-  const onStagePointerUp = () => {
-    if (measuring.current) {
-      measuring.current = false
-      return
-    }
-    if (panning.current) {
-      panning.current = null
-      return
-    }
-    const s = selStart.current
-    selStart.current = null
-    const stage = stageRef.current
-    const p = stage?.getPointerPosition()
-    setSelRect(null)
-    if (!s || !stage || !p) return
-    const box = { x: Math.min(s.x, p.x), y: Math.min(s.y, p.y), w: Math.abs(p.x - s.x), h: Math.abs(p.y - s.y) }
-    if (box.w < 3 && box.h < 3) return // fue un click, no un arrastre
-    const ids: string[] = []
-    for (const obj of objects) {
-      const node = stage.findOne(`.${obj.id}`)
-      if (node && rectsIntersect(node.getClientRect(), box)) ids.push(obj.id)
-    }
-    setSelectedIds((prev) => (s.additive ? Array.from(new Set([...prev, ...ids])) : ids))
-  }
+  /* ── Punteros del escenario: regla + paneo + selección por recuadro ── */
+  const { panMode, onStagePointerDown, onStagePointerMove, onStagePointerUp } = useStagePointer({
+    readOnly, tool, spaceHeld, pos, objects, stageRef, toWorld,
+    setMeasure, setPos, setSelectedIds, setSelRect,
+  })
 
 
   /* ── Exportar a PNG ── */
