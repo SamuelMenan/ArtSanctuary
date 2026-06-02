@@ -3,6 +3,7 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
@@ -16,6 +17,7 @@ import { useGridPanZoom } from '@frontend/features/tools/grid/hooks/useGridPanZo
 import GridControls from '@frontend/features/tools/grid/components/GridControls'
 
 export default function ReferenceGridScreen() {
+  const { t } = usePreferences()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imgNatural, setImgNatural] = useState({ w: 4, h: 3 })
 
@@ -118,7 +120,7 @@ export default function ReferenceGridScreen() {
       a.click()
       URL.revokeObjectURL(url)
     } catch {
-      setExportWarning('No se pudo exportar (imagen externa sin permiso CORS).')
+      setExportWarning(t('grid.errExport'))
     }
   }
 
@@ -148,7 +150,7 @@ export default function ReferenceGridScreen() {
         router.push('/dashboard/boards')
       }
     } catch {
-      setExportWarning('No se pudo enviar a Boards.')
+      setExportWarning(t('grid.errSend'))
       setSending(false)
     }
   }
@@ -200,7 +202,7 @@ export default function ReferenceGridScreen() {
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  alt="Referencia"
+                  alt={t('grid.reference')}
                   src={imageUrl}
                   draggable={false}
                   onLoad={(e) => {
@@ -238,7 +240,7 @@ export default function ReferenceGridScreen() {
                 className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
                 <span className="material-symbols-outlined text-5xl">add_photo_alternate</span>
-                <span className="font-mono text-label-sm uppercase tracking-widest">Sube o elige una imagen</span>
+                <span className="font-mono text-label-sm uppercase tracking-widest">{t('grid.uploadPrompt')}</span>
               </button>
             )}
           </div>
@@ -247,22 +249,22 @@ export default function ReferenceGridScreen() {
         {/* Pie: métricas + calculadora */}
         <div className="bg-[var(--color-surface-container)] border-t border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2 flex items-center justify-between gap-4 overflow-x-auto whitespace-nowrap">
           <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] flex items-center gap-3">
-            <span className="text-[var(--color-primary)]">{cols} × {rows} cuadros</span>
+            <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
             <span className="opacity-40">·</span>
             <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
             <span className="opacity-40">·</span>
-            <span>lienzo {canvasW}×{canvasH} cm</span>
-            {imageUrl && <><span className="opacity-40">·</span><span>zoom {Math.round(zoom * 100)}%</span></>}
+            <span>{t('grid.canvasSize', { w: canvasW, h: canvasH })}</span>
+            {imageUrl && <><span className="opacity-40">·</span><span>{t('grid.zoom', { z: Math.round(zoom * 100) })}</span></>}
           </div>
 
           <div className="flex items-stretch gap-3 font-mono text-[10px] shrink-0">
             <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60">
-              <span className="text-[var(--color-on-surface-variant)] uppercase tracking-[0.1em] mb-0.5">Referencia · {squareCm}cm</span>
-              <span className="text-[var(--color-on-surface)]">A {formatCm(refW)} · Al {formatCm(refH)}</span>
+              <span className="text-[var(--color-on-surface-variant)] uppercase tracking-[0.1em] mb-0.5">{t('grid.reference')} · {squareCm}cm</span>
+              <span className="text-[var(--color-on-surface)]">{t('grid.wAbbr')} {formatCm(refW)} · {t('grid.hAbbr')} {formatCm(refH)}</span>
             </div>
             <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/40">
-              <span className="text-[var(--color-primary)] uppercase tracking-[0.1em] mb-0.5">Final · {formatScaled(squareCm)}</span>
-              <span className="text-[var(--color-primary)]">A {formatScaled(refW)} · Al {formatScaled(refH)}</span>
+              <span className="text-[var(--color-primary)] uppercase tracking-[0.1em] mb-0.5">{t('grid.final')} · {formatScaled(squareCm)}</span>
+              <span className="text-[var(--color-primary)]">{t('grid.wAbbr')} {formatScaled(refW)} · {t('grid.hAbbr')} {formatScaled(refH)}</span>
             </div>
           </div>
         </div>

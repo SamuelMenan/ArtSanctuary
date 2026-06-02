@@ -1,4 +1,7 @@
+'use client'
+
 import type { RefObject, Dispatch, SetStateAction } from 'react'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type { GridSnapshot } from '../hooks/useGridHistory'
 
 const CM_PRESETS = [1.5, 28] as const
@@ -68,33 +71,34 @@ export default function GridControls({
   onSend: () => void
   onExport: () => void
 }) {
+  const { t } = usePreferences()
   return (
     <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
       <button onClick={onChangePhoto} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-label-sm font-semibold transition-colors">
         <span className="material-symbols-outlined text-[18px]">imagesmode</span>
-        CAMBIAR FOTO
+        {t('grid.changePhoto')}
       </button>
 
       <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
 
-      <button onClick={onUndo} disabled={!canUndo} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title="Deshacer (Ctrl+Z)">
+      <button onClick={onUndo} disabled={!canUndo} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title={t('grid.undoTip')}>
         <span className="material-symbols-outlined text-[20px]">undo</span>
       </button>
-      <button onClick={onRedo} disabled={!canRedo} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title="Rehacer (Ctrl+Shift+Z)">
+      <button onClick={onRedo} disabled={!canRedo} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title={t('grid.redoTip')}>
         <span className="material-symbols-outlined text-[20px]">redo</span>
       </button>
 
       <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
 
       {/* Medidas */}
-      <Cluster name="Medidas">
+      <Cluster name={t('grid.measures')}>
         <label className="flex items-center gap-1">
-          <span className={lbl}>Ancho</span>
+          <span className={lbl}>{t('grid.width')}</span>
           <button
             type="button"
             onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }}
             className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
-            aria-label="Menos un cuadro"
+            aria-label={t('grid.minusSquareTip')}
           >remove</button>
           <input
             type="number" min={squareCm} step={squareCm} value={realWidthCm}
@@ -107,13 +111,13 @@ export default function GridControls({
             type="button"
             onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w + squareCm)); }}
             className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
-            aria-label="Más un cuadro"
+            aria-label={t('grid.plusSquareTip')}
           >add</button>
           <span className={lbl}>cm</span>
         </label>
         <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
         <label className="flex items-center gap-1.5">
-          <span className={lbl}>Cuadro</span>
+          <span className={lbl}>{t('grid.square')}</span>
           <input type="number" min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
           <div className="flex items-center gap-1">
             {CM_PRESETS.map((preset) => {
@@ -123,7 +127,7 @@ export default function GridControls({
                   key={preset}
                   type="button"
                   onClick={() => { pushSnapshot(); setSquareCm(preset) }}
-                  title={`Usar ${preset} cm`}
+                  title={t('grid.usePreset', { n: preset })}
                   className={`h-8 px-2 rounded-md border text-[10px] font-semibold transition-colors ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
                 >
                   {preset} cm
@@ -136,7 +140,7 @@ export default function GridControls({
       </Cluster>
 
       {/* Estilo */}
-      <Cluster name="Estilo">
+      <Cluster name={t('grid.style')}>
         <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
         <input className="w-20 custom-range" max="100" min="0" type="range" value={opacity}
           onPointerDown={() => { prevOpacity.current = opacity }}
@@ -162,7 +166,7 @@ export default function GridControls({
           }`}
         >
           <span className="material-symbols-outlined text-[16px]">tag</span>
-          Numerar
+          {t('grid.numbers')}
         </button>
       </Cluster>
 
@@ -173,7 +177,7 @@ export default function GridControls({
         onClick={onReset}
         disabled={!imageUrl}
         className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40"
-        title="Centrar imagen"
+        title={t('grid.centerTip')}
       >
         <span className="material-symbols-outlined text-[20px]">recenter</span>
       </button>
@@ -185,10 +189,10 @@ export default function GridControls({
             ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
             : 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)]'
         }`}
-        title={isReturn ? 'Volver al board con esta medida' : 'Enviar a Boards (respeta el tamaño)'}
+        title={isReturn ? t('grid.backBoardTip') : t('grid.sendBoardsTip')}
       >
         <span className="material-symbols-outlined text-[18px]">{isReturn ? 'undo' : 'dashboard'}</span>
-        {isReturn ? 'BOARD' : 'BOARDS'}
+        {isReturn ? t('grid.board') : t('grid.boards')}
       </button>
       <button
         onClick={onExport}
@@ -196,7 +200,7 @@ export default function GridControls({
         className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-label-sm font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity"
       >
         <span className="material-symbols-outlined text-[18px]">download</span>
-        EXPORTAR
+        {t('grid.export')}
       </button>
     </div>
   )
