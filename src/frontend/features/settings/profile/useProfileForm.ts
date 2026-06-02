@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { translateFields } from '@shared/i18n'
 import { useStatus } from '../useStatus'
 import { clientValidate, diff, SOCIAL_KEYS, type ProfileInitial } from './profileLogic'
 
@@ -44,7 +45,7 @@ export function useProfileForm(initial: ProfileInitial) {
     e.preventDefault()
     const errs = clientValidate(state)
     if (Object.keys(errs).length > 0) {
-      setFieldErrors(errs)
+      setFieldErrors(translateFields(errs, t))
       set({ kind: 'error', message: t('settings.requiredFields') })
       return
     }
@@ -64,7 +65,7 @@ export function useProfileForm(initial: ProfileInitial) {
         })
         const data = await res.json()
         if (!res.ok) {
-          setFieldErrors(data?.error?.fields ?? {})
+          setFieldErrors(translateFields(data?.error?.fields, t))
           set({
             kind: 'error',
             message: data?.error?.message ?? t('settings.saveError'),

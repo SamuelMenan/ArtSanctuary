@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { signOut } from 'next-auth/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { translateFields } from '@shared/i18n'
 import { useStatus } from './useStatus'
 import { StatusBanner } from './StatusBanner'
 
@@ -48,7 +49,7 @@ export function DangerZone() {
         })
         const data = await res.json()
         if (!res.ok) {
-          setDeactErrors(data?.error?.fields ?? {})
+          setDeactErrors(translateFields(data?.error?.fields, t))
           deactStatus.set({
             kind: 'error',
             message: data?.error?.message ?? t('settings.saveError'),
@@ -81,7 +82,7 @@ export function DangerZone() {
         })
         const data = await res.json()
         if (!res.ok) {
-          setDelErrors(data?.error?.fields ?? {})
+          setDelErrors(translateFields(data?.error?.fields, t))
           delStatus.set({
             kind: 'error',
             message: data?.error?.message ?? t('settings.saveError'),

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { signOut } from 'next-auth/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { translateFields } from '@shared/i18n'
 import { useStatus } from '../useStatus'
 import { StatusBanner } from '../StatusBanner'
 import { inputCls, inputErrCls, labelCls, primaryBtn } from '../formStyles'
@@ -33,7 +34,7 @@ export function EmailSection({ initialEmail }: EmailSectionProps) {
         })
         const data = await res.json()
         if (!res.ok) {
-          setEmailErrors(data?.error?.fields ?? {})
+          setEmailErrors(translateFields(data?.error?.fields, t))
           emailStatus.set({
             kind: 'error',
             message: data?.error?.message ?? t('settings.saveError'),

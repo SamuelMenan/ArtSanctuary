@@ -19,16 +19,16 @@ export const URL_RE = /^https?:\/\/[^\s/$.?#].[^\s]*$/i
 
 export function clientValidate(state: ProfileInitial): Record<string, string> {
   const f: Record<string, string> = {}
-  if (state.displayName.length > 60) f.displayName = 'Máximo 60 caracteres'
+  if (state.displayName.length > 60) f.displayName = 'validation.maxLen60'
   if (state.username && !USERNAME_RE.test(state.username)) {
-    f.username = '3-30: minúsculas, números, _'
+    f.username = 'validation.usernameFormat'
   }
-  if (state.bio.length > 300) f.bio = 'Máximo 300 caracteres'
-  if (state.location.length > 80) f.location = 'Máximo 80 caracteres'
-  if (state.website && !URL_RE.test(state.website)) f.website = 'URL inválida'
+  if (state.bio.length > 300) f.bio = 'validation.maxLen300'
+  if (state.location.length > 80) f.location = 'validation.maxLen80'
+  if (state.website && !URL_RE.test(state.website)) f.website = 'validation.invalidUrl'
   for (const k of SOCIAL_KEYS) {
     const v = state.socials[k]
-    if (v && !URL_RE.test(v)) f[`socials.${k}`] = 'URL inválida'
+    if (v && !URL_RE.test(v)) f[`socials.${k}`] = 'validation.invalidUrl'
   }
   return f
 }

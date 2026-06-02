@@ -39,6 +39,18 @@ export function createTranslator(dictionary: TranslationDictionary) {
   }
 }
 
+/**
+ * Traduce los valores de un mapa de errores de campo (clave i18n → texto). Las
+ * cadenas que no sean claves conocidas pasan tal cual (t devuelve la clave).
+ */
+export function translateFields(
+  fields: Record<string, string> | undefined,
+  translate: (key: string) => string,
+): Record<string, string> {
+  if (!fields) return {}
+  return Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, translate(v)]))
+}
+
 export function normalizeLocale(locale?: string | null): Locale {
   return locale === 'en' ? 'en' : defaultLocale
 }

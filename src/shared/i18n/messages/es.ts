@@ -332,4 +332,17 @@ export const es = {
     save: 'Guardar',
     saveChanges: 'Guardar cambios',
   },
+  validation: {
+    invalidBody: 'Cuerpo inválido',
+    invalidType: 'Tipo inválido',
+    maxLen60: 'Máximo 60 caracteres',
+    maxLen300: 'Máximo 300 caracteres',
+    maxLen80: 'Máximo 80 caracteres',
+    usernameFormat: '3-30 caracteres: letras minúsculas, números, _',
+    invalidUrl: 'URL inválida',
+    invalidEmail: 'Email inválido',
+    passwordMin: 'Mínimo 8 caracteres',
+    passwordComplexity: 'Debe incluir letras y números',
+    invalidValue: 'Valor inválido',
+  },
 } as const

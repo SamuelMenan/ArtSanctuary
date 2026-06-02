@@ -326,4 +326,17 @@ export const en = {
     save: 'Save',
     saveChanges: 'Save changes',
   },
+  validation: {
+    invalidBody: 'Invalid body',
+    invalidType: 'Invalid type',
+    maxLen60: 'Maximum 60 characters',
+    maxLen300: 'Maximum 300 characters',
+    maxLen80: 'Maximum 80 characters',
+    usernameFormat: '3-30 characters: lowercase letters, numbers, _',
+    invalidUrl: 'Invalid URL',
+    invalidEmail: 'Invalid email',
+    passwordMin: 'Minimum 8 characters',
+    passwordComplexity: 'Must include letters and numbers',
+    invalidValue: 'Invalid value',
+  },
 } as const
