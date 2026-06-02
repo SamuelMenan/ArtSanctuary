@@ -11,7 +11,8 @@
     "seed": "npx tsx scripts/seed.ts",
     "doctor": "npx react-doctor@latest",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "i18n:scan": "node scripts/find-hardcoded-strings.mjs"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",
