@@ -55,7 +55,7 @@ export default function UploadDropzone({
             <>
               <NextImage src={imagePreview} alt="Preview" width={400} height={400} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <label className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-primary)] border border-[var(--color-primary)] px-6 py-2 cursor-pointer hover:bg-[var(--color-primary)] hover:text-[var(--color-on-primary)] transition-colors">
+                <label className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] border border-[var(--color-primary)] px-6 py-2 cursor-pointer hover:bg-[var(--color-primary)] hover:text-[var(--color-on-primary)] transition-colors">
                   {t('upload.changeImage')}
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 </label>
@@ -64,7 +64,7 @@ export default function UploadDropzone({
           ) : (
             <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-6 text-center">
               <span className="material-symbols-outlined text-4xl text-[var(--color-on-surface-variant)] mb-4">add_photo_alternate</span>
-              <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-primary)] mb-2">{t('upload.selectFile')}</span>
+              <span className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] mb-2">{t('upload.selectFile')}</span>
               <span className="font-sans text-xs text-[var(--color-on-surface-variant)]">{t('upload.fileInfo')}</span>
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </label>

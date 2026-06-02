@@ -1,26 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@backend/auth";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { markNotificationRead } from "@backend/services/notifications.service";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
+export const PATCH = withErrorHandler("PATCH /api/notifications/[id]/read", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      return apiError("UNAUTHORIZED", "No autenticado");
     }
 
     const notification = await markNotificationRead(id, session.user.id);
     if (!notification) {
-      return NextResponse.json({ error: "Notificación no encontrada" }, { status: 404 });
+      return apiError("NOT_FOUND", "Notificación no encontrada");
     }
 
     return NextResponse.json({ success: true, notification });
-  } catch (error) {
-    console.error("[PATCH /api/notifications/[id]/read]", error);
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
-  }
-}
+});

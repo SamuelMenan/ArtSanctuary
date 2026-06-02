@@ -77,7 +77,7 @@ export default function ProfileMenu({
               <Link
                 href="/profile"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[var(--text-label-sm)] font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                className="flex items-center gap-3 px-4 py-3 text-label-sm font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">person</span>
                 {t('nav.profile')}
@@ -85,7 +85,7 @@ export default function ProfileMenu({
               <Link
                 href="/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[var(--text-label-sm)] font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                className="flex items-center gap-3 px-4 py-3 text-label-sm font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">settings</span>
                 {t('nav.settings')}
@@ -96,7 +96,7 @@ export default function ProfileMenu({
                   setIsOpen(false)
                   signOut({ callbackUrl: '/login' })
                 }}
-                className="flex items-center gap-3 px-4 py-3 text-[var(--text-label-sm)] font-mono text-[var(--color-error)] hover:bg-[var(--color-surface-variant)] transition-colors text-left"
+                className="flex items-center gap-3 px-4 py-3 text-label-sm font-mono text-[var(--color-error)] hover:bg-[var(--color-surface-variant)] transition-colors text-left"
               >
                 <span className="material-symbols-outlined text-[18px]">logout</span>
                 {t('nav.logout')}
@@ -107,7 +107,7 @@ export default function ProfileMenu({
               <Link
                 href="/login"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[var(--text-label-sm)] font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                className="flex items-center gap-3 px-4 py-3 text-label-sm font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">login</span>
                 {t('nav.login')}
@@ -115,7 +115,7 @@ export default function ProfileMenu({
               <Link
                 href="/register"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[var(--text-label-sm)] font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                className="flex items-center gap-3 px-4 py-3 text-label-sm font-mono text-[var(--color-on-surface)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
                 <span className="material-symbols-outlined text-[18px]">person_add</span>
                 {t('nav.register')}

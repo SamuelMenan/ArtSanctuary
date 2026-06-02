@@ -1,12 +1,13 @@
-import { NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { deleteAccountCascade } from "@backend/services/users.service";
+import bcrypt from "bcryptjs";
+import { NextRequest } from "next/server";
 
 const CONFIRM_WORD = "ELIMINAR";
 
-export async function DELETE(req: NextRequest) {
+export const DELETE = withErrorHandler("DELETE /api/settings/account", async (req: NextRequest) => {
   const r = await requireUser({ withPassword: true });
   if (!r.ok) return r.response;
 
@@ -39,4 +40,4 @@ export async function DELETE(req: NextRequest) {
   await deleteAccountCascade(r.user._id.toString(), r.user.avatarUrl);
 
   return apiOk({ deleted: true });
-}
+});

@@ -14,9 +14,9 @@ const inputCls =
   'w-full bg-[var(--color-surface-container)] border border-[var(--color-surface-container-high)] rounded-sm px-4 py-3 text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors font-sans'
 const inputErrCls = ' border-[var(--color-error)] focus:border-[var(--color-error)]'
 const labelCls =
-  'font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-on-surface-variant)]'
+  'font-mono text-label-sm tracking-widest uppercase text-[var(--color-on-surface-variant)]'
 const dangerBtn =
-  'font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-error)] border border-[var(--color-error-container)] px-6 py-3 rounded-sm hover:bg-[var(--color-error-container)]/20 transition-colors bg-transparent disabled:opacity-50 disabled:cursor-not-allowed'
+  'font-mono text-label-sm tracking-widest uppercase text-[var(--color-error)] border border-[var(--color-error-container)] px-6 py-3 rounded-sm hover:bg-[var(--color-error-container)]/20 transition-colors bg-transparent disabled:opacity-50 disabled:cursor-not-allowed'
 
 export function DangerZone() {
   const { t } = usePreferences()
@@ -111,7 +111,7 @@ export function DangerZone() {
           <button
             type="button"
             onClick={() => setDeactOpen(true)}
-            className="font-mono text-[var(--text-label-sm)] tracking-widest uppercase border border-[var(--color-outline-variant)] px-6 py-3 rounded-sm hover:border-[var(--color-primary)] transition-colors text-[var(--color-primary)] bg-transparent"
+            className="font-mono text-label-sm tracking-widest uppercase border border-[var(--color-outline-variant)] px-6 py-3 rounded-sm hover:border-[var(--color-primary)] transition-colors text-[var(--color-primary)] bg-transparent"
           >
             {t('settings.deactivate')}
           </button>
@@ -154,7 +154,7 @@ export function DangerZone() {
                   deactStatus.set({ kind: 'idle' })
                 }}
                 disabled={deactPending}
-                className="font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors bg-transparent border border-transparent px-4 py-3"
+                className="font-mono text-label-sm tracking-widest uppercase text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors bg-transparent border border-transparent px-4 py-3"
               >
                 {t('common.cancel')}
               </button>
@@ -241,7 +241,7 @@ export function DangerZone() {
                   delStatus.set({ kind: 'idle' })
                 }}
                 disabled={delPending}
-                className="font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors bg-transparent border border-transparent px-4 py-3"
+                className="font-mono text-label-sm tracking-widest uppercase text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors bg-transparent border border-transparent px-4 py-3"
               >
                 {t('common.cancel')}
               </button>

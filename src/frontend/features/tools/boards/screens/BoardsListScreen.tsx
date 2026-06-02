@@ -44,7 +44,7 @@ export default function BoardsListPage() {
     if (res.ok) {
       router.push(`/dashboard/boards/${data.board._id}${hasHandoff ? '?handoff=1' : ''}`)
     } else {
-      setError(data.error ?? 'No se pudo crear el board')
+      setError(data?.error?.message ?? 'No se pudo crear el board')
     }
   }
 
@@ -66,17 +66,17 @@ export default function BoardsListPage() {
         <div className="pt-8 pb-12 px-[var(--spacing-grid-gutter)] w-full max-w-[1400px] mx-auto z-10 relative">
         <header className="mb-12 flex items-end justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="font-display-lg text-[var(--text-display-lg)] text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
+            <h1 className="font-display-lg text-display-lg text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
               BOARDS
             </h1>
-            <p className="font-mono text-[var(--text-label-sm)] tracking-[0.05em] text-[var(--color-on-surface-variant)] uppercase">
+            <p className="font-mono text-label-sm tracking-[0.05em] text-[var(--color-on-surface-variant)] uppercase">
               Tus lienzos infinitos. Imágenes, texto y figuras guardados por cuenta.
             </p>
           </div>
           <button
             onClick={createBoard}
             disabled={creating}
-            className="flex items-center gap-2 h-11 px-5 rounded-[var(--radius-lg)] bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold uppercase tracking-widest shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="flex items-center gap-2 h-11 px-5 rounded-[var(--radius-lg)] bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-label-sm font-semibold uppercase tracking-widest shrink-0 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[20px]">
               {creating ? 'hourglass_top' : 'add'}
@@ -116,7 +116,7 @@ export default function BoardsListPage() {
             <button
               onClick={createBoard}
               disabled={creating}
-              className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-primary)] hover:underline"
+              className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline"
             >
               Crear el primero
             </button>

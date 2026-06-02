@@ -60,7 +60,7 @@ export default function MobileMenu({
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-4 py-3 font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] pl-4 hover:text-[var(--color-primary)] transition-colors duration-200 `}
+                    className={`flex items-center gap-4 py-3 font-mono text-label-sm uppercase tracking-[0.05em] pl-4 hover:text-[var(--color-primary)] transition-colors duration-200 `}
                   >
                     <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                     <span>{item.label}</span>
@@ -75,7 +75,7 @@ export default function MobileMenu({
                   <Link
                     href="/profile"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-4 py-3 font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] pl-4 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                    className="flex items-center gap-4 py-3 font-mono text-label-sm uppercase tracking-[0.05em] pl-4 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
                   >
                     <span className="material-symbols-outlined text-[20px]">person</span>
                     <span>{t('nav.profile')}</span>
@@ -85,7 +85,7 @@ export default function MobileMenu({
                       setIsOpen(false)
                       signOut({ callbackUrl: '/login' })
                     }}
-                    className="flex items-center gap-4 py-3 font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] pl-4 text-[var(--color-error)] hover:text-[var(--color-error-container)] transition-colors w-full text-left"
+                    className="flex items-center gap-4 py-3 font-mono text-label-sm uppercase tracking-[0.05em] pl-4 text-[var(--color-error)] hover:text-[var(--color-error-container)] transition-colors w-full text-left"
                   >
                     <span className="material-symbols-outlined text-[20px]">logout</span>
                     <span>{t('nav.logout')}</span>
@@ -96,7 +96,7 @@ export default function MobileMenu({
                   <Link
                     href="/login"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-4 py-3 font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] pl-4 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                    className="flex items-center gap-4 py-3 font-mono text-label-sm uppercase tracking-[0.05em] pl-4 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
                   >
                     <span className="material-symbols-outlined text-[20px]">login</span>
                     <span>{t('nav.login')}</span>
@@ -104,7 +104,7 @@ export default function MobileMenu({
                   <Link
                     href="/register"
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-4 py-3 font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] pl-4 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
+                    className="flex items-center gap-4 py-3 font-mono text-label-sm uppercase tracking-[0.05em] pl-4 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
                   >
                     <span className="material-symbols-outlined text-[20px]">person_add</span>
                     <span>{t('nav.register')}</span>

@@ -19,16 +19,16 @@ export default function CanonPage() {
           <div className="flex items-center gap-6">
             {/* Height Input */}
             <div className="flex items-center gap-2">
-              <label className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-wider whitespace-nowrap" htmlFor="height-input">ALTURA TOTAL</label>
+              <label className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-wider whitespace-nowrap" htmlFor="height-input">ALTURA TOTAL</label>
               <div className="flex items-center bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-1">
                 <input 
-                  className="bg-transparent border-none text-[var(--color-primary)] font-mono text-[var(--text-label-sm)] p-0 w-12 text-center focus:ring-0 appearance-none" 
+                  className="bg-transparent border-none text-[var(--color-primary)] font-mono text-label-sm p-0 w-12 text-center focus:ring-0 appearance-none" 
                   id="height-input" 
                   type="number" 
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
                 />
-                <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] ml-1 mr-2">cm</span>
+                <span className="font-mono text-label-sm text-[var(--color-on-surface-variant)] ml-1 mr-2">cm</span>
               </div>
             </div>
             
@@ -38,7 +38,7 @@ export default function CanonPage() {
                 {showLabels && <div className="w-2 h-2 bg-[var(--color-primary)] rounded-sm"></div>}
               </div>
               <input type="checkbox" className="hidden" checked={showLabels} onChange={() => setShowLabels(!showLabels)} />
-              <span className={`font-mono text-[var(--text-label-sm)] ${showLabels ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>ETIQUETAS</span>
+              <span className={`font-mono text-label-sm ${showLabels ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>ETIQUETAS</span>
             </label>
             
             <label className="flex items-center gap-2 cursor-pointer group">
@@ -46,12 +46,12 @@ export default function CanonPage() {
                 {showGuides && <div className="w-2 h-2 bg-[var(--color-primary)] rounded-sm"></div>}
               </div>
               <input type="checkbox" className="hidden" checked={showGuides} onChange={() => setShowGuides(!showGuides)} />
-              <span className={`font-mono text-[var(--text-label-sm)] ${showGuides ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>GUÍAS</span>
+              <span className={`font-mono text-label-sm ${showGuides ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>GUÍAS</span>
             </label>
           </div>
           
           {/* Export Button */}
-          <button className="px-4 py-2 border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all uppercase tracking-wider bg-transparent flex items-center gap-2 whitespace-nowrap">
+          <button className="px-4 py-2 border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] font-mono text-label-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all uppercase tracking-wider bg-transparent flex items-center gap-2 whitespace-nowrap">
             <span className="material-symbols-outlined text-[18px]">download</span>
             EXPORTAR PNG
           </button>
@@ -65,13 +65,13 @@ export default function CanonPage() {
             {/* Left Labels */}
             {showLabels && (
               <div className="w-24 md:w-32 h-full flex flex-col justify-between absolute left-0 top-0 bottom-0 py-4 pointer-events-none z-10 hidden sm:flex">
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '6.66%' }}>CABEZA</div>
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '20%' }}>TÓRAX</div>
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '33.33%' }}>ABDOMEN</div>
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '46.66%' }}>PELVIS</div>
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '60%' }}>MUSLO</div>
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '80%' }}>PIERNA</div>
-                <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '93.33%' }}>PIES</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '6.66%' }}>CABEZA</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '20%' }}>TÓRAX</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '33.33%' }}>ABDOMEN</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '46.66%' }}>PELVIS</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '60%' }}>MUSLO</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '80%' }}>PIERNA</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '93.33%' }}>PIES</div>
               </div>
             )}
             
@@ -151,13 +151,13 @@ export default function CanonPage() {
             {showLabels && (
               <div className="w-24 md:w-48 h-full absolute right-0 top-0 bottom-0 pointer-events-none z-10 hidden sm:flex">
                 <div className="w-24 h-full relative flex flex-col justify-between py-4">
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '6.66%' }}>{headHeight.toFixed(1)} CM</div>
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '20%' }}>{headHeight.toFixed(1)} CM</div>
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '33.33%' }}>{headHeight.toFixed(1)} CM</div>
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '46.66%' }}>{headHeight.toFixed(1)} CM</div>
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '60%' }}>{(headHeight * 1.5).toFixed(1)} CM</div>
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '80%' }}>{(headHeight * 1.5).toFixed(1)} CM</div>
-                  <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '93.33%' }}>{(headHeight * 0.5).toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '6.66%' }}>{headHeight.toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '20%' }}>{headHeight.toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '33.33%' }}>{headHeight.toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '46.66%' }}>{headHeight.toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '60%' }}>{(headHeight * 1.5).toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '80%' }}>{(headHeight * 1.5).toFixed(1)} CM</div>
+                  <div className="font-mono text-label-sm text-[var(--color-primary)] uppercase pl-4 absolute" style={{ top: '93.33%' }}>{(headHeight * 0.5).toFixed(1)} CM</div>
                 </div>
                 
                 <div className="w-24 h-full relative border-l border-[var(--color-outline-variant)]/30 flex items-center hidden md:flex">

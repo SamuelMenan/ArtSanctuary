@@ -238,7 +238,7 @@ export default function ReferenceGridScreen() {
                 className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
                 <span className="material-symbols-outlined text-5xl">add_photo_alternate</span>
-                <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest">Sube o elige una imagen</span>
+                <span className="font-mono text-label-sm uppercase tracking-widest">Sube o elige una imagen</span>
               </button>
             )}
           </div>
@@ -246,7 +246,7 @@ export default function ReferenceGridScreen() {
 
         {/* Pie: métricas + calculadora */}
         <div className="bg-[var(--color-surface-container)] border-t border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2 flex items-center justify-between gap-4 overflow-x-auto whitespace-nowrap">
-          <div className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] flex items-center gap-3">
+          <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] flex items-center gap-3">
             <span className="text-[var(--color-primary)]">{cols} × {rows} cuadros</span>
             <span className="opacity-40">·</span>
             <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>

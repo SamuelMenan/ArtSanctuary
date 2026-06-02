@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@backend/auth';
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { saveImage } from '@backend/upload/storage';
 import crypto from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -15,27 +17,26 @@ const EXT_BY_MIME: Record<string, string> = {
   'image/gif': 'gif',
 };
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth();
+export const POST = withErrorHandler("POST /api/upload", async (request: NextRequest) => {
+  const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+      return apiError("UNAUTHORIZED", 'No autenticado');
     }
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: 'No se proporcionó archivo' }, { status: 400 });
+      return apiError("VALIDATION_ERROR", 'No se proporcionó archivo');
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo de archivo no soportado' }, { status: 400 });
+      return apiError("VALIDATION_ERROR", 'Tipo de archivo no soportado');
     }
 
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: 'Archivo demasiado grande (máx 10MB)' }, { status: 400 });
+      return apiError("VALIDATION_ERROR", 'Archivo demasiado grande (máx 10MB)');
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -52,8 +53,4 @@ export async function POST(request: NextRequest) {
       size: file.size,
       type: file.type,
     });
-  } catch (error) {
-    console.error('[POST /api/upload]', error);
-    return NextResponse.json({ error: 'Error al procesar la imagen' }, { status: 500 });
-  }
-}
+});

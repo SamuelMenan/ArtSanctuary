@@ -196,7 +196,7 @@ export default function CropTool() {
   }
 
   const ctrlBtn =
-    'flex items-center gap-2 h-10 px-3 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40 font-mono text-[var(--text-label-sm)]'
+    'flex items-center gap-2 h-10 px-3 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40 font-mono text-label-sm'
   const handle =
     'absolute w-3 h-3 bg-[var(--color-primary)] border border-white rounded-sm'
 
@@ -204,7 +204,7 @@ export default function CropTool() {
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
       {/* Controles */}
       <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90">
+        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90">
           <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
           IMAGEN
         </button>
@@ -214,7 +214,7 @@ export default function CropTool() {
             <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
             <select
               onChange={(e) => applyAspect(ASPECTS[Number(e.target.value)].value)}
-              className="h-10 px-2 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface)] outline-none"
+              className="h-10 px-2 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] font-mono text-label-sm text-[var(--color-on-surface)] outline-none"
               title="Proporción"
               defaultValue={0}
             >
@@ -259,7 +259,7 @@ export default function CropTool() {
             <button onClick={() => sendTo('grid')} disabled={busy} className={ctrlBtn} title="Enviar a Cuadrícula">
               <span className="material-symbols-outlined text-[18px]">grid_on</span>
             </button>
-            <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
+            <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
               <span className="material-symbols-outlined text-[18px]">download</span>
               EXPORTAR
             </button>
@@ -296,7 +296,7 @@ export default function CropTool() {
         ) : (
           <button onClick={() => setModalOpen(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
             <span className="material-symbols-outlined text-5xl">crop</span>
-            <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest">Sube o elige una imagen para recortar</span>
+            <span className="font-mono text-label-sm uppercase tracking-widest">Sube o elige una imagen para recortar</span>
           </button>
         )}
 

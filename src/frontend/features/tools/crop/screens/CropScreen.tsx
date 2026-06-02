@@ -10,7 +10,7 @@ export default function CropScreen() {
   const [tab, setTab] = useState<'crop' | 'cutout'>('crop')
 
   const tabClass = (active: boolean) =>
-    `flex items-center gap-2 px-4 h-10 font-mono text-[var(--text-label-sm)] uppercase tracking-widest border-b-2 transition-colors ${
+    `flex items-center gap-2 px-4 h-10 font-mono text-label-sm uppercase tracking-widest border-b-2 transition-colors ${
       active
         ? 'text-[var(--color-primary)] border-[var(--color-primary)]'
         : 'text-[var(--color-on-surface-variant)] border-transparent hover:text-[var(--color-primary)]'

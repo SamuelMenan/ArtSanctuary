@@ -55,7 +55,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
       >
         <div className="w-[260px] flex flex-col h-full overflow-y-auto">
           <div className="pt-8 pb-4 px-6 flex items-center justify-between">
-            <h2 className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] tracking-[0.05em] uppercase">
+            <h2 className="font-mono text-label-sm text-[var(--color-on-surface-variant)] tracking-[0.05em] uppercase">
               {toolLabels.title}
             </h2>
             <button
@@ -66,7 +66,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
           </div>
-        <nav className="flex-1 flex flex-col font-mono text-[var(--text-label-sm)] tracking-[0.05em]">
+        <nav className="flex-1 flex flex-col font-mono text-label-sm tracking-[0.05em]">
           {tools.map((tool) => {
             const isActive = pathname.startsWith(tool.href)
             return (

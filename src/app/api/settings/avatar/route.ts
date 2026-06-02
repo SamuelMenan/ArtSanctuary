@@ -1,16 +1,17 @@
-import { NextRequest } from "next/server";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import {
-  AVATAR_ALLOWED_MIME,
-  AVATAR_MAX_BYTES,
-  deleteAvatarFile,
-  saveAvatar,
+    AVATAR_ALLOWED_MIME,
+    AVATAR_MAX_BYTES,
+    deleteAvatarFile,
+    saveAvatar,
 } from "@backend/upload/avatar";
+import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler("POST /api/settings/avatar", async (req: NextRequest) => {
   const r = await requireUser();
   if (!r.ok) return r.response;
 
@@ -42,9 +43,9 @@ export async function POST(req: NextRequest) {
   if (previous) await deleteAvatarFile(previous);
 
   return apiOk({ avatarUrl: r.user.avatarUrl });
-}
+});
 
-export async function DELETE() {
+export const DELETE = withErrorHandler("DELETE /api/settings/avatar", async () => {
   const r = await requireUser();
   if (!r.ok) return r.response;
 
@@ -54,4 +55,4 @@ export async function DELETE() {
   if (previous) await deleteAvatarFile(previous);
 
   return apiOk({ avatarUrl: "" });
-}
+});

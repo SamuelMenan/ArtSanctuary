@@ -37,7 +37,7 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Error al registrar')
+        throw new Error(data?.error?.message || 'Error al registrar')
       }
 
       // Auto-login after successful registration
@@ -71,18 +71,18 @@ export default function RegisterPage() {
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&q=80')" }}
         />
         <div className="relative z-10 text-center max-w-md mx-auto">
-          <h1 className="font-display-lg text-[var(--text-display-lg)] leading-[1.1] tracking-[-0.02em] text-[var(--color-primary)] font-semibold mb-6">
+          <h1 className="font-display-lg text-display-lg leading-[1.1] tracking-[-0.02em] text-[var(--color-primary)] font-semibold mb-6">
             ArtSanctuary
           </h1>
-          <p className="font-mono text-[var(--text-label-sm)] tracking-[0.05em] text-[var(--color-secondary)] uppercase mb-4 font-medium">
+          <p className="font-mono text-label-sm tracking-[0.05em] text-[var(--color-secondary)] uppercase mb-4 font-medium">
             {t('home.heroLabel')}
           </p>
-          <p className="font-sans text-[var(--text-body-md)] text-[var(--color-on-surface-variant)] italic">
+          <p className="font-sans text-body-md text-[var(--color-on-surface-variant)] italic">
             {t('home.heroTitle')}
           </p>
         </div>
         <div className="absolute bottom-[var(--spacing-container-padding)] left-[var(--spacing-container-padding)]">
-          <p className="font-mono text-[var(--text-label-sm)] text-[var(--color-outline-variant)]">
+          <p className="font-mono text-label-sm text-[var(--color-outline-variant)]">
             v0.1.0 · PASTO, NARIÑO
           </p>
         </div>
@@ -93,17 +93,17 @@ export default function RegisterPage() {
         <div className="w-full max-w-[400px]">
           {/* Mobile Text Header */}
           <div className="md:hidden text-center mb-12">
-            <h1 className="font-display-lg text-[var(--text-display-lg)] leading-[1.1] tracking-[-0.02em] text-[var(--color-primary)] font-semibold mb-4">
+            <h1 className="font-display-lg text-display-lg leading-[1.1] tracking-[-0.02em] text-[var(--color-primary)] font-semibold mb-4">
               ArtSanctuary
             </h1>
-            <p className="font-mono text-[var(--text-label-sm)] tracking-[0.05em] text-[var(--color-secondary)] uppercase font-medium">
+            <p className="font-mono text-label-sm tracking-[0.05em] text-[var(--color-secondary)] uppercase font-medium">
               {t('home.heroLabel')}
             </p>
           </div>
 
           {/* Register Card */}
           <div className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-[var(--radius-xl)] p-8 shadow-sm">
-            <h2 className="font-sans text-[var(--text-headline-md)] text-[var(--color-primary)] mb-8 text-center uppercase tracking-wide font-semibold">
+            <h2 className="font-sans text-headline-md text-[var(--color-primary)] mb-8 text-center uppercase tracking-wide font-semibold">
               {t('auth.createAccount')}
             </h2>
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
               )}
               
               <div>
-                <label className="block font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="name-input">
+                <label className="block font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="name-input">
                   {t('auth.artistName')}
                 </label>
                 <input
@@ -131,7 +131,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="email-input">
+                <label className="block font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="email-input">
                   {t('auth.email')}
                 </label>
                 <input
@@ -148,7 +148,7 @@ export default function RegisterPage() {
               </div>
               
               <div>
-                <label className="block font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="password-input">
+                <label className="block font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="password-input">
                   {t('auth.password')}
                 </label>
                 <input
@@ -166,7 +166,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="password-confirm-input">
+                <label className="block font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest mb-2" htmlFor="password-confirm-input">
                   {t('auth.confirmPassword')}
                 </label>
                 <input

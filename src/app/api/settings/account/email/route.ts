@@ -1,11 +1,12 @@
-import { NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { isEmailTaken } from "@backend/services/users.service";
 import { validateEmail } from "@shared/lib/validation/settings";
+import bcrypt from "bcryptjs";
+import { NextRequest } from "next/server";
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler("PATCH /api/settings/account/email", async (req: NextRequest) => {
   const r = await requireUser({ withPassword: true });
   if (!r.ok) return r.response;
 
@@ -47,4 +48,4 @@ export async function PATCH(req: NextRequest) {
   await r.user.save();
 
   return apiOk({ email: r.user.email, changed: true });
-}
+});

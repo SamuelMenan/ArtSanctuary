@@ -60,10 +60,10 @@ export default function ToolsDashboardPage() {
     <AppShell>
       <div className="pt-8 pb-12 w-full max-w-[1400px] mx-auto z-10 relative">
         <header className="mb-12">
-          <h1 className="font-display-lg text-[var(--text-display-lg)] text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
+          <h1 className="font-display-lg text-display-lg text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
             HERRAMIENTAS
           </h1>
-          <p className="font-mono text-[var(--text-label-sm)] tracking-[0.05em] text-[var(--color-on-surface-variant)] uppercase">
+          <p className="font-mono text-label-sm tracking-[0.05em] text-[var(--color-on-surface-variant)] uppercase">
             Utilidades de Asistencia Rápida. Todo corre en tu navegador
           </p>
         </header>
@@ -83,10 +83,10 @@ export default function ToolsDashboardPage() {
                   </span>
                 </div>
                 
-                <h2 className="font-sans text-[var(--text-headline-md)] text-[var(--color-primary)] font-semibold mb-3">
+                <h2 className="font-sans text-headline-md text-[var(--color-primary)] font-semibold mb-3">
                   {tool.title}
                 </h2>
-                <p className="font-sans text-[var(--text-body-md)] text-[var(--color-on-surface-variant)] leading-[1.6]">
+                <p className="font-sans text-body-md text-[var(--color-on-surface-variant)] leading-[1.6]">
                   {tool.desc}
                 </p>
               </div>

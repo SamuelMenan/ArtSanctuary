@@ -1,45 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@backend/auth";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { followUser, unfollowUser } from "@backend/services/users.service";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
-  try {
-    const resolvedParams = await params;
+export const POST = withErrorHandler("POST /api/users/[username]/follow", async (req: NextRequest, { params }: { params: Promise<{ username: string }> }) => {
+  const resolvedParams = await params;
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const followerId = session.user.id;
     const followingId = resolvedParams.username;
 
     if (followerId === followingId) {
-      return NextResponse.json({ error: "No puedes seguirte a ti mismo" }, { status: 400 });
+      return apiError("VALIDATION_ERROR", "No puedes seguirte a ti mismo");
     }
 
     const result = await followUser(followerId, followingId);
-    if (!result) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+    if (!result) return apiError("NOT_FOUND", "Usuario no encontrado");
 
     return NextResponse.json({ success: true, followersCount: result.followersCount });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
-  }
-}
+});
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
-  try {
-    const resolvedParams = await params;
+export const DELETE = withErrorHandler("DELETE /api/users/[username]/follow", async (req: NextRequest, { params }: { params: Promise<{ username: string }> }) => {
+  const resolvedParams = await params;
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const followerId = session.user.id;
     const followingId = resolvedParams.username;
 
     const result = await unfollowUser(followerId, followingId);
-    if (!result) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+    if (!result) return apiError("NOT_FOUND", "Usuario no encontrado");
 
     return NextResponse.json({ success: true, followersCount: result.followersCount });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
-  }
-}
+});

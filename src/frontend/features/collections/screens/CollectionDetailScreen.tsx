@@ -37,7 +37,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
               {collection.name}
             </h1>
           )}
-          <p className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-[0.05em] mt-2">
+          <p className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-[0.05em] mt-2">
             {collection.artworks?.length || 0} obras guardadas
           </p>
         </div>

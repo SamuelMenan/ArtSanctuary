@@ -32,7 +32,7 @@ export default function CutoutStage({ editor }: { editor: CutoutEditor }) {
       ) : (
         <button onClick={() => setModalOpen(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
           <span className="material-symbols-outlined text-5xl">auto_fix_high</span>
-          <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest">Sube o elige una imagen</span>
+          <span className="font-mono text-label-sm uppercase tracking-widest">Sube o elige una imagen</span>
         </button>
       )}
 

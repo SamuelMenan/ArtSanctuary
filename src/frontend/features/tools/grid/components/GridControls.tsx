@@ -4,7 +4,7 @@ import type { GridSnapshot } from '../hooks/useGridHistory'
 const CM_PRESETS = [1.5, 28] as const
 const lbl = 'font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-[0.08em]'
 const numInput =
-  'w-12 bg-transparent border-0 border-b border-[var(--color-outline-variant)] px-0.5 py-0.5 font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] text-center focus:border-[var(--color-primary)] outline-none'
+  'w-12 bg-transparent border-0 border-b border-[var(--color-outline-variant)] px-0.5 py-0.5 font-mono text-label-sm text-[var(--color-primary)] text-center focus:border-[var(--color-primary)] outline-none'
 
 // Agrupa controles relacionados en un contenedor con etiqueta.
 const Cluster = ({ name, children }: { name: string; children: React.ReactNode }) => (
@@ -70,7 +70,7 @@ export default function GridControls({
 }) {
   return (
     <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-      <button onClick={onChangePhoto} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-[var(--text-label-sm)] font-semibold transition-colors">
+      <button onClick={onChangePhoto} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-label-sm font-semibold transition-colors">
         <span className="material-symbols-outlined text-[18px]">imagesmode</span>
         CAMBIAR FOTO
       </button>
@@ -180,7 +180,7 @@ export default function GridControls({
       <button
         onClick={onSend}
         disabled={!imageUrl || sending}
-        className={`flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity ${
+        className={`flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline)] font-mono text-label-sm font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity ${
           isReturn
             ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
             : 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)]'
@@ -193,7 +193,7 @@ export default function GridControls({
       <button
         onClick={onExport}
         disabled={!imageUrl}
-        className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity"
+        className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-label-sm font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity"
       >
         <span className="material-symbols-outlined text-[18px]">download</span>
         EXPORTAR

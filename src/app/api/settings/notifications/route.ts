@@ -1,9 +1,10 @@
-import { NextRequest } from "next/server";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { validateNotifications } from "@shared/lib/validation/settings";
+import { NextRequest } from "next/server";
 
-export async function PATCH(req: NextRequest) {
+export const PATCH = withErrorHandler("PATCH /api/settings/notifications", async (req: NextRequest) => {
   const r = await requireUser();
   if (!r.ok) return r.response;
 
@@ -15,4 +16,4 @@ export async function PATCH(req: NextRequest) {
   await r.user.save();
 
   return apiOk({ notificationSettings: r.user.notificationSettings });
-}
+});

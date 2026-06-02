@@ -1,18 +1,15 @@
-import { NextResponse } from "next/server";
 import { auth } from "@backend/auth";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { markAllNotificationsRead } from "@backend/services/notifications.service";
+import { NextResponse } from "next/server";
 
-export async function PATCH() {
-  try {
-    const session = await auth();
+export const PATCH = withErrorHandler("PATCH /api/notifications/read-all", async () => {
+  const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      return apiError("UNAUTHORIZED", "No autenticado");
     }
 
     await markAllNotificationsRead(session.user.id);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("[PATCH /api/notifications/read-all]", error);
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
-  }
-}
+});

@@ -203,7 +203,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <span className="material-symbols-outlined text-5xl text-[var(--color-on-surface-variant)]/50">error</span>
         <p className="font-sans text-[var(--color-on-surface-variant)]">Board no encontrado o sin acceso.</p>
-        <Link href="/dashboard/boards" className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-primary)] hover:underline">
+        <Link href="/dashboard/boards" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline">
           ← Volver a boards
         </Link>
       </div>
@@ -330,7 +330,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {loaded && objects.length === 0 && !readOnly && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none text-[var(--color-on-surface-variant)]">
             <span className="material-symbols-outlined text-5xl">add_photo_alternate</span>
-            <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest">Añade imagen, texto o nota para empezar</span>
+            <span className="font-mono text-label-sm uppercase tracking-widest">Añade imagen, texto o nota para empezar</span>
           </div>
         )}
 

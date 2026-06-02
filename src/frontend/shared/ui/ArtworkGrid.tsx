@@ -47,10 +47,10 @@ export default function ArtworkGrid({ artworks, emptyState }: ArtworkGridProps) 
             <div className="absolute inset-0 border border-transparent group-hover:border-[var(--color-primary)] transition-colors duration-300 pointer-events-none" />
             
             <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none">
-              <h2 className="font-sans text-[var(--text-headline-md)] text-[var(--color-primary)] mb-1 font-semibold leading-[1.3] truncate">
+              <h2 className="font-sans text-headline-md text-[var(--color-primary)] mb-1 font-semibold leading-[1.3] truncate">
                 {art.title}
               </h2>
-              <p className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-[0.05em] flex justify-between items-center">
+              <p className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-[0.05em] flex justify-between items-center">
                 <span>{getCategoryLabel(locale, art.category)} · {art.artistId?.displayName || art.artistId?.username || t('common.authorUnknown')}</span>
                 {art.likes > 0 && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">favorite</span> {art.likes}</span>}
               </p>

@@ -1,28 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@backend/auth";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { getFollowConnections } from "@backend/services/users.service";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
-) {
-  try {
-    const { username: id } = await params;
+export const GET = withErrorHandler("GET /api/users/[username]/following", async (_req: NextRequest, { params }: { params: Promise<{ username: string }> }) => {
+  const { username: id } = await params;
 
     const data = await getFollowConnections(id, "following");
     if (!data) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
+      return apiError("NOT_FOUND", "Usuario no encontrado");
     }
 
     const session = await auth();
     const isOwner = session?.user?.id === id;
     if (!data.allowFollow && !isOwner) {
-      return NextResponse.json({ error: "Lista privada" }, { status: 403 });
+      return apiError("FORBIDDEN", "Lista privada");
     }
 
     return NextResponse.json({ users: data.users });
-  } catch (error) {
-    console.error("[GET /api/users/:id/following]", error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
-  }
-}
+});

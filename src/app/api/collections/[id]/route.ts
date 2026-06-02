@@ -1,56 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@backend/auth";
-import { getCollectionById, deleteCollection, renameCollection } from "@backend/services/collections.service";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
+import { deleteCollection, getCollectionById, renameCollection } from "@backend/services/collections.service";
+import { NextRequest, NextResponse } from "next/server";
 
-/**
- * GET /api/collections/[id]
- * Devuelve la colección con sus artworks poblados (incluye imageUrl/thumbnails)
- * y sus referencias. Respeta privacidad: una colección privada solo la ve su dueño.
- */
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const resolvedParams = await params;
+export const GET = withErrorHandler("GET /api/collections/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = await params;
     const session = await auth();
 
     const collection = await getCollectionById(resolvedParams.id);
-    if (!collection) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    if (!collection) return apiError("NOT_FOUND", "No encontrado");
 
     const isOwner = session?.user?.id === collection.owner.toString();
     if (collection.isPrivate && !isOwner) {
-      return NextResponse.json({ error: "Colección privada" }, { status: 403 });
+      return apiError("FORBIDDEN", "Colección privada");
     }
 
     return NextResponse.json({ collection });
-  } catch (err) {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
-  }
-}
+});
 
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const resolvedParams = await params;
+export const DELETE = withErrorHandler("DELETE /api/collections/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = await params;
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const ok = await deleteCollection(resolvedParams.id, session.user.id);
-    if (!ok) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    if (!ok) return apiError("NOT_FOUND", "No encontrado");
     return NextResponse.json({ success: true });
-  } catch (err) {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
-  }
-}
+});
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const resolvedParams = await params;
+export const PUT = withErrorHandler("PUT /api/collections/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = await params;
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const { name } = await req.json();
     const collection = await renameCollection(resolvedParams.id, session.user.id, name);
-    if (!collection) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    if (!collection) return apiError("NOT_FOUND", "No encontrado");
     return NextResponse.json({ success: true, collection });
-  } catch (err) {
-    return NextResponse.json({ error: "Error" }, { status: 500 });
-  }
-}
+});

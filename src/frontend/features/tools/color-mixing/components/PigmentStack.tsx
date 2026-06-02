@@ -14,13 +14,13 @@ export default function PigmentStack({ L, slots, totalWeight, setWeight, removeS
   return (
     <div className="flex-1 flex flex-col gap-4 max-w-xl w-full">
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-secondary)] uppercase tracking-widest">
+        <span className="font-mono text-label-sm text-[var(--color-secondary)] uppercase tracking-widest">
           {L.pigments} · {slots.length}/6
         </span>
       </div>
 
       {slots.length === 0 && (
-        <div className="border border-dashed border-[var(--color-outline-variant)] rounded-lg p-12 text-center font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-widest opacity-60">
+        <div className="border border-dashed border-[var(--color-outline-variant)] rounded-lg p-12 text-center font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest opacity-60">
           {L.empty}
         </div>
       )}
@@ -40,7 +40,7 @@ export default function PigmentStack({ L, slots, totalWeight, setWeight, removeS
             />
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-baseline gap-2 mb-1">
-                <span className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-on-surface)] truncate">
+                <span className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-on-surface)] truncate">
                   {s.name}
                 </span>
                 <span className="font-mono text-[10px] text-[var(--color-secondary)] tracking-widest shrink-0">

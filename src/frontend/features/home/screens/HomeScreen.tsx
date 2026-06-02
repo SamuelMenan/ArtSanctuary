@@ -45,7 +45,7 @@ async function DashboardHome({ user }: { user: { id: string; name?: string | nul
           
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-              <p className="font-mono text-[var(--text-label-sm)] uppercase tracking-[0.1em] text-[var(--color-on-surface-variant)] mb-2 flex items-center gap-3">
+              <p className="font-mono text-label-sm uppercase tracking-[0.1em] text-[var(--color-on-surface-variant)] mb-2 flex items-center gap-3">
                 <span className="w-8 h-[1px] bg-[var(--color-outline-variant)] block"></span>
                 {t('home.panelLabel')}
               </p>
@@ -64,7 +64,7 @@ async function DashboardHome({ user }: { user: { id: string; name?: string | nul
         <section>
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-sans text-xl font-semibold text-[var(--color-primary)]">{t('home.yourTools')}</h3>
-            <Link href="/dashboard/tools" className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center gap-2 transition-colors duration-200">
+            <Link href="/dashboard/tools" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center gap-2 transition-colors duration-200">
               {t('home.viewAll')} <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </Link>
           </div>
@@ -142,21 +142,21 @@ async function PublicHome() {
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')" }}></div>
           
           <div className="relative z-10 max-w-3xl">
-            <p className="font-mono text-[var(--text-label-sm)] uppercase tracking-[0.1em] text-[var(--color-on-surface-variant)] mb-6 flex items-center gap-3">
+            <p className="font-mono text-label-sm uppercase tracking-[0.1em] text-[var(--color-on-surface-variant)] mb-6 flex items-center gap-3">
               <span className="w-8 h-[1px] bg-[var(--color-outline-variant)] block"></span>
               {t('home.heroLabel')}
             </p>
             <h2 className="font-sans text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--color-primary)] leading-[1.1] tracking-tight mb-8">
               {t('home.heroTitle')}
             </h2>
-            <p className="font-sans text-[var(--text-body-md)] text-[var(--color-on-surface-variant)] md:text-lg mb-12 max-w-2xl leading-relaxed">
+            <p className="font-sans text-body-md text-[var(--color-on-surface-variant)] md:text-lg mb-12 max-w-2xl leading-relaxed">
               {t('home.heroDescription')}
             </p>
             <div className="flex flex-wrap gap-4">
               <Link href="/gallery" className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-xs uppercase tracking-widest px-8 py-4 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors duration-200 inline-block text-center">
                 {t('home.openGallery')}
               </Link>
-              <Link href="/register" className="bg-transparent border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-[var(--text-label-sm)] uppercase tracking-widest px-8 py-4 rounded-sm hover:bg-[var(--color-surface-container)] transition-colors duration-200 inline-block text-center">
+              <Link href="/register" className="bg-transparent border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-label-sm uppercase tracking-widest px-8 py-4 rounded-sm hover:bg-[var(--color-surface-container)] transition-colors duration-200 inline-block text-center">
                 {t('home.createAccount')}
               </Link>
             </div>
@@ -208,7 +208,7 @@ async function PublicHome() {
         <section>
           <div className="flex items-end justify-between mb-8 border-b border-[var(--color-outline-variant)] pb-4">
             <h3 className="font-sans text-2xl font-semibold text-[var(--color-primary)]">{t('home.recentWorks')}</h3>
-            <Link href="/gallery" className="font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center gap-2 transition-colors duration-200">
+            <Link href="/gallery" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center gap-2 transition-colors duration-200">
               {t('home.viewAll')} <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </Link>
           </div>
@@ -292,7 +292,7 @@ async function PublicHome() {
               </p>
             </div>
           </div>
-          <Link href="/dashboard/tools" className="bg-transparent border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-[var(--text-label-sm)] uppercase tracking-widest px-8 py-3 rounded-sm hover:bg-[var(--color-surface-container)] transition-colors duration-200 whitespace-nowrap flex-shrink-0 flex items-center gap-2">
+          <Link href="/dashboard/tools" className="bg-transparent border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-label-sm uppercase tracking-widest px-8 py-3 rounded-sm hover:bg-[var(--color-surface-container)] transition-colors duration-200 whitespace-nowrap flex-shrink-0 flex items-center gap-2">
             {locale === 'en' ? 'Explore' : 'Explorar'} <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
         </section>

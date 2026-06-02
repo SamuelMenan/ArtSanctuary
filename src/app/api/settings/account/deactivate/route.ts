@@ -1,9 +1,10 @@
-import { NextRequest } from "next/server";
-import bcrypt from "bcryptjs";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
+import bcrypt from "bcryptjs";
+import { NextRequest } from "next/server";
 
-export async function POST(req: NextRequest) {
+export const POST = withErrorHandler("POST /api/settings/account/deactivate", async (req: NextRequest) => {
   const r = await requireUser({ withPassword: true });
   if (!r.ok) return r.response;
 
@@ -30,4 +31,4 @@ export async function POST(req: NextRequest) {
   await r.user.save();
 
   return apiOk({ status: r.user.status });
-}
+});

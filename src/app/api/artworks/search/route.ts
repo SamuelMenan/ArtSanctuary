@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { withErrorHandler } from "@backend/http/handler";
 import { searchArtworks } from "@backend/services/artworks.service";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
+export const GET = withErrorHandler("GET /api/artworks/search", async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20")));
 
@@ -21,8 +21,4 @@ export async function GET(req: NextRequest) {
       artworks,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
-  } catch (error) {
-    console.error("[GET /api/artworks/search]", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
-  }
-}
+});

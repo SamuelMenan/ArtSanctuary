@@ -45,7 +45,7 @@ export default async function GalleryPage({
     <AppShell>
       <div className="pt-8 pb-12 w-full max-w-[1400px] mx-auto z-10 relative px-4 md:px-0">
         <header className="mb-12">
-          <h1 className="font-display-lg text-[var(--text-display-lg)] text-[var(--color-primary)] font-semibold mb-8 tracking-[-0.02em] leading-[1.1]">
+          <h1 className="font-display-lg text-display-lg text-[var(--color-primary)] font-semibold mb-8 tracking-[-0.02em] leading-[1.1]">
             {t('gallery.title')}
           </h1>
           <div className="flex flex-wrap gap-6 border-b border-[var(--color-outline-variant)] pb-4">
@@ -55,7 +55,7 @@ export default async function GalleryPage({
                 <Link 
                   key={cat.value}
                   href={`/gallery${cat.value === 'todas' ? '' : `?category=${cat.value}`}`}
-                  className={`font-mono text-[var(--text-label-sm)] uppercase tracking-[0.05em] transition-colors pb-1 ${
+                  className={`font-mono text-label-sm uppercase tracking-[0.05em] transition-colors pb-1 ${
                     isActive 
                     ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]' 
                     : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]'

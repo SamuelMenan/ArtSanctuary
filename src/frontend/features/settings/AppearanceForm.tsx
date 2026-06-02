@@ -4,7 +4,7 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import type { Locale, ThemeMode } from '@shared/i18n'
 
 const labelCls =
-  'font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-on-surface-variant)]'
+  'font-mono text-label-sm tracking-widest uppercase text-[var(--color-on-surface-variant)]'
 
 function SegBtn({
   active,

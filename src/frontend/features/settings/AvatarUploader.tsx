@@ -118,7 +118,7 @@ export function AvatarUploader({ initialAvatarUrl, displayName }: Props) {
             type="button"
             onClick={pick}
             disabled={pending}
-            className="font-mono text-[var(--text-label-sm)] tracking-widest uppercase border border-[var(--color-outline-variant)] px-4 py-2 rounded-sm hover:border-[var(--color-primary)] transition-colors text-[var(--color-primary)] bg-transparent disabled:opacity-50"
+            className="font-mono text-label-sm tracking-widest uppercase border border-[var(--color-outline-variant)] px-4 py-2 rounded-sm hover:border-[var(--color-primary)] transition-colors text-[var(--color-primary)] bg-transparent disabled:opacity-50"
           >
             {pending ? t('settings.uploading') : t('settings.uploadNewPhoto')}
           </button>
@@ -126,7 +126,7 @@ export function AvatarUploader({ initialAvatarUrl, displayName }: Props) {
             type="button"
             onClick={remove}
             disabled={pending || !avatarUrl}
-            className="font-mono text-[var(--text-label-sm)] tracking-widest uppercase text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors bg-transparent border border-transparent px-4 py-2 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="font-mono text-label-sm tracking-widest uppercase text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors bg-transparent border border-transparent px-4 py-2 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t('settings.removePhoto')}
           </button>

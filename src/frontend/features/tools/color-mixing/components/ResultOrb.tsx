@@ -37,7 +37,7 @@ export default function ResultOrb({
 }: ResultOrbProps) {
   return (
     <div className="flex flex-col items-center gap-4">
-      <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-secondary)] uppercase tracking-widest">
+      <span className="font-mono text-label-sm text-[var(--color-secondary)] uppercase tracking-widest">
         {L.result}
       </span>
       <div className="relative">
@@ -58,7 +58,7 @@ export default function ResultOrb({
       <div className="flex flex-col items-center gap-2 mt-2">
         <button
           onClick={copyHex}
-          className="font-mono text-[var(--text-label-sm)] text-[var(--color-primary)] uppercase tracking-widest hover:text-[var(--color-primary)] flex items-center gap-2"
+          className="font-mono text-label-sm text-[var(--color-primary)] uppercase tracking-widest hover:text-[var(--color-primary)] flex items-center gap-2"
         >
           {resultHex}
           <span className="material-symbols-outlined text-[14px]">
@@ -79,7 +79,7 @@ export default function ResultOrb({
         <button
           onClick={saveToPalette}
           disabled={slotsCount < 2}
-          className="mt-2 font-mono text-[var(--text-label-sm)] uppercase tracking-widest px-3 py-1.5 border border-[var(--color-outline)] rounded text-[var(--color-on-surface)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="mt-2 font-mono text-label-sm uppercase tracking-widest px-3 py-1.5 border border-[var(--color-outline)] rounded text-[var(--color-on-surface)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         >
           {L.save}
         </button>

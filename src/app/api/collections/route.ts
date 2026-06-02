@@ -1,46 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@backend/auth";
-import { getUserCollections, countUserCollections, createCollection, MAX_FREE_COLLECTIONS } from "@backend/services/collections.service";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
+import { countUserCollections, createCollection, getUserCollections, MAX_FREE_COLLECTIONS } from "@backend/services/collections.service";
+import { NextRequest, NextResponse } from "next/server";
 
-/**
- * GET /api/collections
- * Lista las colecciones del usuario autenticado.
- */
-export async function GET() {
-  try {
-    const session = await auth();
+export const GET = withErrorHandler("GET /api/collections", async () => {
+  const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      return apiError("UNAUTHORIZED", "No autenticado");
     }
 
     const collections = await getUserCollections(session.user.id);
     return NextResponse.json({ collections });
-  } catch (error) {
-    console.error("[GET /api/collections]", error);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
-  }
-}
+});
 
-/**
- * POST /api/collections
- * Crea una nueva colección. Requiere sesión activa.
- * Usuarios Free: máximo 3 colecciones.
- */
-export async function POST(req: NextRequest) {
-  try {
-    const session = await auth();
+export const POST = withErrorHandler("POST /api/collections", async (req: NextRequest) => {
+  const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      return apiError("UNAUTHORIZED", "No autenticado");
     }
 
     const body = await req.json();
     const { name, description, isPrivate } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { error: "El nombre de la colección es obligatorio" },
-        { status: 400 }
-      );
+      return apiError("VALIDATION_ERROR", "El nombre de la colección es obligatorio");
     }
 
     // TODO: verificar plan del usuario para ajustar límite
@@ -56,8 +40,4 @@ export async function POST(req: NextRequest) {
 
     const collection = await createCollection(session.user.id, { name, description, isPrivate });
     return NextResponse.json({ collection }, { status: 201 });
-  } catch (error) {
-    console.error("[POST /api/collections]", error);
-    return NextResponse.json({ error: "Error al crear la colección" }, { status: 500 });
-  }
-}
+});

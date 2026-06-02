@@ -67,14 +67,14 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
       onSelect(data.imageUrl);
     } else {
       const data = await res.json().catch(() => ({}));
-      setUploadError(data.error ?? 'Error al subir la imagen');
+      setUploadError(data?.error?.message ?? 'Error al subir la imagen');
     }
   };
 
   if (!mounted) return null;
 
   const tabClass = (active: boolean) =>
-    `flex-1 py-3 font-mono text-[var(--text-label-sm)] uppercase tracking-widest transition-colors ${
+    `flex-1 py-3 font-mono text-label-sm uppercase tracking-widest transition-colors ${
       active
         ? 'text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]'
         : 'text-[var(--color-on-surface-variant)] border-b-2 border-transparent hover:text-[var(--color-primary)]'
@@ -114,7 +114,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
               <span className="material-symbols-outlined text-[var(--color-on-surface-variant)] text-4xl">
                 {uploading ? 'hourglass_top' : 'upload_file'}
               </span>
-              <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] uppercase tracking-widest">
+              <span className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest">
                 {uploading ? 'Subiendo…' : 'Click para subir imagen'}
               </span>
               <span className="font-sans text-xs text-[var(--color-on-surface-variant)]/70">
@@ -127,7 +127,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
             <div>
               <button
                 onClick={() => setOpenCollection(null)}
-                className="flex items-center gap-1 mb-3 font-mono text-[var(--text-label-sm)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] uppercase tracking-widest"
+                className="flex items-center gap-1 mb-3 font-mono text-label-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] uppercase tracking-widest"
               >
                 <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                 {openCollection.name}

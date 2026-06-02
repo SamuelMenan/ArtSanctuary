@@ -1,18 +1,15 @@
-import { NextResponse } from "next/server";
 import { auth } from "@backend/auth";
+import { apiError } from "@backend/http/errors";
+import { withErrorHandler } from "@backend/http/handler";
 import { getUserNotifications } from "@backend/services/notifications.service";
+import { NextResponse } from "next/server";
 
-export async function GET() {
-  try {
-    const session = await auth();
+export const GET = withErrorHandler("GET /api/notifications", async () => {
+  const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      return apiError("UNAUTHORIZED", "No autenticado");
     }
 
     const data = await getUserNotifications(session.user.id);
     return NextResponse.json(data);
-  } catch (error) {
-    console.error("[GET /api/notifications]", error);
-    return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
-  }
-}
+});

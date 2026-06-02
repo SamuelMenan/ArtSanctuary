@@ -4,7 +4,7 @@ import { cmOf, formatCm, formatScaled } from '@shared/lib/measure'
 import type { CutoutEditor } from '@frontend/features/tools/crop/useCutoutEditor'
 
 const ctrlBtn =
-  'flex items-center gap-2 h-10 px-3 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40 font-mono text-[var(--text-label-sm)]'
+  'flex items-center gap-2 h-10 px-3 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40 font-mono text-label-sm'
 
 /** Barra superior del recortador: cambiar foto, historial, IA, herramientas y exportación. */
 export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
@@ -18,7 +18,7 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
 
   return (
     <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-[var(--text-label-sm)] font-semibold transition-colors">
+        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-label-sm font-semibold transition-colors">
           <span className="material-symbols-outlined text-[18px]">imagesmode</span>
           CAMBIAR FOTO
         </button>
@@ -36,7 +36,7 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
           <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
           <div className="flex items-center gap-2 bg-[var(--color-surface-container-low)] px-2 py-1 rounded border border-[var(--color-outline-variant)]/50">
             <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">memory</span>
-            <select value={aiModel} onChange={(e) => setAiModel(e.target.value as 'isnet' | 'isnet_fp16')} className="bg-transparent text-[var(--text-label-sm)] font-mono text-[var(--color-on-surface)] outline-none cursor-pointer">
+            <select value={aiModel} onChange={(e) => setAiModel(e.target.value as 'isnet' | 'isnet_fp16')} className="bg-transparent text-label-sm font-mono text-[var(--color-on-surface)] outline-none cursor-pointer">
               <option value="isnet">ISNet (Mejor)</option>
               <option value="isnet_fp16">ISNet FP16</option>
             </select>
@@ -45,7 +45,7 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
               <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">Res. Original (Lento)</span>
             </label>
           </div>
-          <button onClick={removeBgAI} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
+          <button onClick={removeBgAI} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
             <span className="material-symbols-outlined text-[18px]">{busy ? 'hourglass_top' : 'auto_fix_high'}</span>
             QUITAR FONDO (IA)
           </button>
@@ -108,7 +108,7 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
           <button onClick={() => sendTo('grid')} disabled={busy} className={ctrlBtn} title="Enviar a Cuadrícula">
             <span className="material-symbols-outlined text-[18px]">grid_on</span>
           </button>
-          <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-[var(--text-label-sm)] font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
+          <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
             <span className="material-symbols-outlined text-[18px]">download</span>
             EXPORTAR PNG
           </button>

@@ -16,7 +16,7 @@ export default function NotanPage() {
         <div className="h-16 bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-[var(--spacing-grid-gutter)] justify-between shrink-0 z-10 overflow-x-auto">
           {/* Left Actions */}
           <div className="flex items-center">
-            <button className="flex items-center gap-[var(--spacing-stack-sm)] px-4 py-2 border border-[var(--color-outline)] rounded-[var(--radius-sm)] text-[var(--color-on-background)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors duration-200 font-mono text-[var(--text-label-sm)] group whitespace-nowrap">
+            <button className="flex items-center gap-[var(--spacing-stack-sm)] px-4 py-2 border border-[var(--color-outline)] rounded-[var(--radius-sm)] text-[var(--color-on-background)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors duration-200 font-mono text-label-sm group whitespace-nowrap">
               <span className="material-symbols-outlined text-[18px] group-hover:text-[var(--color-primary)]">image</span>
               SELECCIONAR IMAGEN
             </button>
@@ -26,7 +26,7 @@ export default function NotanPage() {
           <div className="flex items-center gap-8 px-4">
             {/* Slider Control */}
             <div className="flex items-center gap-4 w-48">
-              <label className="font-mono text-[var(--text-label-sm)] text-[var(--color-secondary)] shrink-0" htmlFor="umbral-slider">UMBRAL</label>
+              <label className="font-mono text-label-sm text-[var(--color-secondary)] shrink-0" htmlFor="umbral-slider">UMBRAL</label>
               <input 
                 className="flex-1 custom-range" 
                 id="umbral-slider" 
@@ -34,7 +34,7 @@ export default function NotanPage() {
                 value={umbral}
                 onChange={(e) => setUmbral(Number(e.target.value))}
               />
-              <span className="font-mono text-[var(--text-label-sm)] text-[var(--color-on-background)] shrink-0 w-8 text-right">{umbral}</span>
+              <span className="font-mono text-label-sm text-[var(--color-on-background)] shrink-0 w-8 text-right">{umbral}</span>
             </div>
             
             {/* Checkbox Control */}
@@ -49,13 +49,13 @@ export default function NotanPage() {
                 />
                 <span className="material-symbols-outlined absolute text-background text-[14px] pointer-events-none opacity-0 peer-checked:opacity-100 left-0 top-0 h-full w-full flex items-center justify-center">check</span>
               </div>
-              <label className="font-mono text-[var(--text-label-sm)] text-[var(--color-secondary)] group-hover:text-[var(--color-on-background)] transition-colors cursor-pointer select-none whitespace-nowrap" htmlFor="tono-medio-check">TONO MEDIO</label>
+              <label className="font-mono text-label-sm text-[var(--color-secondary)] group-hover:text-[var(--color-on-background)] transition-colors cursor-pointer select-none whitespace-nowrap" htmlFor="tono-medio-check">TONO MEDIO</label>
             </div>
           </div>
           
           {/* Right Status */}
           <div className="flex items-center">
-            <span className="bg-[var(--color-secondary-container)] text-[var(--color-on-background)] font-mono text-[var(--text-label-sm)] px-3 py-1.5 rounded-full tracking-wider border border-[var(--color-outline-variant)] whitespace-nowrap">
+            <span className="bg-[var(--color-secondary-container)] text-[var(--color-on-background)] font-mono text-label-sm px-3 py-1.5 rounded-full tracking-wider border border-[var(--color-outline-variant)] whitespace-nowrap">
               {tonoMedio ? '3 VALORES' : '2 VALORES'}
             </span>
           </div>
@@ -66,7 +66,7 @@ export default function NotanPage() {
           {/* Left Panel: Original */}
           <div className="flex-1 relative flex items-center justify-center p-[var(--spacing-grid-gutter)] min-h-[300px]">
             <div className="absolute top-[var(--spacing-grid-gutter)] left-[var(--spacing-grid-gutter)] z-10">
-              <span className="bg-[var(--color-surface)]/80 backdrop-blur-md border border-[var(--color-outline-variant)] text-[var(--color-secondary)] font-mono text-[var(--text-label-sm)] px-3 py-1 rounded-[var(--radius-sm)] shadow-sm">
+              <span className="bg-[var(--color-surface)]/80 backdrop-blur-md border border-[var(--color-outline-variant)] text-[var(--color-secondary)] font-mono text-label-sm px-3 py-1 rounded-[var(--radius-sm)] shadow-sm">
                 ORIGINAL
               </span>
             </div>
@@ -87,7 +87,7 @@ export default function NotanPage() {
           {/* Right Panel: Notan */}
           <div className="flex-1 relative flex items-center justify-center p-[var(--spacing-grid-gutter)] bg-[#0a0a0a] min-h-[300px]">
             <div className="absolute top-[var(--spacing-grid-gutter)] left-[var(--spacing-grid-gutter)] z-10">
-              <span className="bg-[var(--color-surface)]/80 backdrop-blur-md border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-[var(--text-label-sm)] px-3 py-1 rounded-[var(--radius-sm)] shadow-sm flex items-center gap-2">
+              <span className="bg-[var(--color-surface)]/80 backdrop-blur-md border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-label-sm px-3 py-1 rounded-[var(--radius-sm)] shadow-sm flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] inline-block"></span>
                 NOTAN
               </span>

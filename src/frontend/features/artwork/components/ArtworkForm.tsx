@@ -17,7 +17,7 @@ interface ArtworkFormProps {
 }
 
 const inputClass = 'w-full bg-[var(--color-surface-container)] border border-[var(--color-surface-container-high)] rounded-sm px-4 py-3 text-[var(--color-primary)] focus:outline-none focus:border-[var(--color-primary)] transition-colors font-sans';
-const labelClass = 'font-mono text-[var(--text-label-sm)] uppercase tracking-widest text-[var(--color-on-surface-variant)]';
+const labelClass = 'font-mono text-label-sm uppercase tracking-widest text-[var(--color-on-surface-variant)]';
 
 export default function ArtworkForm({
   t,

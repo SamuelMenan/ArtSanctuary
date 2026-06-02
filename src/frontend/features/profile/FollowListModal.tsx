@@ -42,7 +42,7 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
         const data = await res.json()
         if (cancelled) return
         if (!res.ok) {
-          setError(res.status === 403 ? t('profile.privateList') : data?.error ?? 'Error')
+          setError(res.status === 403 ? t('profile.privateList') : data?.error?.message ?? 'Error')
           return
         }
         setUsers(data.users ?? [])
