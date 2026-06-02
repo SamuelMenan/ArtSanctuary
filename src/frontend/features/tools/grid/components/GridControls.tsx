@@ -2,7 +2,7 @@
 
 import type { RefObject, Dispatch, SetStateAction } from 'react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
-import { ToolRow } from '@frontend/features/tools/shared/workspace/ToolPanel'
+import { ToolRow, ToolPanelFooter } from '@frontend/features/tools/shared/workspace/ToolPanel'
 import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
 import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
 import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
@@ -81,25 +81,29 @@ export default function GridControls({
       </ToolRow>
 
       <ToolCluster name={t('grid.measures')}>
-        <label className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-2">
           <span className={lbl}>{t('grid.width')}</span>
-          <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }} className={stepBtn} aria-label={t('grid.minusSquareTip')}>remove</button>
-          <input
-            type="number" min={squareCm} step={squareCm} value={realWidthCm}
-            onFocus={() => pushSnapshot()}
-            onChange={(e) => setRealWidthCm(Number(e.target.value))}
-            onBlur={(e) => setRealWidthCm(snapMul(Number(e.target.value)))}
-            className={numInput}
-          />
-          <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w + squareCm)); }} className={stepBtn} aria-label={t('grid.plusSquareTip')}>add</button>
-          <span className={lbl}>cm</span>
-        </label>
-        <label className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
+            <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }} className={stepBtn} aria-label={t('grid.minusSquareTip')}>remove</button>
+            <input
+              type="number" min={squareCm} step={squareCm} value={realWidthCm}
+              onFocus={() => pushSnapshot()}
+              onChange={(e) => setRealWidthCm(Number(e.target.value))}
+              onBlur={(e) => setRealWidthCm(snapMul(Number(e.target.value)))}
+              className={numInput}
+            />
+            <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w + squareCm)); }} className={stepBtn} aria-label={t('grid.plusSquareTip')}>add</button>
+            <span className={lbl}>cm</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2">
           <span className={lbl}>{t('grid.square')}</span>
-          <input type="number" min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
-          <span className={lbl}>cm</span>
-        </label>
-        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            <input type="number" min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
+            <span className={lbl}>cm</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           {CM_PRESETS.map((preset) => {
             const active = Math.abs(squareCm - preset) < 0.01
             return (
@@ -108,7 +112,7 @@ export default function GridControls({
                 type="button"
                 onClick={() => { pushSnapshot(); setSquareCm(preset) }}
                 title={t('grid.usePreset', { n: preset })}
-                className={`h-8 px-2 rounded-md border text-[10px] font-semibold transition-colors ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+                className={`flex-1 h-9 rounded-lg border text-[10px] font-semibold transition-colors duration-150 ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-outline)] hover:text-[var(--color-on-surface)]'}`}
               >
                 {preset} cm
               </button>
@@ -128,26 +132,29 @@ export default function GridControls({
           onPointerUp={() => { if (opacity !== prevOpacity.current) pushSnapshot({ opacity: prevOpacity.current }) }}
           onChange={setOpacity}
         />
-        <div className="w-7 h-7 rounded-sm border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden">
-          <input
-            type="color"
-            value={color}
-            onFocus={() => { prevColor.current = color }}
-            onBlur={() => { if (color !== prevColor.current) pushSnapshot({ color: prevColor.current }) }}
-            onChange={(e) => setColor(e.target.value)}
-            className="absolute inset-[-10px] w-12 h-12 cursor-pointer"
+        <ToolRow>
+          <div className="w-9 h-9 shrink-0 rounded-lg border border-[var(--color-outline-variant)] hover:border-[var(--color-outline)] transition-colors relative overflow-hidden" title={t('grid.color')}>
+            <input
+              type="color"
+              value={color}
+              onFocus={() => { prevColor.current = color }}
+              onBlur={() => { if (color !== prevColor.current) pushSnapshot({ color: prevColor.current }) }}
+              onChange={(e) => setColor(e.target.value)}
+              className="absolute inset-[-25%] w-[150%] h-[150%] cursor-pointer"
+            />
+          </div>
+          <ToolButton
+            variant="toggle"
+            icon="tag"
+            label={t('grid.numbers')}
+            active={showNumbers}
+            onClick={() => { pushSnapshot(); setShowNumbers((v) => !v); }}
+            className="flex-1"
           />
-        </div>
-        <ToolButton
-          variant="toggle"
-          icon="tag"
-          label={t('grid.numbers')}
-          active={showNumbers}
-          onClick={() => { pushSnapshot(); setShowNumbers((v) => !v); }}
-        />
+        </ToolRow>
       </ToolCluster>
 
-      <div className="mt-auto">
+      <ToolPanelFooter>
         <SendActions
           isReturn={isReturn}
           busy={sending || !imageUrl}
@@ -156,7 +163,7 @@ export default function GridControls({
           onSendBoards={onSend}
           onExport={onExport}
         />
-      </div>
+      </ToolPanelFooter>
     </>
   )
 }

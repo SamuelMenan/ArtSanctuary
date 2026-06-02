@@ -551,6 +551,7 @@ export const es = {
     usePreset: 'Usar {{n}} cm',
     style: 'Estilo',
     numbers: 'Numerar',
+    color: 'Color de la cuadrícula',
     centerTip: 'Centrar imagen',
     backBoardTip: 'Volver al tablero con esta medida',
     sendBoardsTip: 'Enviar a Tableros (respeta el tamaño)',

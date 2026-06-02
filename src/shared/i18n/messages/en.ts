@@ -545,6 +545,7 @@ export const en = {
     usePreset: 'Use {{n}} cm',
     style: 'Style',
     numbers: 'Number',
+    color: 'Grid color',
     centerTip: 'Center image',
     backBoardTip: 'Back to board with this size',
     sendBoardsTip: 'Send to Boards (keeps the size)',

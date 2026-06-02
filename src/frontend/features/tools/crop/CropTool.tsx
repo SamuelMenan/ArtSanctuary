@@ -9,7 +9,7 @@ import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { cmOf, applyScale, formatCm, formatScaled } from '@shared/lib/measure'
 import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
-import { ToolRow } from '@frontend/features/tools/shared/workspace/ToolPanel'
+import { ToolRow, ToolPanelFooter } from '@frontend/features/tools/shared/workspace/ToolPanel'
 import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
 import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
 import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
@@ -276,23 +276,26 @@ export default function CropTool() {
         <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} disabled={off} onClick={reset} />
       </ToolRow>
 
-      <ToolSelect
-        value={aspectIdx}
-        title={t('crop.aspectRatio')}
-        onChange={applyAspect}
-        options={ASPECTS.map((a, i) => ({ value: String(i), label: a.value === null ? t('crop.free') : a.label }))}
-      />
+      <ToolCluster name={t('crop.aspectRatio')}>
+        <ToolSelect
+          value={aspectIdx}
+          title={t('crop.aspectRatio')}
+          onChange={applyAspect}
+          className="w-full"
+          options={ASPECTS.map((a, i) => ({ value: String(i), label: a.value === null ? t('crop.free') : a.label }))}
+        />
+      </ToolCluster>
 
       <ToolCluster name={t('crop.autoCrop')}>
         <ToolButton variant="ghost" icon="crop_free" label={t('crop.auto')} title={t('crop.autoCrop')} disabled={off} onClick={autoCrop} className="w-full" />
         <ToolSlider icon="tune" min={0} max={60} value={tolerance} title={t('crop.autoCropTip')} onChange={setTolerance} />
-        <label className="flex items-center gap-1 shrink-0" title={t('crop.padTip')}>
-          <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
-          <input type="number" min={0} value={padding} disabled={off} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-14 h-9 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none" />
+        <label className="flex items-center justify-between gap-2" title={t('crop.padTip')}>
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
+          <input type="number" min={0} value={padding} disabled={off} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-16 h-9 bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-lg px-2 font-mono text-label-sm text-center text-[var(--color-on-surface)] outline-none transition-colors duration-150 focus-visible:border-[var(--color-primary)]" />
         </label>
       </ToolCluster>
 
-      <div className="mt-auto">
+      <ToolPanelFooter>
         <SendActions
           isReturn={!!back.current?.boardId}
           busy={off || busy}
@@ -301,7 +304,7 @@ export default function CropTool() {
           onSendGrid={() => sendTo('grid')}
           onExport={exportPng}
         />
-      </div>
+      </ToolPanelFooter>
     </>
   )
 

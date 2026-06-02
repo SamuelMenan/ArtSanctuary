@@ -1,7 +1,7 @@
 'use client'
 
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
-import { ToolRow } from '@frontend/features/tools/shared/workspace/ToolPanel'
+import { ToolRow, ToolGrid, ToolPanelFooter } from '@frontend/features/tools/shared/workspace/ToolPanel'
 import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
 import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
 import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
@@ -34,20 +34,22 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
           onUndo={undo}
           onRedo={redo}
         />
+        <ToolButton variant="icon" icon="crop_free" title={t('crop.trimTip')} disabled={off} onClick={autoTrim} />
       </ToolRow>
 
       <ToolCluster name="IA">
         <ToolSelect
           value={aiModel}
           onChange={(v) => setAiModel(v)}
+          className="w-full"
           options={[
             { value: 'isnet', label: t('crop.modelBest') },
             { value: 'isnet_fp16', label: t('crop.modelFp16') },
           ]}
         />
-        <label className="flex items-center gap-1.5 cursor-pointer">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
           <input type="checkbox" checked={!aiRescale} disabled={off} onChange={(e) => setAiRescale(!e.target.checked)} className="accent-[var(--color-primary)] cursor-pointer" />
-          <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.resOriginal')}</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--color-on-surface-variant)]">{t('crop.resOriginal')}</span>
         </label>
         <ToolButton
           variant="action"
@@ -60,9 +62,11 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
       </ToolCluster>
 
       <ToolCluster name={t('crop.brushTools')}>
-        <ToolButton variant="toggle" icon="colorize" label={t('crop.wand')} title={t('crop.wandTip')} active={toolMode === 'wand'} disabled={off} onClick={() => setToolMode((v) => (v === 'wand' ? null : 'wand'))} />
-        <ToolButton variant="toggle" icon="ink_eraser" label={t('crop.erase')} title={t('crop.eraseTip')} active={toolMode === 'erase'} disabled={off} onClick={() => setToolMode((v) => (v === 'erase' ? null : 'erase'))} />
-        <ToolButton variant="toggle" icon="brush" label={t('crop.restore')} title={t('crop.restoreTip')} active={toolMode === 'restore'} disabled={off} onClick={() => setToolMode((v) => (v === 'restore' ? null : 'restore'))} />
+        <ToolGrid cols={3}>
+          <ToolButton variant="toggle" stacked icon="colorize" label={t('crop.wand')} title={t('crop.wandTip')} active={toolMode === 'wand'} disabled={off} onClick={() => setToolMode((v) => (v === 'wand' ? null : 'wand'))} />
+          <ToolButton variant="toggle" stacked icon="ink_eraser" label={t('crop.erase')} title={t('crop.eraseTip')} active={toolMode === 'erase'} disabled={off} onClick={() => setToolMode((v) => (v === 'erase' ? null : 'erase'))} />
+          <ToolButton variant="toggle" stacked icon="brush" label={t('crop.restore')} title={t('crop.restoreTip')} active={toolMode === 'restore'} disabled={off} onClick={() => setToolMode((v) => (v === 'restore' ? null : 'restore'))} />
+        </ToolGrid>
         {toolMode === 'wand' && (
           <ToolSlider icon="tune" min={0} max={120} value={tolerance} title={t('crop.toleranceTip')} onChange={setTolerance} />
         )}
@@ -71,11 +75,9 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
         )}
       </ToolCluster>
 
-      <ToolButton variant="ghost" icon="crop_free" label={t('crop.trim')} title={t('crop.trimTip')} disabled={off} onClick={autoTrim} className="w-full" />
+      {status && <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] px-1">{status}</span>}
 
-      {status && <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)]">{status}</span>}
-
-      <div className="mt-auto">
+      <ToolPanelFooter>
         <SendActions
           isReturn={!!back.current?.boardId}
           busy={off || busy}
@@ -84,7 +86,7 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
           onSendGrid={() => sendTo('grid')}
           onExport={exportPng}
         />
-      </div>
+      </ToolPanelFooter>
     </>
   )
 }

@@ -187,25 +187,48 @@ html.light {
   /* Custom styles for range sliders to match minimalist aesthetic */
   .custom-range {
       -webkit-appearance: none;
+      appearance: none;
       width: 100%;
+      height: 16px;
       background: transparent;
-  }
-  .custom-range::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 12px;
-      width: 12px;
-      border-radius: 50%;
-      background: #ffffff;
-      cursor: pointer;
-      margin-top: -5px;
-      box-shadow: 0 0 0 1px #444748;
   }
   .custom-range::-webkit-slider-runnable-track {
       width: 100%;
-      height: 2px;
+      height: 3px;
       cursor: pointer;
-      background: #444748;
-      border-radius: 1px;
+      background: var(--color-outline-variant);
+      border-radius: 2px;
+  }
+  .custom-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 13px;
+      width: 13px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      cursor: pointer;
+      margin-top: -5px;
+      box-shadow: 0 0 0 1px var(--color-outline-variant);
+      transition: box-shadow .15s ease, transform .15s ease;
+  }
+  .custom-range:hover::-webkit-slider-thumb {
+      transform: scale(1.12);
+  }
+  .custom-range:focus-visible::-webkit-slider-thumb {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+  .custom-range::-moz-range-track {
+      height: 3px;
+      background: var(--color-outline-variant);
+      border-radius: 2px;
+  }
+  .custom-range::-moz-range-thumb {
+      height: 13px;
+      width: 13px;
+      border: none;
+      border-radius: 50%;
+      background: var(--color-primary);
+      cursor: pointer;
+      box-shadow: 0 0 0 1px var(--color-outline-variant);
   }
   .custom-range:focus {
       outline: none;

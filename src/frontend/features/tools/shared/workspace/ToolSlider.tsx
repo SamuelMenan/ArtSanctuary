@@ -1,6 +1,6 @@
 'use client'
 
-/** Control de rango unificado: icono + slider + valor. */
+/** Control de rango unificado a lo ancho del panel: icono + pista + valor. */
 export default function ToolSlider({
   icon,
   min,
@@ -23,8 +23,8 @@ export default function ToolSlider({
   onPointerUp?: () => void
 }) {
   return (
-    <label className="flex items-center gap-1.5 shrink-0" title={title}>
-      <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">{icon}</span>
+    <label className="flex items-center gap-2.5 w-full" title={title}>
+      <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] shrink-0">{icon}</span>
       <input
         type="range"
         min={min}
@@ -33,9 +33,9 @@ export default function ToolSlider({
         onChange={(e) => onChange(Number(e.target.value))}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
-        className="w-20 custom-range"
+        className="flex-1 min-w-0 custom-range"
       />
-      <span className="font-mono text-[10px] text-[var(--color-primary)] w-7 text-right">{value}{suffix}</span>
+      <span className="font-mono text-[10px] text-[var(--color-primary)] w-9 text-right tabular-nums shrink-0">{value}{suffix}</span>
     </label>
   )
 }
