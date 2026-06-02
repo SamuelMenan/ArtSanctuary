@@ -1,5 +1,3 @@
-'use client'
-
 import { EmailSection } from './account/EmailSection'
 import { PasswordSection } from './account/PasswordSection'
 import { SessionsSection } from './account/SessionsSection'

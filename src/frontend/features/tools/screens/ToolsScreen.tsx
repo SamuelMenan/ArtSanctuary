@@ -1,5 +1,3 @@
-'use client'
-
 import AppShell from '@frontend/shared/layouts/AppShell'
 import Link from 'next/link'
 
