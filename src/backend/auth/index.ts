@@ -14,7 +14,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email y contraseña son obligatorios");
+          throw new Error("Email and password are required");
         }
 
         await connectDB();
@@ -24,10 +24,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
 
         if (!user) {
-          throw new Error("Email o contraseña incorrectos");
+          throw new Error("Invalid email or password");
         }
         if (user.status === "deleted") {
-          throw new Error("Cuenta eliminada");
+          throw new Error("Account deleted");
         }
 
         const isValid = await bcrypt.compare(

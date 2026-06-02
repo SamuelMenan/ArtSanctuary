@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 
 export default function CollectionActions({ collectionId, initialName }: { collectionId: string, initialName: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(initialName);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { t } = usePreferences();
 
   const handleRename = async () => {
     if (!name.trim() || name === initialName) {
@@ -28,7 +30,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
   };
 
   const handleDelete = async () => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta colección? Esta acción no se puede deshacer.')) return;
+    if (!confirm(t('common.deleteCollectionConfirm'))) return;
     setLoading(true);
     const res = await fetch(`/api/collections/${collectionId}`, {
       method: 'DELETE'
@@ -37,7 +39,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
       router.push('/');
     } else {
       setLoading(false);
-      alert('Error al eliminar la colección');
+      alert(t('common.deleteCollectionError'));
     }
   };
 
@@ -50,7 +52,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
           onChange={e => setName(e.target.value)} 
           className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-1 text-sm font-sans focus:border-[var(--color-primary)] outline-none text-[var(--color-primary)] rounded-sm"
         />
-        <button onClick={handleRename} disabled={loading} className="text-xs font-mono uppercase bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] px-3 py-1 rounded-sm">Guardar</button>
+        <button onClick={handleRename} disabled={loading} className="text-xs font-mono uppercase bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] px-3 py-1 rounded-sm">{t('common.save')}</button>
         <button onClick={() => setIsEditing(false)} disabled={loading} className="text-xs font-mono uppercase border border-[var(--color-outline-variant)] text-[var(--color-primary)] px-3 py-1 rounded-sm">Cancelar</button>
       </div>
     );

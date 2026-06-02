@@ -21,18 +21,18 @@ export interface AutoFillResult {
 }
 
 const MEDIUM_PRESETS: Record<ArtworkCategory, string[]> = {
-  pintura: ['Óleo sobre lienzo', 'Acrílico sobre lienzo', 'Acuarela sobre papel', 'Témpera sobre madera'],
-  escultura: ['Bronce', 'Mármol', 'Arcilla', 'Madera tallada', 'Resina', 'Acero'],
-  ilustracion: ['Digital', 'Tinta sobre papel', 'Acuarela digital', 'Lápiz de color'],
-  fotografia: ['Impresión digital', 'Película 35mm', 'Impresión giclée', 'Polaroid'],
+  pintura: ['presets.medium.oil', 'presets.medium.acrylic', 'presets.medium.watercolor', 'presets.medium.tempera'],
+  escultura: ['presets.medium.bronze', 'presets.medium.marble', 'presets.medium.clay', 'presets.medium.wood', 'presets.medium.resin', 'presets.medium.steel'],
+  ilustracion: ['presets.medium.digital', 'presets.medium.ink', 'presets.medium.digitalWatercolor', 'presets.medium.colorPencil'],
+  fotografia: ['presets.medium.digitalPrint', 'presets.medium.film35mm', 'presets.medium.giclee', 'presets.medium.polaroid'],
   otro: [],
 };
 
 const TECHNIQUE_PRESETS: Record<ArtworkCategory, string[]> = {
-  pintura: ['Pincel', 'Espátula', 'Empaste', 'Veladura'],
-  escultura: ['Fundición', 'Tallado', 'Modelado', 'Soldadura'],
-  ilustracion: ['Vectorial', 'Raster', 'Mixta', 'Línea limpia'],
-  fotografia: ['Larga exposición', 'HDR', 'Macro', 'Retrato'],
+  pintura: ['presets.technique.brush', 'presets.technique.spatula', 'presets.technique.impasto', 'presets.technique.glaze'],
+  escultura: ['presets.technique.casting', 'presets.technique.carving', 'presets.technique.modeling', 'presets.technique.welding'],
+  ilustracion: ['presets.technique.vector', 'presets.technique.raster', 'presets.technique.mixed', 'presets.technique.cleanLine'],
+  fotografia: ['presets.technique.longExposure', 'presets.technique.hdr', 'presets.technique.macro', 'presets.technique.portrait'],
   otro: [],
 };
 
@@ -76,18 +76,18 @@ export function buildSuggestions(
   if (category === 'fotografia' && exif) {
     const dateStr = formatExifDate(exif.DateTimeOriginal || exif.CreateDate);
     if (dateStr) {
-      out.push({ field: 'dateValue', value: dateStr, label: 'Fecha de captura', confidence: 0.95, source: 'exif' });
-      out.push({ field: 'dateType', value: 'exact', label: 'Tipo de fecha', confidence: 0.95, source: 'exif' });
+      out.push({ field: 'dateValue', value: dateStr, label: 'presets.label.captureDate', confidence: 0.95, source: 'exif' });
+      out.push({ field: 'dateType', value: 'exact', label: 'presets.label.dateType', confidence: 0.95, source: 'exif' });
     }
     if (exif.Make || exif.Model) {
       const camera = [exif.Make, exif.Model].filter(Boolean).join(' ').trim();
-      if (camera) out.push({ field: 'technique', value: camera, label: 'Cámara', confidence: 0.9, source: 'exif' });
+      if (camera) out.push({ field: 'technique', value: camera, label: 'presets.label.camera', confidence: 0.9, source: 'exif' });
     }
     if (exif.Copyright) {
-      out.push({ field: 'copyrightHolder', value: String(exif.Copyright), label: 'Autor (copyright)', confidence: 0.9, source: 'exif' });
+      out.push({ field: 'copyrightHolder', value: String(exif.Copyright), label: 'presets.label.copyright', confidence: 0.9, source: 'exif' });
     }
     if (exif.ImageDescription) {
-      out.push({ field: 'altText', value: String(exif.ImageDescription), label: 'Descripción', confidence: 0.7, source: 'exif' });
+      out.push({ field: 'altText', value: String(exif.ImageDescription), label: 'presets.label.description', confidence: 0.7, source: 'exif' });
     }
     if (exif.FNumber || exif.ISO || exif.ISOSpeedRatings || exif.FocalLength) {
       const parts: string[] = [];
@@ -97,21 +97,21 @@ export function buildSuggestions(
       const iso = exif.ISO || exif.ISOSpeedRatings;
       if (iso) parts.push(`ISO ${iso}`);
       if (parts.length) {
-        out.push({ field: 'description', value: parts.join(' · '), label: 'Datos técnicos', confidence: 0.6, source: 'exif' });
+        out.push({ field: 'description', value: parts.join(' · '), label: 'presets.label.technical', confidence: 0.6, source: 'exif' });
       }
     }
     if (imageDims) {
-      out.push({ field: 'dimWidth', value: String(imageDims.width), label: 'Ancho (px)', confidence: 0.85, source: 'exif' });
-      out.push({ field: 'dimHeight', value: String(imageDims.height), label: 'Alto (px)', confidence: 0.85, source: 'exif' });
-      out.push({ field: 'dimUnit', value: 'px', label: 'Unidad', confidence: 0.85, source: 'exif' });
+      out.push({ field: 'dimWidth', value: String(imageDims.width), label: 'presets.label.widthPx', confidence: 0.85, source: 'exif' });
+      out.push({ field: 'dimHeight', value: String(imageDims.height), label: 'presets.label.heightPx', confidence: 0.85, source: 'exif' });
+      out.push({ field: 'dimUnit', value: 'px', label: 'presets.label.unit', confidence: 0.85, source: 'exif' });
     }
-    out.push({ field: 'medium', value: 'Impresión digital', label: 'Medio sugerido', confidence: 0.5, source: 'contextual' });
+    out.push({ field: 'medium', value: 'presets.medium.digitalPrint', label: 'presets.label.suggestedMedium', confidence: 0.5, source: 'contextual' });
   }
 
   if (category !== 'fotografia' && category !== 'otro') {
     const tags = TAG_PRESETS[category];
     if (tags.length) {
-      out.push({ field: 'tags', value: tags.join(', '), label: 'Etiquetas base', confidence: 0.6, source: 'contextual' });
+      out.push({ field: 'tags', value: tags.join(', '), label: 'presets.label.baseTags', confidence: 0.6, source: 'contextual' });
     }
   }
 

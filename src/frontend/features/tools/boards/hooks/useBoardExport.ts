@@ -1,5 +1,6 @@
 import type { RefObject } from 'react'
 import { useRouter } from 'next/navigation'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type Konva from 'konva'
 import { BoardObject } from '@shared/lib/boards/types'
 import { cmOf, applyScale } from '@shared/lib/measure'
@@ -32,6 +33,7 @@ export function useBoardExport({
   trRef,
 }: BoardExportArgs) {
   const router = useRouter()
+  const { t } = usePreferences()
 
   // Enviar el objeto imagen seleccionado a otra herramienta (round-trip).
   const editIn = (tool: 'crop' | 'grid') => {
@@ -72,7 +74,7 @@ export function useBoardExport({
       a.click()
     } catch (e) {
       console.error('Export failed', e)
-      alert('No se pudo exportar. Asegúrate de que todas las imágenes externas tienen permisos CORS.')
+      alert(t('boards.exportErrorCORS'))
     }
 
     // Restaurar selección.

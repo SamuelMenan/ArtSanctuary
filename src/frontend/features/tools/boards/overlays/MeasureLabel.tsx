@@ -1,3 +1,4 @@
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { cmOf, formatCm, formatScaled } from '@shared/lib/measure'
 
 export interface MeasureSegment {
@@ -26,6 +27,7 @@ export default function MeasureLabel({
   scale: number
   isGrid: boolean
 }) {
+  const { t } = usePreferences()
   const distCm = round1(cmOf(Math.hypot(measure.bx - measure.ax, measure.by - measure.ay)))
   const mx = pos.x + ((measure.ax + measure.bx) / 2) * scale
   const my = pos.y + ((measure.ay + measure.by) / 2) * scale
@@ -35,10 +37,10 @@ export default function MeasureLabel({
     return (
       <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap overflow-hidden shadow text-center" style={{ left: mx, top: my }}>
         <div className="px-2 py-0.5 opacity-90 border-b border-white/25">
-          Referencia: {formatCm(distCm)}
+          {t('boards.reference')} {formatCm(distCm)}
         </div>
         <div className="px-2 py-0.5">
-          Final: {formatScaled(distCm)}
+          {t('boards.final')} {formatScaled(distCm)}
         </div>
       </div>
     )

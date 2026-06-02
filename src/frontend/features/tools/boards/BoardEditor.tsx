@@ -35,7 +35,10 @@ import { BoardObject, BoardBackground } from '@shared/lib/boards/types'
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
 
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+
 export default function BoardEditor({ boardId }: { boardId: string }) {
+  const { t } = usePreferences()
   const containerRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<Konva.Stage>(null)
   const trRef = useRef<Konva.Transformer>(null)
@@ -202,9 +205,9 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <span className="material-symbols-outlined text-5xl text-[var(--color-on-surface-variant)]/50">error</span>
-        <p className="font-sans text-[var(--color-on-surface-variant)]">Board no encontrado o sin acceso.</p>
-        <Link href="/dashboard/boards" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline">
-          ← Volver a boards
+        <p className="font-sans text-[var(--color-on-surface-variant)]">{t('boards.notFound')}</p>
+        <Link href="/dashboard/tools/boards" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline">
+          {t('boards.backToBoards')}
         </Link>
       </div>
     )
@@ -330,7 +333,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {loaded && objects.length === 0 && !readOnly && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none text-[var(--color-on-surface-variant)]">
             <span className="material-symbols-outlined text-5xl">add_photo_alternate</span>
-            <span className="font-mono text-label-sm uppercase tracking-widest">Añade imagen, texto o nota para empezar</span>
+            <span className="font-mono text-label-sm uppercase tracking-widest">{t('boards.emptyBoardHint')}</span>
           </div>
         )}
 

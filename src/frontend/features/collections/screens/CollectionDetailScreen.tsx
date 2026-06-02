@@ -6,11 +6,14 @@ import AppShell from "@frontend/shared/layouts/AppShell";
 import { auth } from "@backend/auth";
 import { getRequestLocale } from "@backend/requestPreferences";
 import { notFound } from "next/navigation";
+import { createTranslator } from "@shared/i18n";
+import { getDictionary } from "@shared/i18n/dictionaries";
 
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const session = await auth();
   const locale = await getRequestLocale();
+  const t = createTranslator(getDictionary(locale));
 
   await connectDB();
   const collection = await Collection.findById(resolvedParams.id).populate('artworks').lean();
@@ -22,7 +25,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
     return (
       <AppShell>
         <div className="pt-8 pb-12 w-full max-w-[1400px] mx-auto z-10 relative px-4 md:px-0 flex items-center justify-center h-full">
-          <p className="text-[var(--color-error)] font-mono uppercase tracking-widest">Colección privada</p>
+          <p className="text-[var(--color-error)] font-mono uppercase tracking-widest">{t('common.privateCollection')}</p>
         </div>
       </AppShell>
     );

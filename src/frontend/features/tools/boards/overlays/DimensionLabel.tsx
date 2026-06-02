@@ -1,3 +1,4 @@
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { BoardObject } from '@shared/lib/boards/types'
 import { cmOf, formatCm, formatScaled } from '@shared/lib/measure'
 
@@ -20,6 +21,7 @@ export default function DimensionLabel({
   scale: number
   isGrid: boolean
 }) {
+  const { t } = usePreferences()
   const isLin = o.type === 'line' || o.type === 'arrow'
   const wCm = round1(cmOf(o.w))
   const hCm = round1(cmOf(o.h))
@@ -38,10 +40,10 @@ export default function DimensionLabel({
     return (
       <div className="absolute -translate-x-1/2 rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[10px] pointer-events-none z-20 whitespace-nowrap overflow-hidden" style={{ left, top }}>
         <div className="px-1.5 py-0.5 opacity-90 border-b border-[var(--color-on-primary)]/20">
-          Referencia: {sLabelRef()}
+          {t('boards.reference')} {sLabelRef()}
         </div>
         <div className="px-1.5 py-0.5">
-          Final: {sLabelFin()}
+          {t('boards.final')} {sLabelFin()}
         </div>
       </div>
     )

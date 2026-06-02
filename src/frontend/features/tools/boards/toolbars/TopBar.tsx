@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
 const iconBtn =
   'flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40'
@@ -21,9 +22,10 @@ export default function TopBar({
   onRedo: () => void
   onDownload: () => void
 }) {
+  const { t } = usePreferences()
   return (
     <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-3">
-      <Link href="/dashboard/boards" className={iconBtn} title="Volver al dashboard">
+      <Link href="/dashboard/tools/boards" className={iconBtn} title={t('boards.backTip')}>
         <span className="material-symbols-outlined text-[20px]">arrow_back</span>
       </Link>
       <input
@@ -34,19 +36,19 @@ export default function TopBar({
       />
       <div className="flex-1" />
       <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">
-        {readOnly ? 'Solo lectura' : saveState === 'saving' ? 'Guardando…' : saveState === 'saved' ? 'Guardado' : ''}
+        {readOnly ? t('boards.readOnly') : saveState === 'saving' ? t('boards.saving') : saveState === 'saved' ? t('boards.saved') : ''}
       </span>
       {!readOnly && (
         <>
-          <button onClick={onUndo} className={iconBtn} title="Deshacer (Ctrl+Z)">
+          <button onClick={onUndo} className={iconBtn} title={t('boards.undoTip')}>
             <span className="material-symbols-outlined text-[20px]">undo</span>
           </button>
-          <button onClick={onRedo} className={iconBtn} title="Rehacer (Ctrl+Shift+Z)">
+          <button onClick={onRedo} className={iconBtn} title={t('boards.redoTip')}>
             <span className="material-symbols-outlined text-[20px]">redo</span>
           </button>
         </>
       )}
-      <button onClick={onDownload} className={iconBtn} title="Descargar como PNG">
+      <button onClick={onDownload} className={iconBtn} title={t('boards.downloadTip')}>
         <span className="material-symbols-outlined text-[20px]">download</span>
       </button>
     </div>

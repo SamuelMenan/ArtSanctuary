@@ -74,7 +74,7 @@ export function useUploadArtwork() {
   const processFile = (file: File | undefined) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
-      setError('La imagen es demasiado grande. Máximo 10MB.');
+      setError(t('upload.fileTooBig'));
       return;
     }
     setError('');
@@ -134,7 +134,7 @@ export function useUploadArtwork() {
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: uploadForm });
       if (!uploadRes.ok) {
         const err = await uploadRes.json().catch(() => ({}));
-        throw new Error(err?.error?.message || 'Error al subir la imagen');
+        throw new Error(err?.error?.message || t('upload.uploadImageError'));
       }
       const { imageUrl } = await uploadRes.json();
 
@@ -167,7 +167,7 @@ export function useUploadArtwork() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData?.error?.message || 'Error al subir la obra');
+        throw new Error(errorData?.error?.message || t('upload.uploadArtworkError'));
       }
 
       router.push('/profile');

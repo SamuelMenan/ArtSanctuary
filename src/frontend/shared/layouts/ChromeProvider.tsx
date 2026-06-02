@@ -26,7 +26,7 @@ export default function ChromeProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? ''
   const isTools = pathname.startsWith('/dashboard/tools')
   // Boards (lista + editor) usan el layout de herramientas (tool-sidebar).
-  const isBoards = pathname.startsWith('/dashboard/boards')
+  const isBoards = pathname.startsWith('/dashboard/tools/boards')
   // Inmersiva = la página aporta su propia barra superior y ocupa todo el alto.
   const isImmersive = isTools || isBoards
 

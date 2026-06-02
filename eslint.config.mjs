@@ -72,6 +72,18 @@ const eslintConfig = defineConfig([
       "react-hooks/static-components": "warn",
     },
   },
+
+  // Guardarraíl para i18n: evitar copy hardcodeado en UI
+  {
+    files: ["src/frontend/**/*.tsx"],
+    rules: {
+      "react/jsx-no-literals": ["warn", {
+        "noStrings": true,
+        "allowedStrings": ["·", "×", "—", "%", "cm", "px", "°", " ", "ELIMINAR"],
+        "ignoreProps": false
+      }]
+    }
+  }
 ]);
 
 export default eslintConfig;

@@ -39,18 +39,18 @@ export default function ArtworkForm({
 
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.title')}</label>
-          <input type="text" required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className={inputClass} placeholder="Ej. Ecos del Silencio" />
+          <input type="text" required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className={inputClass} placeholder={t('upload.placeholderTitle')} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.category')}</label>
             <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as ArtworkCategory })} className={`${inputClass} appearance-none cursor-pointer`}>
-              <option value="pintura">Pintura</option>
-              <option value="escultura">Escultura</option>
-              <option value="ilustracion">Ilustración</option>
-              <option value="fotografia">Fotografía</option>
-              <option value="otro">Otro</option>
+              <option value="pintura">{t('upload.catPainting')}</option>
+              <option value="escultura">{t('upload.catSculpture')}</option>
+              <option value="ilustracion">{t('upload.catIllustration')}</option>
+              <option value="fotografia">{t('upload.catPhotography')}</option>
+              <option value="otro">{t('upload.catOther')}</option>
             </select>
           </div>
 
@@ -90,7 +90,7 @@ export default function ArtworkForm({
               value={formData.dateValue}
               onChange={e => setFormData({ ...formData, dateValue: e.target.value })}
               className={inputClass}
-              placeholder={formData.dateType === 'range' ? 'Ej. 2020-2023' : formData.dateType === 'approx' ? 'Ej. c. 1998' : 'Ej. 2024'}
+              placeholder={formData.dateType === 'range' ? t('upload.placeholderDateRange') : formData.dateType === 'approx' ? t('upload.placeholderDateApprox') : t('upload.placeholderDateExact')}
             />
           </div>
         </div>
@@ -105,26 +105,22 @@ export default function ArtworkForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.medium')}</label>
-            <input type="text" value={formData.medium} onChange={e => setFormData({ ...formData, medium: e.target.value })} className={inputClass} placeholder={presets.mediums[0] || 'Soporte / medio'} />
+            <input type="text" value={formData.medium} onChange={e => setFormData({ ...formData, medium: e.target.value })} className={inputClass} placeholder={presets.mediums[0] ? t(presets.mediums[0]) :  t('upload.placeholderMedium')} />
             {presets.mediums.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {presets.mediums.map(m => (
-                  <button key={m} type="button" onClick={() => applyPreset('medium', m)} className="font-mono text-[10px] border border-[var(--color-outline-variant)] px-2 py-1 rounded-sm hover:bg-[var(--color-surface-container)] text-[var(--color-on-surface-variant)] transition-colors">
-                    {m}
-                  </button>
+                  <button key={m} type="button" onClick={() => applyPreset('medium', t(m))} className="font-mono text-[10px] border border-[var(--color-outline-variant)] px-2 py-1 rounded-sm hover:bg-[var(--color-surface-container)] text-[var(--color-on-surface-variant)] transition-colors">{t(m)}</button>
                 ))}
               </div>
             )}
           </div>
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.technique')}</label>
-            <input type="text" value={formData.technique} onChange={e => setFormData({ ...formData, technique: e.target.value })} className={inputClass} placeholder={presets.techniques[0] || 'Técnica'} />
+            <input type="text" value={formData.technique} onChange={e => setFormData({ ...formData, technique: e.target.value })} className={inputClass} placeholder={presets.techniques[0] ? t(presets.techniques[0]) :  t('upload.placeholderTechnique')} />
             {presets.techniques.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {presets.techniques.map(tk => (
-                  <button key={tk} type="button" onClick={() => applyPreset('technique', tk)} className="font-mono text-[10px] border border-[var(--color-outline-variant)] px-2 py-1 rounded-sm hover:bg-[var(--color-surface-container)] text-[var(--color-on-surface-variant)] transition-colors">
-                    {tk}
-                  </button>
+                  <button key={tk} type="button" onClick={() => applyPreset('technique', t(tk))} className="font-mono text-[10px] border border-[var(--color-outline-variant)] px-2 py-1 rounded-sm hover:bg-[var(--color-surface-container)] text-[var(--color-on-surface-variant)] transition-colors">{t(tk)}</button>
                 ))}
               </div>
             )}
@@ -160,13 +156,13 @@ export default function ArtworkForm({
 
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.curatorialDescription')}</label>
-          <textarea rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className={`${inputClass} resize-none`} placeholder="Contexto o concepto detrás de la obra..." />
+          <textarea rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className={`${inputClass} resize-none`} placeholder={t('upload.placeholderContext')} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.copyrightHolder')}</label>
-            <input type="text" value={formData.copyrightHolder} onChange={e => setFormData({ ...formData, copyrightHolder: e.target.value })} className={inputClass} placeholder="Autor / titular" />
+            <input type="text" value={formData.copyrightHolder} onChange={e => setFormData({ ...formData, copyrightHolder: e.target.value })} className={inputClass} placeholder={t('upload.placeholderAuthor')} />
           </div>
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.license')}</label>
@@ -180,7 +176,7 @@ export default function ArtworkForm({
 
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.tagsCommaSeparated')}</label>
-          <input type="text" value={formData.tags} onChange={e => setFormData({ ...formData, tags: e.target.value })} className={inputClass} placeholder="paisaje, oscuro, melancolía" />
+          <input type="text" value={formData.tags} onChange={e => setFormData({ ...formData, tags: e.target.value })} className={inputClass} placeholder={t('upload.placeholderTags')} />
         </div>
       </section>
 

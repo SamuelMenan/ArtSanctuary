@@ -54,7 +54,7 @@ export function useBoardData(
         // Handoff: imagen entrante de otra herramienta (?handoff=1).
         const params = new URLSearchParams(window.location.search)
         if (d.isOwner && params.get('handoff') === '1') {
-          window.history.replaceState(null, '', `/dashboard/boards/${boardId}`)
+          window.history.replaceState(null, '', `/dashboard/tools/boards/${boardId}`)
           const p = takeHandoff()
           if (p) {
             const w = pxOf(p.widthCm)

@@ -118,8 +118,8 @@ export default function ArtworkMeta({
           <select value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none">
             <option value="pintura">Pintura</option>
             <option value="escultura">Escultura</option>
-            <option value="ilustracion">Ilustración</option>
-            <option value="fotografia">Fotografía</option>
+            <option value="ilustracion">{getCategoryLabel(locale, artwork.category)}</option>
+            <option value="fotografia">{getCategoryLabel(locale, artwork.category)}</option>
             <option value="otro">Otro</option>
           </select>
         </div>

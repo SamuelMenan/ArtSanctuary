@@ -5,12 +5,15 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+
 export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatusChange }: { artworkId: string; onClose: () => void; onSavedStatusChange?: (saved: boolean) => void }) {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const router = useRouter();
+  const { t } = usePreferences();
 
   useEffect(() => {
     fetchCollections();
@@ -94,7 +97,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
       <div className="bg-[var(--color-surface-container-lowest)] w-full max-w-sm rounded-sm shadow-2xl overflow-hidden ring-1 ring-[var(--color-outline-variant)]">
         <div className="p-4 border-b border-[var(--color-outline-variant)] flex items-center justify-between">
-          <h3 className="font-sans font-bold text-[var(--color-primary)]">Guardar en Colección</h3>
+          <h3 className="font-sans font-bold text-[var(--color-primary)]">{t('modal.saveToCollection')}</h3>
           <button onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -104,7 +107,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
           {loading ? (
              <div className="flex justify-center p-4"><span className="material-symbols-outlined animate-spin text-[var(--color-primary)]">refresh</span></div>
           ) : collections.length === 0 ? (
-             <p className="text-sm font-sans text-[var(--color-on-surface-variant)] text-center py-4">No tienes colecciones aún.</p>
+             <p className="text-sm font-sans text-[var(--color-on-surface-variant)] text-center py-4">{t('sidebar.noCollections')}</p>
           ) : (
             <div className="space-y-2">
               {collections.map(c => {
@@ -135,7 +138,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
           <form onSubmit={handleCreate} className="flex gap-2">
             <input 
               type="text" 
-              placeholder="Nueva colección..." 
+              placeholder={t('modal.newCollection')} 
               value={newCollectionName}
               onChange={e => setNewCollectionName(e.target.value)}
               className="flex-1 bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)] rounded-sm px-3 py-2 text-xs font-sans focus:border-[var(--color-primary)] outline-none text-[var(--color-primary)]"

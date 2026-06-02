@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { peekHandoff } from '@shared/lib/tools/handoff'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 
 type BoardMeta = {
   _id: string
@@ -16,6 +17,7 @@ type BoardMeta = {
 }
 
 export default function BoardsListPage() {
+  const { t } = usePreferences();
   const router = useRouter()
   const [boards, setBoards] = useState<BoardMeta[]>([])
   const [loading, setLoading] = useState(true)
@@ -37,21 +39,21 @@ export default function BoardsListPage() {
     const res = await fetch('/api/boards', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Board sin título' }),
+      body: JSON.stringify({ name: t('boards.untitledBoard') }),
     })
     const data = await res.json().catch(() => ({}))
     setCreating(false)
     if (res.ok) {
-      router.push(`/dashboard/boards/${data.board._id}${hasHandoff ? '?handoff=1' : ''}`)
+      router.push(`/dashboard/tools/boards/${data.board._id}${hasHandoff ? '?handoff=1' : ''}`)
     } else {
-      setError(data?.error?.message ?? 'No se pudo crear el board')
+      setError(data?.error?.message ?? t('boards.createError'))
     }
   }
 
   const deleteBoard = async (id: string, e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!confirm('¿Borrar este board? No se puede deshacer.')) return
+    if (!confirm(t('boards.deleteConfirm'))) return
     const res = await fetch(`/api/boards/${id}`, { method: 'DELETE' })
     if (res.ok) setBoards((b) => b.filter((x) => x._id !== id))
   }
@@ -67,10 +69,10 @@ export default function BoardsListPage() {
         <header className="mb-12 flex items-end justify-between gap-4 flex-wrap">
           <div>
             <h1 className="font-display-lg text-display-lg text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
-              BOARDS
+              {t('boards.boardsListTitle')}
             </h1>
             <p className="font-mono text-label-sm tracking-[0.05em] text-[var(--color-on-surface-variant)] uppercase">
-              Tus lienzos infinitos. Imágenes, texto y figuras guardados por cuenta.
+              {t('boards.boardsListDesc')}
             </p>
           </div>
           <button
@@ -81,7 +83,7 @@ export default function BoardsListPage() {
             <span className="material-symbols-outlined text-[20px]">
               {creating ? 'hourglass_top' : 'add'}
             </span>
-            Nuevo board
+            {t('boards.newBoard')}
           </button>
         </header>
 
@@ -90,9 +92,9 @@ export default function BoardsListPage() {
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-[var(--color-primary)] text-2xl">file_download</span>
               <div>
-                <h3 className="font-sans font-bold text-[var(--color-primary)]">Imagen lista para colocar</h3>
+                <h3 className="font-sans font-bold text-[var(--color-primary)]">{t('boards.imageReady')}</h3>
                 <p className="font-mono text-xs text-[var(--color-on-surface-variant)] uppercase tracking-widest mt-1">
-                  Selecciona un board existente o crea uno nuevo para pegar la imagen.
+                  {t('boards.imageReadyDesc')}
                 </p>
               </div>
             </div>
@@ -112,19 +114,19 @@ export default function BoardsListPage() {
         ) : boards.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
             <span className="material-symbols-outlined text-6xl text-[var(--color-on-surface-variant)]/50">dashboard</span>
-            <p className="font-sans text-[var(--color-on-surface-variant)]">Aún no tienes boards.</p>
+            <p className="font-sans text-[var(--color-on-surface-variant)]">{t('boards.noBoards')}</p>
             <button
               onClick={createBoard}
               disabled={creating}
               className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline"
             >
-              Crear el primero
+              {t('boards.createFirst')}
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[var(--spacing-grid-gutter)]">
             {boards.map((b) => (
-              <Link href={`/dashboard/boards/${b._id}${hasHandoff ? '?handoff=1' : ''}`} key={b._id} className="block group">
+              <Link href={`/dashboard/tools/boards/${b._id}${hasHandoff ? '?handoff=1' : ''}`} key={b._id} className="block group">
                 <div className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-[var(--radius-xl)] overflow-hidden transition-all duration-300 group-hover:border-[var(--color-outline)] group-hover:-translate-y-1">
                   <div className="aspect-video bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] flex items-center justify-center overflow-hidden">
                     {b.thumbnailUrl ? (
@@ -144,7 +146,7 @@ export default function BoardsListPage() {
                     <button
                       onClick={(e) => deleteBoard(b._id, e)}
                       className="shrink-0 size-9 flex items-center justify-center rounded-lg text-[var(--color-on-surface-variant)] hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                      title="Borrar board"
+                      title={t('boards.deleteBoard')}
                     >
                       <span className="material-symbols-outlined text-[20px]">delete</span>
                     </button>

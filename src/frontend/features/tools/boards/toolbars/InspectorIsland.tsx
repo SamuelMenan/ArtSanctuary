@@ -1,3 +1,4 @@
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { BoardObject } from '@shared/lib/boards/types'
 import { island, islandIdle, islandOn } from './islandStyles'
 
@@ -42,44 +43,45 @@ export default function InspectorIsland({
   onSetSquareCm: (n: number) => void
   onToggleLayers: () => void
 }) {
+  const { t } = usePreferences()
   const allLocked = selectedIds.every((id) => objects.find((o) => o.id === id)?.locked)
   const isGrid = backgroundType === 'grid'
   return (
     <div className={`${island} right-3 top-3 flex flex-col gap-1 p-1.5 rounded-2xl w-[52px] items-center`}>
       {selectedIds.length ? (
         <>
-          <button onClick={onToggleLock} title="Bloquear / Desbloquear" className={islandOn(allLocked)}>
+          <button onClick={onToggleLock} title={allLocked ? t('boards.unlockTip') : t('boards.lockTip')} className={islandOn(allLocked)}>
             <span className="material-symbols-outlined text-[20px]">{allLocked ? 'lock' : 'lock_open'}</span>
           </button>
-          <button onClick={onDuplicate} title="Duplicar (Ctrl+D)" className={islandIdle}>
+          <button onClick={onDuplicate} title={t('boards.duplicateTip')} className={islandIdle}>
             <span className="material-symbols-outlined text-[20px]">content_copy</span>
           </button>
-          <button onClick={onBringToFront} title="Traer al frente" className={islandIdle}>
+          <button onClick={onBringToFront} title={t('boards.bringToFrontTip')} className={islandIdle}>
             <span className="material-symbols-outlined text-[20px]">flip_to_front</span>
           </button>
-          <button onClick={onSendToBack} title="Enviar al fondo" className={islandIdle}>
+          <button onClick={onSendToBack} title={t('boards.sendToBackTip')} className={islandIdle}>
             <span className="material-symbols-outlined text-[20px]">flip_to_back</span>
           </button>
           {selectedObj?.type === 'image' && (
             <>
-              <button onClick={() => onEditIn('crop')} title="Editar en Recorte / Quitar fondo" className={islandIdle}>
+              <button onClick={() => onEditIn('crop')} title={t('boards.editCropTip')} className={islandIdle}>
                 <span className="material-symbols-outlined text-[20px]">crop</span>
               </button>
-              <button onClick={() => onEditIn('grid')} title="Medir en Cuadrícula" className={islandIdle}>
+              <button onClick={() => onEditIn('grid')} title={t('boards.measureGridTip')} className={islandIdle}>
                 <span className="material-symbols-outlined text-[20px]">grid_on</span>
               </button>
             </>
           )}
-          <button onClick={onDelete} title="Borrar (Supr)" className={`${islandIdle} hover:!bg-red-500/15 hover:!text-red-500`}>
+          <button onClick={onDelete} title={t('boards.deleteTip')} className={`${islandIdle} hover:!bg-red-500/15 hover:!text-red-500`}>
             <span className="material-symbols-outlined text-[20px]">delete</span>
           </button>
         </>
       ) : (
         <>
-          <button onClick={onToggleBackground} title="Fondo: milimetrado / liso" className={islandOn(isGrid)}>
+          <button onClick={onToggleBackground} title={isGrid ? t('boards.bgPlainTip') : t('boards.bgGraphTip')} className={islandOn(isGrid)}>
             <span className="material-symbols-outlined text-[20px]">grid_on</span>
           </button>
-          <button onClick={onToggleSnap} disabled={!isGrid} title="Imán a la cuadrícula" className={islandOn(snap && isGrid)}>
+          <button onClick={onToggleSnap} disabled={!isGrid} title={t('boards.snapGridTip')} className={islandOn(snap && isGrid)}>
             <span className="material-symbols-outlined text-[20px]">polyline</span>
           </button>
           {isGrid && (
@@ -90,7 +92,7 @@ export default function InspectorIsland({
                 step={0.5}
                 value={round1(squareCm)}
                 onChange={(e) => onSetSquareCm(Number(e.target.value))}
-                title="cm por cuadro"
+                title={t('boards.cmPerSquare')}
                 className="w-10 h-8 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-1 font-mono text-[11px] text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
               />
               {CM_PRESETS.map((preset) => {
@@ -100,7 +102,7 @@ export default function InspectorIsland({
                     key={preset}
                     type="button"
                     onClick={() => onSetSquareCm(preset)}
-                    title={`Usar ${preset} cm por cuadro`}
+                    title={t('boards.useCmTip', { n: preset })}
                     className={`h-8 px-2 rounded-md border text-[10px] font-semibold transition-colors ${active ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
                   >
                     {preset} cm
@@ -112,7 +114,7 @@ export default function InspectorIsland({
         </>
       )}
       <span className="h-px w-7 bg-[var(--color-outline-variant)]/60 my-0.5" />
-      <button onClick={onToggleLayers} title="Capas" className={islandOn(layersOpen)}>
+      <button onClick={onToggleLayers} title={t('boards.layersTip')} className={islandOn(layersOpen)}>
         <span className="material-symbols-outlined text-[20px]">layers</span>
       </button>
     </div>

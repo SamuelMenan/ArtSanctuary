@@ -311,13 +311,13 @@ export function useCutoutEditor() {
       const heightScaledCm = applyScale(heightCm)
       if (dest === 'back' && back.current?.boardId) {
         setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
-        router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
+        router.push(`/dashboard/tools/boards/${back.current.boardId}?handoff=1`)
       } else if (dest === 'grid') {
         setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
         router.push('/dashboard/tools/grid?handoff=1')
       } else {
         setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
-        router.push('/dashboard/boards')
+        router.push('/dashboard/tools/boards')
       }
     } catch {
       setError(t('crop.errSend'))

@@ -222,11 +222,9 @@ function ExploreContent() {
                   {trendingData.trendingTags.map((tag: string) => (
                     <button 
                       key={tag} 
-                      onClick={() => setQuery(tag)}
+                      onClick={() => setQuery(tag.startsWith('explore.tags.') ? t(tag) : tag)}
                       className="font-mono text-xs uppercase tracking-widest border border-[var(--color-outline-variant)] px-4 py-2 text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)] hover:border-[var(--color-primary)] transition-colors rounded-sm"
-                    >
-                      #{tag}
-                    </button>
+                    >#{tag.startsWith('explore.tags.') ? t(tag) : tag}</button>
                   ))}
                 </div>
               </section>
@@ -243,7 +241,7 @@ function ExploreContent() {
                       onClick={() => { setCategory(cat.name); window.scrollTo({ top: 0 }); }}
                       className="flex flex-col items-start p-4 border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] transition-colors rounded-sm text-left"
                     >
-                      <span className="font-mono text-sm uppercase tracking-widest text-[var(--color-primary)] mb-1">{cat.name}</span>
+                      <span className="font-mono text-sm uppercase tracking-widest text-[var(--color-primary)] mb-1">{getCategoryLabel(locale, cat.name)}</span>
                         <span className="font-sans text-xs text-[var(--color-on-surface-variant)]">{cat.count} {t('explore.worksRegistered')}</span>
                     </button>
                   ))}

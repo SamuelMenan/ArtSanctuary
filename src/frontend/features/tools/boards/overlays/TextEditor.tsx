@@ -1,3 +1,4 @@
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import type { RefObject } from 'react'
 import { BoardObject, DEFAULT_FONT } from '@shared/lib/boards/types'
 
@@ -17,6 +18,7 @@ export default function TextEditor({
   onChange: (v: string) => void
   onFinish: () => void
 }) {
+  const { t } = usePreferences()
   return (
     <textarea
       ref={editRef}
@@ -29,7 +31,7 @@ export default function TextEditor({
           onFinish()
         }
       }}
-      placeholder="Escribe…"
+      placeholder={t('boards.writePlaceholder')}
       className="absolute z-20 resize-none outline-none border border-[var(--color-primary)] overflow-hidden"
       style={{
         left: pos.x + o.x * scale,

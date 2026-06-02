@@ -70,7 +70,7 @@ async function DashboardHome({ user }: { user: { id: string; name?: string | nul
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Link href="/dashboard/boards" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
+            <Link href="/dashboard/tools/boards" className="border border-[var(--color-outline-variant)] p-4 bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] hover:bg-[var(--color-surface-container)] transition-all duration-200 rounded-lg flex flex-col items-center gap-3 text-center">
               <span className="material-symbols-outlined text-2xl text-[var(--color-primary)]">dashboard</span>
               <span className="font-sans text-sm text-[var(--color-on-surface)]">{t('home.tools.boards')}</span>
             </Link>
@@ -218,60 +218,60 @@ async function PublicHome() {
             {/* Item 1 (Portrait) */}
             <div className="masonry-item relative group rounded-md overflow-hidden border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)] aspect-[3/4]">
               <Image 
-                alt="Ecos del Silencio" 
+                alt={t('home.demoArt1Title')} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjH7oqtNvBpYq3AKfusyu6Jnp8Xschezn3BntNlesShwKiqL8q0wJIRf3tB8q17-dKvDs1ebrcTFpGqOoyXGwkPHXIVSVdVwHTf8xMVUV-NhN-s8Fz9CKzvBBym_WBKXi0SjXfQ4jWu_ozl2eURef3Xl13GrfNe81dowpll6C0ku9UOzP0V_pwA1IQVuxd6tYWlrz32NutckpNFM4ZN7KWV4KT4aSBbvy0FiB31pN8e72IjBobjDuqRu6dZE_DNhfp5Ve_3HTFw7nK"
                 width={300}
                 height={400}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">Ecos del Silencio</h4>
-                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">Óleo sobre lienzo</p>
+                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">{t('home.demoArt1Title')}</h4>
+                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">{t('home.demoArt1Medium')}</p>
               </div>
             </div>
             
             {/* Item 2 (Square) */}
             <div className="masonry-item relative group rounded-md overflow-hidden border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)] aspect-square">
               <Image 
-                alt="Forma Pura" 
+                alt={t('home.demoArt2Title')} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvvTlQugH5vrVXcIx96Kkig2QXvQL4LbwFY3Aoef4yB90iS7RUeyDJch4o9Xf7OaLRmvcMrHcdlpBhdjccGfF3Xop2CDbG7e7pTsK4vKGqccnEnAJo-eC60XGVYG1V3IXimj5ZAScxPM3lj-YJx_xrIw73g-op1tBr2GZRhm56KidvtDZKQoKw2lH3R8K4UdRsnsrb2C907HNjN1aWDQVyXQi9pG8GWdrHQSg02VzoQ6aeG4p5A5YLP2XUPRUVWAMl8FDlDOc0nY0h"
                 width={300}
                 height={300}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">Forma 04</h4>
-                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">Escultura</p>
+                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">{t('home.demoArt2Title')}</h4>
+                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">{t('home.demoArt2Medium')}</p>
               </div>
             </div>
             
             {/* Item 3 (Landscape) */}
             <div className="masonry-item relative group rounded-md overflow-hidden border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)] aspect-[4/3]">
               <Image 
-                alt="Líneas de Tensión" 
+                alt={t('home.demoArt3Title')} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-tY5jYNXwqEI2nyQxgsS4meWgaRHgMhW5Cbh81ziZrY1g5gO-HbnnlD5PTFQ1Dn8Ge_qThF7V4PVs-qOOZctIG9EYC7qgbe5h6XExUapjFWAgaV5sjCq06YZhH9AweweujZjctDLZK4fviSZEQWXzWt90NBrbsg20G_SzKwxXMPrQO-hLal3Pwz4Mv5QJLLO2bvrRF54Bfg5KNJkWou5pRJy2ZRZYOrS3XvRInc6Y4aM3YdOVBHRBCqqDdMKeObQ2onTb97pCWRHR"
                 width={400}
                 height={300}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">Líneas de Tensión</h4>
-                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">Tinta china</p>
+                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">{t('home.demoArt3Title')}</h4>
+                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">{t('home.demoArt3Medium')}</p>
               </div>
             </div>
             
             {/* Item 4 (Portrait) */}
             <div className="masonry-item relative group rounded-md overflow-hidden border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)] aspect-[3/5]">
               <Image 
-                alt="Estudio de Textura II" 
+                alt={t('home.demoArt4Title')} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMu2XU_3kW7bVdPEYyUe-S9HUSY8FrCAOiTyE7R-99x91n029hw0sJKhtkyZtFgdGvOUiehBBcecFdvneb2k_pklbe3o8QFSyG_MxC21Wmfw0L5plual5wr2GAQaeoi4iNYH2gLtc2zyOFTtpGvSHsjr09zl_6-4Rt93ffkCi09-Nqb21bQIbRMSvlXwbzCviQLs0YxiesmDrtJP41Ex6KITluoX078i8mkcEiFfpomMl9xmCPs8wRuc-xTBsSMXVcLA_eXQEIfuEU"
                 width={300}
                 height={500}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">Estudio de Textura II</h4>
-                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">Ilustración</p>
+                <h4 className="font-sans text-lg font-semibold text-[var(--color-primary)]">{t('home.demoArt4Title')}</h4>
+                <p className="font-mono text-[10px] text-[var(--color-on-surface-variant)] mt-1 uppercase tracking-widest">{t('home.demoArt4Medium')}</p>
               </div>
             </div>
           </div>
@@ -285,17 +285,15 @@ async function PublicHome() {
             </div>
             <div>
               <h3 className="font-sans font-semibold text-xl text-[var(--color-primary)] mb-2">
-                {locale === 'en' ? 'Assisted micro-tools' : 'Micro-herramientas de Asistencia'}
+                {t('home.microToolsTitle')}
               </h3>
               <p className="font-sans text-[var(--color-on-surface-variant)] leading-relaxed">
-                {locale === 'en'
-                  ? 'Boards, reference grids, Notan, color mixing, and Gesture Drawing: everything in your browser, without leaving ArtSanctuary.'
-                  : 'Boards, cuadrícula de referencia, Notan, mezcla de colores y Gesture Drawing: todo en tu navegador, sin salir de ArtSanctuary.'}
+                {t('home.microToolsDesc')}
               </p>
             </div>
           </div>
           <Link href="/dashboard/tools" className="bg-transparent border border-[var(--color-outline-variant)] text-[var(--color-primary)] font-mono text-label-sm uppercase tracking-widest px-8 py-3 rounded-sm hover:bg-[var(--color-surface-container)] transition-colors duration-200 whitespace-nowrap flex-shrink-0 flex items-center gap-2">
-            {locale === 'en' ? 'Explore' : 'Explorar'} <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            {t('home.explore')} <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
           </Link>
         </section>
         

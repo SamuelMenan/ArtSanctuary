@@ -1,3 +1,4 @@
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { BoardObject } from '@shared/lib/boards/types'
 
 /** Barra de estilo para figuras: relleno, borde y grosor. */
@@ -8,6 +9,7 @@ export default function ShapeStyleBar({
   o: BoardObject
   patch: (p: Partial<BoardObject>) => void
 }) {
+  const { t } = usePreferences()
   const hasFill = o.type === 'rect' || o.type === 'ellipse'
   const filled = !!o.fill && o.fill !== 'transparent'
   const swatch =
@@ -18,7 +20,7 @@ export default function ShapeStyleBar({
     <div className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap animate-in fade-in slide-in-from-top-2 duration-200">
       {hasFill && (
         <div className="flex items-center gap-2 shrink-0">
-          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">Relleno</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">{t('boards.fill')}</span>
           {/* Toggle: vacío ↔ relleno */}
           <button
             onClick={() => patch({ fill: filled ? 'transparent' : o.stroke || '#60a5fa' })}
@@ -42,7 +44,7 @@ export default function ShapeStyleBar({
       )}
 
       <label className="flex items-center gap-2 shrink-0">
-        <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">Borde</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">{t('boards.stroke')}</span>
         <span className={swatch} style={{ background: o.stroke || '#1e293b' }}>
           <input type="color" value={o.stroke || '#1e293b'} onChange={(e) => patch({ stroke: e.target.value })} className="absolute inset-[-8px] w-16 h-16 cursor-pointer opacity-0" />
         </span>
@@ -51,8 +53,8 @@ export default function ShapeStyleBar({
       <span className="w-px h-6 bg-[var(--color-outline-variant)]/60 shrink-0" />
 
       <div className="flex items-center gap-1 shrink-0">
-        <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">Grosor</span>
-        <button onClick={() => patch({ strokeWidth: Math.max(0, (o.strokeWidth ?? 2) - 1) })} className={tog} title="Menos">
+        <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">{t('boards.strokeWidth')}</span>
+        <button onClick={() => patch({ strokeWidth: Math.max(0, (o.strokeWidth ?? 2) - 1) })} className={tog} title={t('boards.minusTip')}>
           <span className="material-symbols-outlined text-[18px]">remove</span>
         </button>
         <input
@@ -63,7 +65,7 @@ export default function ShapeStyleBar({
           onChange={(e) => patch({ strokeWidth: Math.max(0, Math.min(60, Number(e.target.value) || 0)) })}
           className="w-14 h-9 bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none focus:border-[var(--color-primary)]"
         />
-        <button onClick={() => patch({ strokeWidth: Math.min(60, (o.strokeWidth ?? 2) + 1) })} className={tog} title="Más">
+        <button onClick={() => patch({ strokeWidth: Math.min(60, (o.strokeWidth ?? 2) + 1) })} className={tog} title={t('boards.plusTip')}>
           <span className="material-symbols-outlined text-[18px]">add</span>
         </button>
       </div>

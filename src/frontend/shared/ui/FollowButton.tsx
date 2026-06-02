@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 
 interface FollowButtonProps {
   targetUserId: string;
@@ -13,12 +14,13 @@ interface FollowButtonProps {
 export default function FollowButton({ targetUserId, initialIsFollowing, onFollowChange }: FollowButtonProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const { t } = usePreferences();
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleToggle = async () => {
     if (!session?.user) {
-      alert("Inicia sesión para seguir a este artista.");
+      alert(t('common.loginToFollow'));
       return;
     }
 
@@ -35,7 +37,7 @@ export default function FollowButton({ targetUserId, initialIsFollowing, onFollo
       });
 
       if (!res.ok) {
-        throw new Error('Error al actualizar');
+        throw new Error(t('common.followError'));
       }
 
       router.refresh(); // Actualizar Server Components (como el contador)
@@ -58,7 +60,7 @@ export default function FollowButton({ targetUserId, initialIsFollowing, onFollo
       }`}
     >
       {isLoading && <span className="material-symbols-outlined animate-spin text-[12px]">refresh</span>}
-      {isFollowing ? 'Siguiendo' : 'Seguir'}
+      {isFollowing ? t('common.following') : t('common.follow')}
     </button>
   );
 }

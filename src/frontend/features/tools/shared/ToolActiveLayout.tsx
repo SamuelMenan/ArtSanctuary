@@ -15,7 +15,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
   const toolLabels = {
     es: {
       title: 'HERRAMIENTAS',
-      boards: 'BOARDS',
+      boards: 'TABLEROS',
       crop: 'RECORTE',
       grid: 'CUADRÍCULA DE REFERENCIA',
       notan: 'NOTAN',
@@ -25,7 +25,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
     },
     en: {
       title: 'TOOLS',
-      boards: 'BOARDS',
+      boards: 'TABLEROS',
       crop: 'CROP',
       grid: 'REFERENCE GRID',
       notan: 'NOTAN',
@@ -36,7 +36,7 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
   }[locale]
 
   const tools = [
-    { title: toolLabels.boards, href: '/dashboard/boards' },
+    { title: toolLabels.boards, href: '/dashboard/tools/boards' },
     { title: toolLabels.crop, href: '/dashboard/tools/crop' },
     { title: toolLabels.grid, href: '/dashboard/tools/grid' },
     { title: toolLabels.notan, href: '/dashboard/tools/notan' },

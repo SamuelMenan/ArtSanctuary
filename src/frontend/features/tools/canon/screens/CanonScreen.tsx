@@ -3,6 +3,7 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { useState } from 'react'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
 export default function CanonPage() {
   const [height, setHeight] = useState(175)
@@ -10,6 +11,7 @@ export default function CanonPage() {
   const [showGuides, setShowGuides] = useState(true)
 
   const headHeight = height / 7.5
+  const { t } = usePreferences()
 
   return (
     <AppShell>
@@ -19,7 +21,7 @@ export default function CanonPage() {
           <div className="flex items-center gap-6">
             {/* Height Input */}
             <div className="flex items-center gap-2">
-              <label className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-wider whitespace-nowrap" htmlFor="height-input">ALTURA TOTAL</label>
+              <label className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-wider whitespace-nowrap" htmlFor="height-input">{t('canon.totalHeight')}</label>
               <div className="flex items-center bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-1">
                 <input 
                   className="bg-transparent border-none text-[var(--color-primary)] font-mono text-label-sm p-0 w-12 text-center focus:ring-0 appearance-none" 
@@ -38,7 +40,7 @@ export default function CanonPage() {
                 {showLabels && <div className="w-2 h-2 bg-[var(--color-primary)] rounded-sm"></div>}
               </div>
               <input type="checkbox" className="hidden" checked={showLabels} onChange={() => setShowLabels(!showLabels)} />
-              <span className={`font-mono text-label-sm ${showLabels ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>ETIQUETAS</span>
+              <span className={`font-mono text-label-sm ${showLabels ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>{t('canon.labels')}</span>
             </label>
             
             <label className="flex items-center gap-2 cursor-pointer group">
@@ -46,14 +48,14 @@ export default function CanonPage() {
                 {showGuides && <div className="w-2 h-2 bg-[var(--color-primary)] rounded-sm"></div>}
               </div>
               <input type="checkbox" className="hidden" checked={showGuides} onChange={() => setShowGuides(!showGuides)} />
-              <span className={`font-mono text-label-sm ${showGuides ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>GUÍAS</span>
+              <span className={`font-mono text-label-sm ${showGuides ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] group-hover:text-[var(--color-primary)]'} transition-colors uppercase tracking-wider`}>{t('canon.guides')}</span>
             </label>
           </div>
           
           {/* Export Button */}
           <button className="px-4 py-2 border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] font-mono text-label-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all uppercase tracking-wider bg-transparent flex items-center gap-2 whitespace-nowrap">
             <span className="material-symbols-outlined text-[18px]">download</span>
-            EXPORTAR PNG
+            {t('canon.exportPng')}
           </button>
         </div>
         
@@ -65,13 +67,13 @@ export default function CanonPage() {
             {/* Left Labels */}
             {showLabels && (
               <div className="w-24 md:w-32 h-full flex flex-col justify-between absolute left-0 top-0 bottom-0 py-4 pointer-events-none z-10 hidden sm:flex">
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '6.66%' }}>CABEZA</div>
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '20%' }}>TÓRAX</div>
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '33.33%' }}>ABDOMEN</div>
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '46.66%' }}>PELVIS</div>
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '60%' }}>MUSLO</div>
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '80%' }}>PIERNA</div>
-                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '93.33%' }}>PIES</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '6.66%' }}>{t('canon.head')}</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '20%' }}>{t('canon.thorax')}</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '33.33%' }}>{t('canon.abdomen')}</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '46.66%' }}>{t('canon.pelvis')}</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '60%' }}>{t('canon.thigh')}</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '80%' }}>{t('canon.leg')}</div>
+                <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase text-right pr-4 tracking-wider absolute" style={{ top: '93.33%' }}>{t('canon.feet')}</div>
               </div>
             )}
             
@@ -164,7 +166,7 @@ export default function CanonPage() {
                   <div className="absolute left-0 w-full flex items-center" style={{ top: '6.66%' }}>
                     <div className="w-2 border-t border-[var(--color-primary)]"></div>
                     <div className="font-mono text-[10px] text-[var(--color-on-surface-variant)] ml-2 tracking-widest whitespace-nowrap -rotate-90 origin-left translate-y-8 translate-x-2">
-                      1 CABEZA = {headHeight.toFixed(1)} CM
+                      {t('canon.oneHeadEq', { n: headHeight.toFixed(1) }).toUpperCase()}
                     </div>
                   </div>
                   <div className="absolute left-0 w-1 border-t border-[var(--color-outline-variant)]/50" style={{ top: '10%' }}></div>
@@ -180,8 +182,8 @@ export default function CanonPage() {
         
         {/* Bottom Status Bar */}
         <div className="h-8 border-t border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] flex items-center px-6 justify-between shrink-0 overflow-x-auto whitespace-nowrap gap-4">
-          <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-widest">SISTEMA: 7.5 CABEZAS (LUMIÈRE)</span>
-          <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-widest">UNIDAD BASE: {headHeight.toFixed(2)} CM</span>
+          <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-widest">{t('canon.system').toUpperCase()}</span>
+          <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-widest">{t('canon.baseUnit', { n: headHeight.toFixed(2) }).toUpperCase()}</span>
         </div>
       </ToolActiveLayout>
     </AppShell>

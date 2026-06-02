@@ -20,8 +20,8 @@ export const getExploreTrending = unstable_cache(
 
     // Tags trending (simulado; en producción: aggregation sobre Artwork.tags).
     const trendingTags = [
-      "abstracto", "retrato", "paisaje", "surrealismo",
-      "óleo", "monocromático", "arquitectura", "naturaleza",
+      "explore.tags.abstract", "explore.tags.portrait", "explore.tags.landscape", "explore.tags.surrealism",
+      "explore.tags.oil", "explore.tags.monochromatic", "explore.tags.architecture", "explore.tags.nature",
     ];
 
     const categoryCounts = await Artwork.aggregate([

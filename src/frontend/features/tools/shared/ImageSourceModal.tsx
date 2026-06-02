@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 
 type Props = {
   onClose: () => void;
@@ -17,6 +18,7 @@ type CollectionDetail = {
 
 export default function ImageSourceModal({ onClose, onSelect }: Props) {
   const [tab, setTab] = useState<'upload' | 'collections'>('upload');
+  const { t } = usePreferences();
   const [mounted, setMounted] = useState(false);
 
   // Subida
@@ -67,7 +69,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
       onSelect(data.imageUrl);
     } else {
       const data = await res.json().catch(() => ({}));
-      setUploadError(data?.error?.message ?? 'Error al subir la imagen');
+      setUploadError(data?.error?.message ?? t('imageModal.uploadError'));
     }
   };
 
@@ -85,7 +87,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
       <div className="bg-[var(--color-surface-container-lowest)] w-full max-w-lg rounded-sm shadow-2xl overflow-hidden ring-1 ring-[var(--color-outline-variant)] flex flex-col max-h-[80vh]">
         {/* Header */}
         <div className="p-4 border-b border-[var(--color-outline-variant)] flex items-center justify-between shrink-0">
-          <h3 className="font-sans font-bold text-[var(--color-primary)]">Seleccionar imagen</h3>
+          <h3 className="font-sans font-bold text-[var(--color-primary)]">{t('imageModal.title')}</h3>
           <button onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -93,18 +95,14 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
 
         {/* Tabs */}
         <div className="flex border-b border-[var(--color-outline-variant)] shrink-0">
-          <button onClick={() => setTab('upload')} className={tabClass(tab === 'upload')}>
-            Subir
-          </button>
+          <button onClick={() => setTab('upload')} className={tabClass(tab === 'upload')}>{t('imageModal.tabUpload')}</button>
           <button
             onClick={() => {
               setTab('collections');
               setOpenCollection(null);
             }}
             className={tabClass(tab === 'collections')}
-          >
-            Colecciones
-          </button>
+          >{t('imageModal.tabCollections')}</button>
         </div>
 
         {/* Body */}
@@ -115,11 +113,9 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
                 {uploading ? 'hourglass_top' : 'upload_file'}
               </span>
               <span className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest">
-                {uploading ? 'Subiendo…' : 'Click para subir imagen'}
+                {uploading ? t('imageModal.uploading') : t('imageModal.uploadPrompt')}
               </span>
-              <span className="font-sans text-xs text-[var(--color-on-surface-variant)]/70">
-                JPG, PNG, WEBP o GIF · máx 10MB
-              </span>
+              <span className="font-sans text-xs text-[var(--color-on-surface-variant)]/70">{t('imageModal.uploadHint')}</span>
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" disabled={uploading} onChange={handleFile} />
               {uploadError && <span className="text-red-500 font-sans text-xs">{uploadError}</span>}
             </label>
@@ -144,9 +140,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
                   ].filter(Boolean);
                   if (imgs.length === 0)
                     return (
-                      <p className="text-center py-8 font-sans text-sm text-[var(--color-on-surface-variant)]">
-                        Esta colección no tiene imágenes.
-                      </p>
+                      <p className="text-center py-8 font-sans text-sm text-[var(--color-on-surface-variant)]">{t('imageModal.emptyCollection')}</p>
                     );
                   return (
                     <div className="grid grid-cols-3 gap-2">
@@ -170,7 +164,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
               <span className="material-symbols-outlined animate-spin text-[var(--color-primary)]">refresh</span>
             </div>
           ) : collections.length === 0 ? (
-            <p className="text-center py-8 font-sans text-sm text-[var(--color-on-surface-variant)]">No tienes colecciones aún.</p>
+            <p className="text-center py-8 font-sans text-sm text-[var(--color-on-surface-variant)]">{t('sidebar.noCollections')}</p>
           ) : (
             <div className="space-y-2">
               {collections.map((c) => (

@@ -37,7 +37,7 @@ export default function RegisterPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data?.error?.message || 'Error al registrar')
+        throw new Error(data?.error?.message || t('auth.registerError'))
       }
 
       // Auto-login after successful registration
@@ -123,7 +123,7 @@ export default function RegisterPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)] text-[var(--color-on-surface)] rounded-[var(--radius-sm)] p-3 focus:outline-none focus:border-[var(--color-primary)] transition-colors font-sans text-sm"
-                  placeholder="Tu nombre artístico"
+                  placeholder={t('auth.artistNameHint')}
                   autoComplete="name"
                   required
                   disabled={loading}

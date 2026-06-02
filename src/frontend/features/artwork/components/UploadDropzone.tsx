@@ -94,8 +94,7 @@ export default function UploadDropzone({
                         className="mt-0.5 accent-[var(--color-primary)]"
                       />
                       <label htmlFor={`sug-${s.field}`} className="flex-1 cursor-pointer text-[var(--color-on-surface-variant)]">
-                        <strong className="text-[var(--color-primary)]">{s.label}:</strong> {s.value}
-                        <span className="ml-1 opacity-60 font-mono text-[9px] uppercase">[{s.source}]</span>
+                        <strong className="text-[var(--color-primary)]">{t(s.label)}:</strong> {s.value.startsWith('presets.') ? t(s.value) : s.value} <span className="ml-1 opacity-60 font-mono text-[9px] uppercase">[{s.source}]</span>
                       </label>
                     </li>
                   ))}
