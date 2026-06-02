@@ -1,1 +1,1 @@
-export { default } from '@frontend/features/profile/screens/ProfileScreen'
+export { default, metadata } from '@frontend/features/profile/screens/ProfileScreen'

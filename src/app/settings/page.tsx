@@ -1,1 +1,1 @@
-export { default } from '@frontend/features/settings/screens/SettingsScreen'
+export { default, metadata } from '@frontend/features/settings/screens/SettingsScreen'

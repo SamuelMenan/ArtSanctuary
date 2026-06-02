@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // script one-off, fuera del repo (solo local)
+    "scripts/reset_social.js",
   ]),
 
   // Frontera de capas: shared es puro, no importa de frontend/backend.
@@ -73,14 +75,20 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Guardarraíl para i18n: evitar copy hardcodeado en UI
+  // Guardarraíl para i18n: evitar copy hardcodeado en UI.
+  // `ignoreProps: true` → solo vigila TEXTO visible (hijos JSX), no props como
+  // className/type/aria (que disparaban ~1700 falsos positivos). El residual
+  // está dominado por nombres de iconos Material Symbols renderizados como texto
+  // (`<span className="material-symbols-outlined">icon</span>`); su fix real es
+  // un componente <Icon name=…/> (los nombres pasan a prop, ignorada), no ampliar
+  // esta allowlist. El resto del residual es copy genuino sin traducir (backlog i18n).
   {
     files: ["src/frontend/**/*.tsx"],
     rules: {
       "react/jsx-no-literals": ["warn", {
         "noStrings": true,
-        "allowedStrings": ["·", "×", "—", "%", "cm", "px", "°", " ", "ELIMINAR"],
-        "ignoreProps": false
+        "allowedStrings": ["·", "×", "—", "%", "cm", "px", "°", " ", "ELIMINAR", "ArtSanctuary"],
+        "ignoreProps": true
       }]
     }
   }

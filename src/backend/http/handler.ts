@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiError } from "./errors";
 
-export type AppRouteHandler<C = any> = (
+export type AppRouteHandler<C = unknown> = (
   req: NextRequest,
   ctx: C
 ) => Promise<Response> | Response;
@@ -10,7 +10,7 @@ export type AppRouteHandler<C = any> = (
  * Envuelve un handler: cualquier excepción → log + 500 con el shape heredado.
  * Atrapa excepciones inesperadas (500), mientras los handlers devuelven explícitamente 401/403/etc.
  */
-export function withErrorHandler<C = any>(
+export function withErrorHandler<C = unknown>(
   tag: string,
   fn: AppRouteHandler<C>
 ): AppRouteHandler<C> {
