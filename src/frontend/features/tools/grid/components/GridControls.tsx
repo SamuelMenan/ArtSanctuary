@@ -2,22 +2,22 @@
 
 import type { RefObject, Dispatch, SetStateAction } from 'react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import ToolToolbar, { ToolDivider, ToolSpacer } from '@frontend/features/tools/shared/workspace/ToolToolbar'
+import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
+import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
+import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
+import SourceButton from '@frontend/features/tools/shared/workspace/SourceButton'
+import HistoryButtons from '@frontend/features/tools/shared/workspace/HistoryButtons'
+import SendActions from '@frontend/features/tools/shared/workspace/SendActions'
 import type { GridSnapshot } from '../hooks/useGridHistory'
 
 const CM_PRESETS = [1.5, 28] as const
 const lbl = 'font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-[0.08em]'
 const numInput =
   'w-12 bg-transparent border-0 border-b border-[var(--color-outline-variant)] px-0.5 py-0.5 font-mono text-label-sm text-[var(--color-primary)] text-center focus:border-[var(--color-primary)] outline-none'
+const stepBtn = 'material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none'
 
-// Agrupa controles relacionados en un contenedor con etiqueta.
-const Cluster = ({ name, children }: { name: string; children: React.ReactNode }) => (
-  <div className="flex items-center gap-3 px-3 h-10 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60 shrink-0">
-    <span className="font-mono text-[9px] text-[var(--color-on-surface-variant)]/70 uppercase tracking-[0.12em] hidden xl:inline">{name}</span>
-    {children}
-  </div>
-)
-
-/** Barra superior de la cuadrícula: foto, historial, medidas, estilo y acciones. */
+/** Barra superior de la cuadrícula sobre las primitivas workspace (sin scroll). */
 export default function GridControls({
   imageUrl,
   sending,
@@ -73,33 +73,16 @@ export default function GridControls({
 }) {
   const { t } = usePreferences()
   return (
-    <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-      <button onClick={onChangePhoto} className="flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] font-mono text-label-sm font-semibold transition-colors">
-        <span className="material-symbols-outlined text-[18px]">imagesmode</span>
-        {t('grid.changePhoto')}
-      </button>
+    <ToolToolbar>
+      <SourceButton onClick={onChangePhoto} />
+      <ToolDivider />
+      <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
+      <ToolDivider />
 
-      <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
-
-      <button onClick={onUndo} disabled={!canUndo} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title={t('grid.undoTip')}>
-        <span className="material-symbols-outlined text-[20px]">undo</span>
-      </button>
-      <button onClick={onRedo} disabled={!canRedo} className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40" title={t('grid.redoTip')}>
-        <span className="material-symbols-outlined text-[20px]">redo</span>
-      </button>
-
-      <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
-
-      {/* Medidas */}
-      <Cluster name={t('grid.measures')}>
+      <ToolCluster name={t('grid.measures')}>
         <label className="flex items-center gap-1">
           <span className={lbl}>{t('grid.width')}</span>
-          <button
-            type="button"
-            onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }}
-            className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
-            aria-label={t('grid.minusSquareTip')}
-          >remove</button>
+          <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }} className={stepBtn} aria-label={t('grid.minusSquareTip')}>remove</button>
           <input
             type="number" min={squareCm} step={squareCm} value={realWidthCm}
             onFocus={() => pushSnapshot()}
@@ -107,12 +90,7 @@ export default function GridControls({
             onBlur={(e) => setRealWidthCm(snapMul(Number(e.target.value)))}
             className={numInput}
           />
-          <button
-            type="button"
-            onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w + squareCm)); }}
-            className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] leading-none"
-            aria-label={t('grid.plusSquareTip')}
-          >add</button>
+          <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w + squareCm)); }} className={stepBtn} aria-label={t('grid.plusSquareTip')}>add</button>
           <span className={lbl}>cm</span>
         </label>
         <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
@@ -137,20 +115,24 @@ export default function GridControls({
           </div>
           <span className={lbl}>cm</span>
         </label>
-      </Cluster>
+      </ToolCluster>
 
-      {/* Estilo */}
-      <Cluster name={t('grid.style')}>
-        <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
-        <input className="w-20 custom-range" max="100" min="0" type="range" value={opacity}
+      <ToolCluster name={t('grid.style')}>
+        <ToolSlider
+          icon="opacity"
+          min={0}
+          max={100}
+          value={opacity}
+          suffix="%"
           onPointerDown={() => { prevOpacity.current = opacity }}
           onPointerUp={() => { if (opacity !== prevOpacity.current) pushSnapshot({ opacity: prevOpacity.current }) }}
-          onChange={(e) => setOpacity(Number(e.target.value))}
+          onChange={setOpacity}
         />
-        <span className="font-mono text-[10px] text-[var(--color-primary)] w-7 text-right">{opacity}%</span>
         <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
         <div className="w-5 h-5 rounded-sm border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden">
-          <input type="color" value={color}
+          <input
+            type="color"
+            value={color}
             onFocus={() => { prevColor.current = color }}
             onBlur={() => { if (color !== prevColor.current) pushSnapshot({ color: prevColor.current }) }}
             onChange={(e) => setColor(e.target.value)}
@@ -158,50 +140,26 @@ export default function GridControls({
           />
         </div>
         <span className="w-px h-4 bg-[var(--color-outline-variant)]/60" />
-        <button
+        <ToolButton
+          variant="toggle"
+          icon="tag"
+          label={t('grid.numbers')}
+          active={showNumbers}
           onClick={() => { pushSnapshot(); setShowNumbers((v) => !v); }}
-          aria-pressed={showNumbers}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-md font-mono text-[10px] uppercase tracking-[0.08em] transition-colors ${
-            showNumbers ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]'
-          }`}
-        >
-          <span className="material-symbols-outlined text-[16px]">tag</span>
-          {t('grid.numbers')}
-        </button>
-      </Cluster>
+        />
+      </ToolCluster>
 
-      <div className="flex-1" />
+      <ToolSpacer />
 
-      {/* Acciones */}
-      <button
-        onClick={onReset}
-        disabled={!imageUrl}
-        className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40"
-        title={t('grid.centerTip')}
-      >
-        <span className="material-symbols-outlined text-[20px]">recenter</span>
-      </button>
-      <button
-        onClick={onSend}
-        disabled={!imageUrl || sending}
-        className={`flex items-center gap-2 h-10 px-4 rounded-lg border border-[var(--color-outline)] font-mono text-label-sm font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity ${
-          isReturn
-            ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
-            : 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)]'
-        }`}
-        title={isReturn ? t('grid.backBoardTip') : t('grid.sendBoardsTip')}
-      >
-        <span className="material-symbols-outlined text-[18px]">{isReturn ? 'undo' : 'dashboard'}</span>
-        {isReturn ? t('grid.board') : t('grid.boards')}
-      </button>
-      <button
-        onClick={onExport}
-        disabled={!imageUrl}
-        className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-label-sm font-semibold shrink-0 disabled:opacity-40 hover:opacity-90 transition-opacity"
-      >
-        <span className="material-symbols-outlined text-[18px]">download</span>
-        {t('grid.export')}
-      </button>
-    </div>
+      <ToolButton variant="icon" icon="recenter" title={t('grid.centerTip')} disabled={!imageUrl} onClick={onReset} />
+      <SendActions
+        isReturn={isReturn}
+        busy={sending || !imageUrl}
+        showGrid={false}
+        onBack={onSend}
+        onSendBoards={onSend}
+        onExport={onExport}
+      />
+    </ToolToolbar>
   )
 }

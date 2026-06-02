@@ -15,6 +15,7 @@ import { useGridPrefs } from '@frontend/features/tools/grid/hooks/useGridPrefs'
 import { useGridHistory } from '@frontend/features/tools/grid/hooks/useGridHistory'
 import { useGridPanZoom } from '@frontend/features/tools/grid/hooks/useGridPanZoom'
 import GridControls from '@frontend/features/tools/grid/components/GridControls'
+import MeasureBar from '@frontend/features/tools/shared/workspace/MeasureBar'
 
 export default function ReferenceGridScreen() {
   const { t } = usePreferences()
@@ -136,7 +137,7 @@ export default function ReferenceGridScreen() {
       const fd = new FormData()
       fd.append('file', new File([blob], 'grid.png', { type: 'image/png' }))
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
-      if (!uploadRes.ok) throw new Error('Upload failed')
+      if (!uploadRes.ok) throw new Error(t('upload.uploadFailed'))
       const { imageUrl: newImageUrl } = await uploadRes.json()
       // Exportar al board usando las dimensiones finales
       const finW = applyScale(refW)
@@ -144,10 +145,10 @@ export default function ReferenceGridScreen() {
       const payload = { imageUrl: newImageUrl, widthCm: refW, heightCm: refH, widthScaledCm: finW, heightScaledCm: finH, squareCm, source: 'grid' as const }
       if (back.current?.boardId) {
         setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId })
-        router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
+        router.push(`/dashboard/tools/boards/${back.current.boardId}?handoff=1`)
       } else {
         setHandoff(payload)
-        router.push('/dashboard/boards')
+        router.push('/dashboard/tools/boards')
       }
     } catch {
       setExportWarning(t('grid.errSend'))
@@ -246,28 +247,21 @@ export default function ReferenceGridScreen() {
           </div>
         </div>
 
-        {/* Pie: métricas + calculadora */}
-        <div className="bg-[var(--color-surface-container)] border-t border-[var(--color-outline-variant)] shrink-0 px-[var(--spacing-grid-gutter)] py-2 flex items-center justify-between gap-4 overflow-x-auto whitespace-nowrap">
-          <div className="font-mono text-label-sm text-[var(--color-on-surface-variant)] flex items-center gap-3">
-            <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
-            <span className="opacity-40">·</span>
-            <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
-            <span className="opacity-40">·</span>
-            <span>{t('grid.canvasSize', { w: canvasW, h: canvasH })}</span>
-            {imageUrl && <><span className="opacity-40">·</span><span>{t('grid.zoom', { z: Math.round(zoom * 100) })}</span></>}
-          </div>
-
-          <div className="flex items-stretch gap-3 font-mono text-[10px] shrink-0">
-            <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60">
-              <span className="text-[var(--color-on-surface-variant)] uppercase tracking-[0.1em] mb-0.5">{t('grid.reference')} · {squareCm}cm</span>
-              <span className="text-[var(--color-on-surface)]">{t('grid.wAbbr')} {formatCm(refW)} · {t('grid.hAbbr')} {formatCm(refH)}</span>
-            </div>
-            <div className="flex flex-col justify-center px-3 py-1 rounded-md bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/40">
-              <span className="text-[var(--color-primary)] uppercase tracking-[0.1em] mb-0.5">{t('grid.final')} · {formatScaled(squareCm)}</span>
-              <span className="text-[var(--color-primary)]">{t('grid.wAbbr')} {formatScaled(refW)} · {t('grid.hAbbr')} {formatScaled(refH)}</span>
-            </div>
-          </div>
-        </div>
+        {/* Pie: métricas + calculadora (MeasureBar unificado) */}
+        <MeasureBar
+          referenceLabel={`${t('grid.wAbbr')} ${formatCm(refW)} · ${t('grid.hAbbr')} ${formatCm(refH)}`}
+          finalLabel={`${t('grid.wAbbr')} ${formatScaled(refW)} · ${t('grid.hAbbr')} ${formatScaled(refH)}`}
+          extra={
+            <>
+              <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
+              <span className="opacity-40">·</span>
+              <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
+              <span className="opacity-40">·</span>
+              <span>{t('grid.canvasSize', { w: canvasW, h: canvasH })}</span>
+              {imageUrl && <><span className="opacity-40">·</span><span>{t('grid.zoom', { z: Math.round(zoom * 100) })}</span></>}
+            </>
+          }
+        />
 
         {exportWarning && (
           <div className="absolute bottom-20 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded-sm px-3 py-1.5 z-30">
