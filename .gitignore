@@ -50,19 +50,14 @@ next-env.d.ts
 /.vscode
 /.claude
 
-# mcp build + scraped artifacts
-/mcp/.vscode
-/mcp/dist
-/mcp/index.js
-/mcp/index.js.map
-/mcp/index.d.ts
-/mcp/index.d.ts.map
-/mcp/*.html
+# tooling y docs: solo local, fuera del repo
+/mcp
+/docs
+/scripts/reset_social.js
 
 # editor/agent + screenshots
 .agents/
 .trae/
-docs/pr/*.png
 
 .vercel
 .env*.local
