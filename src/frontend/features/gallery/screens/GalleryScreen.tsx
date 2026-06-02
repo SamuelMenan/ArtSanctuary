@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { connectDB } from '@backend/db/mongoose'
 import Artwork from '@backend/models/Artwork'
 import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid'
-import { createTranslator, getCategoryLabel, getDictionary } from '@shared/i18n'
+import { createTranslator, getCategoryLabel } from '@shared/i18n'
+import { getDictionary } from '@shared/i18n/dictionaries'
 import { getRequestLocale } from '@backend/requestPreferences'
 
 // Definimos la interfaz para Next.js 13+ Server Components con searchParams

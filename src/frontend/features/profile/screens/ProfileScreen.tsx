@@ -10,7 +10,8 @@ import { ProfileHero } from '@frontend/features/profile/ProfileHero'
 import { ProfileMetaBlock } from '@frontend/features/profile/ProfileMetaBlock'
 import { ArtworkSectionHeader } from '@frontend/features/profile/ArtworkSectionHeader'
 import { EmptyPortfolio } from '@frontend/features/profile/EmptyPortfolio'
-import { createTranslator, getDictionary } from '@shared/i18n'
+import { createTranslator } from '@shared/i18n'
+import { getDictionary } from '@shared/i18n/dictionaries'
 import { getRequestLocale } from '@backend/requestPreferences'
 
 export const metadata = {

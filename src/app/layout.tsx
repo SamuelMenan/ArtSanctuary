@@ -6,6 +6,7 @@ import { auth } from '@backend/auth'
 import { connectDB } from '@backend/db/mongoose'
 import { getRequestLocale, getRequestTheme } from '@backend/requestPreferences'
 import { normalizeLocale, normalizeTheme } from '@shared/i18n'
+import { getDictionary } from '@shared/i18n/dictionaries'
 import User from '@backend/models/User'
 
 const manrope = Manrope({
@@ -41,13 +42,16 @@ export default async function RootLayout({
     initialTheme = normalizeTheme(user?.theme)
   }
 
+  // Carga SOLO el diccionario del idioma activo (server) → un idioma al cliente.
+  const initialDictionary = getDictionary(initialLocale)
+
   return (
     <html lang={initialLocale} className={`${initialTheme} ${manrope.variable} ${jetbrainsMono.variable}`} data-authenticated={session?.user?.id ? 'true' : 'false'} suppressHydrationWarning>
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased font-sans bg-background text-on-background min-h-screen" suppressHydrationWarning>
-        <Providers initialLocale={initialLocale} initialTheme={initialTheme} userId={session?.user?.id}>
+        <Providers initialLocale={initialLocale} initialTheme={initialTheme} initialDictionary={initialDictionary} userId={session?.user?.id}>
           {children}
         </Providers>
       </body>

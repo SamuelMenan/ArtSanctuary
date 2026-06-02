@@ -6,7 +6,7 @@ import {
   createTranslator,
   defaultLocale,
   defaultTheme,
-  getDictionary,
+  loadDictionary,
   LOCALE_COOKIE,
   normalizeLocale,
   normalizeTheme,
@@ -15,6 +15,7 @@ import {
   type Locale,
   type ResolvedTheme,
   type ThemeMode,
+  type TranslationDictionary,
 } from '@shared/i18n'
 
 type PreferencesContextValue = {
@@ -43,17 +44,22 @@ export default function AppPreferencesProvider({
   children,
   initialLocale = defaultLocale,
   initialTheme = defaultTheme,
+  initialDictionary,
   userId,
 }: {
   children: React.ReactNode
   initialLocale?: Locale
   initialTheme?: ThemeMode
+  initialDictionary: TranslationDictionary
   userId?: string | null
 }) {
   const router = useRouter()
   const [locale, setLocaleState] = useState<Locale>(normalizeLocale(initialLocale))
   const [theme, setThemeState] = useState<ThemeMode>(normalizeTheme(initialTheme))
   const [systemDark, setSystemDark] = useState<boolean>(false)
+  // Diccionario del idioma activo. Inicial llega del servidor (solo ese idioma
+  // viaja al bundle); al cambiar de idioma se carga el otro chunk bajo demanda.
+  const [dict, setDict] = useState<TranslationDictionary>(initialDictionary)
 
   // Sigue cambios del SO solo si el tema es 'system'.
   useEffect(() => {
@@ -93,6 +99,7 @@ export default function AppPreferencesProvider({
 
   const setLocale = (nextLocale: Locale) => {
     setLocaleState(nextLocale)
+    void loadDictionary(nextLocale).then(setDict)
     void persist(nextLocale, theme)
     router.refresh()
   }
@@ -103,16 +110,15 @@ export default function AppPreferencesProvider({
   }
 
   const value = useMemo(() => {
-    const dictionary = getDictionary(locale)
     return {
       locale,
       theme,
       resolvedTheme,
       setLocale,
       setTheme,
-      t: createTranslator(dictionary),
+      t: createTranslator(dict),
     }
-  }, [locale, theme, resolvedTheme])
+  }, [locale, theme, resolvedTheme, dict])
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }

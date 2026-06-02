@@ -1,5 +1,8 @@
-import { es } from './messages/es'
-import { en } from './messages/en'
+// IMPORTANTE: este módulo NO importa los diccionarios estáticamente. Lo consume
+// el provider de cliente, así que un import estático arrastraría AMBOS idiomas al
+// bundle de cada página. El idioma activo llega por prop desde el servidor; los
+// cambios en cliente usan `loadDictionary` (import dinámico → un chunk por idioma).
+// El acceso síncrono en servidor vive en `./dictionaries` (server-only).
 
 export const LOCALE_COOKIE = 'artsanctuary-locale'
 export const THEME_COOKIE = 'artsanctuary-theme'
@@ -11,13 +14,15 @@ export type ResolvedTheme = 'dark' | 'light'
 export const defaultLocale: Locale = 'es'
 export const defaultTheme: ThemeMode = 'dark'
 
-// Diccionario por idioma, troceado en messages/<locale>.ts por legibilidad.
-const messages = { es, en } as const
+// Tipo derivado de ambos diccionarios (import type-only: sin coste en runtime).
+export type TranslationDictionary =
+  | (typeof import('./messages/es'))['es']
+  | (typeof import('./messages/en'))['en']
 
-export type TranslationDictionary = (typeof messages)[Locale]
-
-export function getDictionary(locale: Locale): TranslationDictionary {
-  return messages[locale]
+/** Carga el diccionario de un idioma bajo demanda (un chunk por idioma). */
+export async function loadDictionary(locale: Locale): Promise<TranslationDictionary> {
+  const m = await import(`./messages/${locale}`)
+  return (m as Record<string, TranslationDictionary>)[locale]
 }
 
 export function createTranslator(dictionary: TranslationDictionary) {
