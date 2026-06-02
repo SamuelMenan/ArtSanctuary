@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, RefObject } from 'react'
+import type { ReactNode, RefObject, PointerEvent as ReactPointerEvent } from 'react'
 import EmptyState from './EmptyState'
 
 const CHECKER = {
@@ -24,6 +24,9 @@ export default function ToolStage({
   onPickImage,
   error,
   children,
+  onPointerMove,
+  onPointerUp,
+  onPointerLeave,
 }: {
   stageRef?: RefObject<HTMLDivElement | null>
   hasImage: boolean
@@ -33,12 +36,19 @@ export default function ToolStage({
   onPickImage: () => void
   error?: string | null
   children?: ReactNode
+  /** Handlers de puntero a nivel de contenedor (p. ej. arrastre del recorte). */
+  onPointerMove?: (e: ReactPointerEvent) => void
+  onPointerUp?: () => void
+  onPointerLeave?: () => void
 }) {
   return (
     <div
       ref={stageRef}
-      className="flex-1 min-h-0 overflow-hidden relative flex items-center justify-center bg-[var(--color-surface-container-lowest)]"
+      className="flex-1 min-h-0 overflow-hidden relative flex items-center justify-center bg-[var(--color-surface-container-lowest)] select-none touch-none"
       style={checker ? CHECKER : undefined}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerLeave}
     >
       {hasImage ? children : <EmptyState icon={emptyIcon} prompt={emptyPrompt} onClick={onPickImage} />}
       {error && (

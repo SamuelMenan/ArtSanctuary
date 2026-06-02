@@ -8,6 +8,16 @@ import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploa
 import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/autocrop'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { cmOf, applyScale, formatCm, formatScaled } from '@shared/lib/measure'
+import ToolToolbar, { ToolDivider, ToolSpacer } from '@frontend/features/tools/shared/workspace/ToolToolbar'
+import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
+import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
+import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
+import ToolSelect from '@frontend/features/tools/shared/workspace/ToolSelect'
+import ToolStage from '@frontend/features/tools/shared/workspace/ToolStage'
+import SourceButton from '@frontend/features/tools/shared/workspace/SourceButton'
+import HistoryButtons from '@frontend/features/tools/shared/workspace/HistoryButtons'
+import SendActions from '@frontend/features/tools/shared/workspace/SendActions'
+import MeasureBar from '@frontend/features/tools/shared/workspace/MeasureBar'
 
 type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se' | null
 
@@ -25,6 +35,7 @@ export default function CropTool() {
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [crop, setCrop] = useState<Bounds>({ x: 0, y: 0, w: 0, h: 0 })
+  const [aspectIdx, setAspectIdx] = useState('0')
   const [tolerance, setTolerance] = useState(18)
   const [padding, setPadding] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -34,8 +45,52 @@ export default function CropTool() {
   const stageRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState({ w: 0, h: 0 })
   const drag = useRef<{ mode: DragMode; sx: number; sy: number; crop: Bounds } | null>(null)
-  // Destino de retorno si llegamos desde un board (round-trip).
   const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
+
+  // Historial del recorte (paridad con las otras herramientas). Snapshot del
+  // `crop` antes de cada cambio; undo/redo restauran. `cropRef` da el valor
+  // actual sin re-suscribir el efecto de atajos.
+  const cropRef = useRef(crop)
+  cropRef.current = crop
+  const pastCrop = useRef<Bounds[]>([])
+  const futureCrop = useRef<Bounds[]>([])
+  const [, setHistoryTick] = useState(0)
+  const pushCrop = () => {
+    pastCrop.current.push(cropRef.current)
+    if (pastCrop.current.length > 30) pastCrop.current.shift()
+    futureCrop.current = []
+    setHistoryTick((n) => n + 1)
+  }
+  const undo = () => {
+    if (!pastCrop.current.length) return
+    futureCrop.current.push(cropRef.current)
+    setCrop(pastCrop.current.pop()!)
+    setHistoryTick((n) => n + 1)
+  }
+  const redo = () => {
+    if (!futureCrop.current.length) return
+    pastCrop.current.push(cropRef.current)
+    setCrop(futureCrop.current.pop()!)
+    setHistoryTick((n) => n + 1)
+  }
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'SELECT') return
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) redo()
+        else undo()
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault()
+        redo()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Handoff entrante (?handoff=1): carga la imagen pasada por otra herramienta.
   useEffect(() => {
@@ -50,7 +105,6 @@ export default function CropTool() {
     setImageUrl(p.imageUrl)
   }, [])
 
-  // Tamaño del escenario
   useEffect(() => {
     const el = stageRef.current
     if (!el) return
@@ -62,7 +116,6 @@ export default function CropTool() {
     return () => ro.disconnect()
   }, [])
 
-  // Carga de imagen
   useEffect(() => {
     if (!imageUrl) return
     let active = true
@@ -71,13 +124,15 @@ export default function CropTool() {
         if (!active) return
         setImg(image)
         setCrop({ x: 0, y: 0, w: image.naturalWidth, h: image.naturalHeight })
+        pastCrop.current = []
+        futureCrop.current = []
         setError(null)
       })
       .catch(() => active && setError(t('crop.errLoad')))
     return () => { active = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrl])
 
-  // Ajuste contain: imagen → pantalla
   const fit = useMemo(() => {
     if (!img || !stage.w) return { scale: 1, ox: 0, oy: 0, dw: 0, dh: 0 }
     const scale = Math.min(stage.w / img.naturalWidth, stage.h / img.naturalHeight)
@@ -86,7 +141,6 @@ export default function CropTool() {
     return { scale, ox: (stage.w - dw) / 2, oy: (stage.h - dh) / 2, dw, dh }
   }, [img, stage])
 
-  // Crop en coords de pantalla
   const screen = {
     left: fit.ox + crop.x * fit.scale,
     top: fit.oy + crop.y * fit.scale,
@@ -109,6 +163,7 @@ export default function CropTool() {
   const startDrag = (mode: DragMode, e: React.PointerEvent) => {
     e.stopPropagation()
     ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    pushCrop()
     drag.current = { mode, sx: e.clientX, sy: e.clientY, crop }
   }
   const onPointerMove = (e: React.PointerEvent) => {
@@ -130,8 +185,11 @@ export default function CropTool() {
   }
   const onPointerUp = () => { drag.current = null }
 
-  const applyAspect = (ratio: number | null) => {
+  const applyAspect = (idx: string) => {
+    setAspectIdx(idx)
+    const ratio = ASPECTS[Number(idx)].value
     if (!img || ratio === null) return
+    pushCrop()
     const W = img.naturalWidth, H = img.naturalHeight
     let w = W, h = W / ratio
     if (h > H) { h = H; w = H * ratio }
@@ -146,6 +204,7 @@ export default function CropTool() {
       const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const b = computeContentBounds(data, tolerance)
       if (!b) { setError(t('crop.errNoContent')); return }
+      pushCrop()
       setError(null)
       setCrop(padding ? padBounds(b, padding, canvas.width, canvas.height) : b)
     } catch {
@@ -167,9 +226,12 @@ export default function CropTool() {
     }
   }
 
-  const reset = () => img && setCrop({ x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight })
+  const reset = () => {
+    if (!img) return
+    pushCrop()
+    setCrop({ x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight })
+  }
 
-  // Enviar el recorte a otra herramienta conservando el tamaño (cm).
   const sendTo = async (dest: 'boards' | 'grid' | 'back') => {
     if (!img) return
     setBusy(true)
@@ -183,13 +245,13 @@ export default function CropTool() {
       const heightScaledCm = applyScale(heightCm)
       if (dest === 'back' && back.current?.boardId) {
         setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
-        router.push(`/dashboard/boards/${back.current.boardId}?handoff=1`)
+        router.push(`/dashboard/tools/boards/${back.current.boardId}?handoff=1`)
       } else if (dest === 'grid') {
         setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
         router.push('/dashboard/tools/grid?handoff=1')
       } else {
         setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
-        router.push('/dashboard/boards')
+        router.push('/dashboard/tools/boards')
       }
     } catch {
       setError(t('crop.errSend'))
@@ -197,115 +259,88 @@ export default function CropTool() {
     }
   }
 
-  const ctrlBtn =
-    'flex items-center gap-2 h-10 px-3 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40 font-mono text-label-sm'
-  const handle =
-    'absolute w-3 h-3 bg-[var(--color-primary)] border border-white rounded-sm'
+  const handle = 'absolute w-3 h-3 bg-[var(--color-primary)] border border-white rounded-sm'
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-      {/* Controles */}
-      <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
-        <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90">
-          <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
-          {t('crop.image')}
-        </button>
+      <ToolToolbar>
+        <SourceButton onClick={() => setModalOpen(true)} />
+        <ToolDivider />
+        <HistoryButtons
+          canUndo={pastCrop.current.length > 0}
+          canRedo={futureCrop.current.length > 0}
+          onUndo={undo}
+          onRedo={redo}
+        />
 
         {img && (
           <>
-            <span className="w-px h-6 bg-[var(--color-outline-variant)]/60" />
-            <select
-              onChange={(e) => applyAspect(ASPECTS[Number(e.target.value)].value)}
-              className="h-10 px-2 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] font-mono text-label-sm text-[var(--color-on-surface)] outline-none"
+            <ToolDivider />
+            <ToolSelect
+              value={aspectIdx}
               title={t('crop.aspectRatio')}
-              defaultValue={0}
-            >
-              {ASPECTS.map((a, i) => <option key={a.label} value={i}>{a.value === null ? t('crop.free') : a.label}</option>)}
-            </select>
+              onChange={applyAspect}
+              options={ASPECTS.map((a, i) => ({ value: String(i), label: a.value === null ? t('crop.free') : a.label }))}
+            />
 
-            <button onClick={autoCrop} className={ctrlBtn} title={t('crop.autoCrop')}>
-              <span className="material-symbols-outlined text-[18px]">crop_free</span>
-              {t('crop.auto')}
-            </button>
-            <label className="flex items-center gap-1.5 shrink-0" title={t('crop.autoCropTip')}>
-              <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">tune</span>
-              <input type="range" min={0} max={60} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="w-20 custom-range" />
-              <span className="font-mono text-[10px] text-[var(--color-primary)] w-5">{tolerance}</span>
-            </label>
-            <label className="flex items-center gap-1 shrink-0" title={t('crop.padTip')}>
-              <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
-              <input type="number" min={0} value={padding} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-14 h-9 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none" />
-            </label>
+            <ToolCluster name={t('crop.autoCrop')}>
+              <ToolButton variant="ghost" icon="crop_free" label={t('crop.auto')} title={t('crop.autoCrop')} onClick={autoCrop} />
+              <ToolSlider icon="tune" min={0} max={60} value={tolerance} title={t('crop.autoCropTip')} onChange={setTolerance} />
+              <label className="flex items-center gap-1 shrink-0" title={t('crop.padTip')}>
+                <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
+                <input type="number" min={0} value={padding} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-14 h-9 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none" />
+              </label>
+            </ToolCluster>
 
-            <button onClick={reset} className={ctrlBtn} title={t('crop.resetTip')}>
-              <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-            </button>
+            <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} onClick={reset} />
 
-            <div className="flex-1" />
-            <div className="flex flex-col items-end gap-0.5">
-              <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{Math.round(crop.w)} × {Math.round(crop.h)} px</span>
-              <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{t('crop.reference')} · {formatCm(cmOf(crop.w))} × {formatCm(cmOf(crop.h))}</span>
-              <span className="font-mono text-[10px] text-[var(--color-primary)] shrink-0">{t('crop.final')} · {formatScaled(cmOf(crop.w))} × {formatScaled(cmOf(crop.h))}</span>
-            </div>
-            {back.current?.boardId ? (
-              <button onClick={() => sendTo('back')} disabled={busy} className={`${ctrlBtn} !text-[var(--color-primary)] !border-[var(--color-primary)]`} title={t('crop.backBoardTip')}>
-                <span className="material-symbols-outlined text-[18px]">undo</span>
-                {t('crop.board')}
-              </button>
-            ) : (
-              <button onClick={() => sendTo('boards')} disabled={busy} className={ctrlBtn} title={t('crop.sendBoards')}>
-                <span className="material-symbols-outlined text-[18px]">dashboard</span>
-                {t('crop.boards')}
-              </button>
-            )}
-            <button onClick={() => sendTo('grid')} disabled={busy} className={ctrlBtn} title={t('crop.sendGrid')}>
-              <span className="material-symbols-outlined text-[18px]">grid_on</span>
-            </button>
-            <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
-              <span className="material-symbols-outlined text-[18px]">download</span>
-              {t('crop.export')}
-            </button>
+            <ToolSpacer />
+
+            <SendActions
+              isReturn={!!back.current?.boardId}
+              busy={busy}
+              onBack={() => sendTo('back')}
+              onSendBoards={() => sendTo('boards')}
+              onSendGrid={() => sendTo('grid')}
+              onExport={exportPng}
+            />
           </>
         )}
-      </div>
+      </ToolToolbar>
 
-      {/* Escenario */}
-      <div
-        ref={stageRef}
-        className="flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative select-none touch-none"
+      <ToolStage
+        stageRef={stageRef}
+        hasImage={!!img}
+        emptyIcon="crop"
+        emptyPrompt={t('crop.uploadPromptCrop')}
+        onPickImage={() => setModalOpen(true)}
+        error={error}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
       >
-        {img ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl!} alt="" draggable={false} className="absolute pointer-events-none" style={{ left: fit.ox, top: fit.oy, width: fit.dw, height: fit.dh }} />
-            {/* Velo oscuro fuera del recorte (box-shadow gigante, recortado por overflow) */}
-            <div className="absolute pointer-events-none" style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height, boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }} />
-            {/* Rectángulo de recorte */}
-            <div
-              className="absolute border border-[var(--color-primary)] cursor-move"
-              style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height }}
-              onPointerDown={(e) => startDrag('move', e)}
-            >
-              <div className={`${handle} -left-1.5 -top-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('nw', e)} />
-              <div className={`${handle} -right-1.5 -top-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('ne', e)} />
-              <div className={`${handle} -left-1.5 -bottom-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('sw', e)} />
-              <div className={`${handle} -right-1.5 -bottom-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('se', e)} />
-            </div>
-          </>
-        ) : (
-          <button onClick={() => setModalOpen(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
-            <span className="material-symbols-outlined text-5xl">crop</span>
-            <span className="font-mono text-label-sm uppercase tracking-widest">{t('crop.uploadPromptCrop')}</span>
-          </button>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={imageUrl ?? undefined} alt="" draggable={false} className="absolute pointer-events-none" style={{ left: fit.ox, top: fit.oy, width: fit.dw, height: fit.dh }} />
+        <div className="absolute pointer-events-none" style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height, boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }} />
+        <div
+          className="absolute border border-[var(--color-primary)] cursor-move"
+          style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height }}
+          onPointerDown={(e) => startDrag('move', e)}
+        >
+          <div className={`${handle} -left-1.5 -top-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('nw', e)} />
+          <div className={`${handle} -right-1.5 -top-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('ne', e)} />
+          <div className={`${handle} -left-1.5 -bottom-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('sw', e)} />
+          <div className={`${handle} -right-1.5 -bottom-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('se', e)} />
+        </div>
+      </ToolStage>
 
-        {error && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded px-3 py-1.5 z-30">{error}</div>
-        )}
-      </div>
+      {img && (
+        <MeasureBar
+          referenceLabel={`${formatCm(cmOf(crop.w))} × ${formatCm(cmOf(crop.h))}`}
+          finalLabel={`${formatScaled(cmOf(crop.w))} × ${formatScaled(cmOf(crop.h))}`}
+          extra={<span>{Math.round(crop.w)} × {Math.round(crop.h)} px</span>}
+        />
+      )}
 
       {modalOpen && (
         <ImageSourceModal onClose={() => setModalOpen(false)} onSelect={(url) => { setImageUrl(url); setModalOpen(false) }} />
