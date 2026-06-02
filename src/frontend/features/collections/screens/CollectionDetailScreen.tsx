@@ -1,5 +1,4 @@
-import { connectDB } from "@backend/db/mongoose";
-import Collection from "@backend/models/Collection";
+import { getCollectionById } from "@backend/services/collections.service";
 import ArtworkGrid from "@frontend/shared/ui/ArtworkGrid";
 import CollectionActions from "@frontend/shared/ui/CollectionActions";
 import AppShell from "@frontend/shared/layouts/AppShell";
@@ -15,9 +14,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
   const locale = await getRequestLocale();
   const t = createTranslator(getDictionary(locale));
 
-  await connectDB();
-  const collection = await Collection.findById(resolvedParams.id).populate('artworks').lean();
-  
+  const collection = await getCollectionById(resolvedParams.id);
+
   if (!collection) return notFound();
   
   const isOwner = session?.user?.id === collection.owner.toString();

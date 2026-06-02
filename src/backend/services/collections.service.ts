@@ -40,10 +40,12 @@ export async function createCollection(
 export async function getCollectionById(id: string) {
   await connectDB();
   const collection = await Collection.findById(id)
-    .populate("artworks", "title imageUrl thumbnails")
+    .populate("artworks", "title imageUrl thumbnails category likes artistId")
     .lean();
   return collection
-    ? (JSON.parse(JSON.stringify(collection)) as Record<string, unknown> & { owner: string; isPrivate?: boolean })
+    ? (JSON.parse(JSON.stringify(collection)) as Record<string, unknown> & {
+        _id: string; name: string; owner: string; isPrivate?: boolean; artworks?: unknown[];
+      })
     : null;
 }
 

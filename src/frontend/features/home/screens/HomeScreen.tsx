@@ -2,9 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import AppShell from "@frontend/shared/layouts/AppShell";
 import { auth } from "@backend/auth";
-import { connectDB } from "@backend/db/mongoose";
-import User from "@backend/models/User";
-import Artwork from "@backend/models/Artwork";
+import { getUserById } from "@backend/services/users.service";
+import { getFollowingFeed } from "@backend/services/artworks.service";
 import ArtworkGrid from "@frontend/shared/ui/ArtworkGrid";
 import { createTranslator, getCategoryLabel } from "@shared/i18n";
 import { getDictionary } from '@shared/i18n/dictionaries'
@@ -24,17 +23,9 @@ export default async function HomePage() {
 async function DashboardHome({ user }: { user: { id: string; name?: string | null } }) {
   const locale = await getRequestLocale();
   const t = createTranslator(getDictionary(locale));
-  await connectDB();
-  const dbUser = await User.findById(user.id).lean();
+  const dbUser = await getUserById(user.id);
   const followingIds = dbUser?.following || [];
-
-  const feedArtworks = followingIds.length > 0 
-    ? await Artwork.find({ artistId: { $in: followingIds }, visibility: 'public' })
-        .sort({ uploadDate: -1 })
-        .limit(20)
-        .populate('artistId', 'username displayName avatarUrl')
-        .lean()
-    : [];
+  const feedArtworks = await getFollowingFeed(followingIds);
 
   return (
     <AppShell>

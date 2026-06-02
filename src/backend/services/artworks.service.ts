@@ -81,6 +81,44 @@ export async function searchArtworks(opts: PageParams & {
   return { artworks, total };
 }
 
+/** Galería pública completa (sin paginar), filtro opcional por categoría. Para el RSC de galería. */
+export async function getGalleryArtworks(category?: string | null) {
+  await connectDB();
+  const filter: Record<string, unknown> = { visibility: "public" };
+  if (category && category !== "todas") filter.category = category;
+  const artworks = await Artwork.find(filter)
+    .sort({ uploadDate: -1 })
+    .populate("artistId", "username displayName avatarUrl")
+    .lean();
+  return JSON.parse(JSON.stringify(artworks));
+}
+
+/** Feed de obras públicas de los artistas seguidos (home autenticado). */
+export async function getFollowingFeed(followingIds: unknown[], limit = 20) {
+  if (!followingIds?.length) return [];
+  await connectDB();
+  const filter: Record<string, unknown> = { artistId: { $in: followingIds }, visibility: "public" };
+  const artworks = await Artwork.find(filter)
+    .sort({ uploadDate: -1 })
+    .limit(limit)
+    .populate("artistId", "username displayName avatarUrl")
+    .lean();
+  return JSON.parse(JSON.stringify(artworks));
+}
+
+/**
+ * Obras de un artista. `publicOnly` filtra a públicas y popula el autor (perfil
+ * ajeno); en falso devuelve todas sin poblar (perfil propio).
+ */
+export async function getArtworksByArtist(artistId: unknown, opts: { publicOnly: boolean }) {
+  await connectDB();
+  const filter: Record<string, unknown> = { artistId };
+  if (opts.publicOnly) filter.visibility = "public";
+  const query = Artwork.find(filter).sort({ uploadDate: -1 });
+  if (opts.publicOnly) query.populate("artistId", "username displayName avatarUrl");
+  return JSON.parse(JSON.stringify(await query.lean()));
+}
+
 /** Crea una obra con fileMeta/thumbnails derivados. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- payload = body de la request (forma dinámica del cliente).
 export async function createArtwork(userId: string, payload: Record<string, any>) {

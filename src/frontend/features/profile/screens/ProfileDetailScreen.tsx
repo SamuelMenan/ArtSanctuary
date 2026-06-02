@@ -1,9 +1,8 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import { auth } from '@backend/auth'
 import { notFound } from 'next/navigation'
-import { connectDB } from '@backend/db/mongoose'
-import Artwork from '@backend/models/Artwork'
-import User from '@backend/models/User'
+import { getUserById } from '@backend/services/users.service'
+import { getArtworksByArtist } from '@backend/services/artworks.service'
 import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid'
 import FollowButton from '@frontend/shared/ui/FollowButton'
 import { ProfileHero } from '@frontend/features/profile/ProfileHero'
@@ -25,9 +24,7 @@ export default async function PublicProfilePage({
   const locale = await getRequestLocale()
   const t = createTranslator(getDictionary(locale))
 
-  await connectDB()
-
-  const user = await User.findById(id).lean()
+  const user = await getUserById(id)
   if (!user) return notFound()
 
   const userId = user._id.toString()
@@ -101,10 +98,7 @@ export default async function PublicProfilePage({
     )
   }
 
-  const userArtworks = await Artwork.find({ artistId: user._id, visibility: 'public' })
-    .sort({ uploadDate: -1 })
-    .populate('artistId', 'username displayName avatarUrl')
-    .lean()
+  const userArtworks = await getArtworksByArtist(user._id, { publicOnly: true })
 
   return (
     <AppShell>

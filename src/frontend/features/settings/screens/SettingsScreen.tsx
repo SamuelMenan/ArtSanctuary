@@ -1,8 +1,7 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import { auth } from '@backend/auth'
 import { redirect } from 'next/navigation'
-import { connectDB } from '@backend/db/mongoose'
-import User from '@backend/models/User'
+import { getUserById } from '@backend/services/users.service'
 import { createTranslator } from '@shared/i18n'
 import { getDictionary } from '@shared/i18n/dictionaries'
 import { getRequestLocale } from '@backend/requestPreferences'
@@ -26,13 +25,7 @@ export default async function SettingsPage() {
   const locale = await getRequestLocale()
   const t = createTranslator(getDictionary(locale))
 
-  await connectDB()
-  const dbUser = await User.findById(session.user.id)
-    .select(
-      'username email displayName bio avatarUrl location website socials notificationSettings privacySettings createdAt lastLoginAt',
-    )
-    .lean()
-
+  const dbUser = await getUserById(session.user.id)
   if (!dbUser) redirect('/login')
 
   const profile: ProfileInitial = {

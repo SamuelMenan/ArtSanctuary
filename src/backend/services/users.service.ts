@@ -49,6 +49,12 @@ export async function updateUserPreferences(userId: string, prefs: { locale: str
   await User.findByIdAndUpdate(userId, { locale: prefs.locale, theme: prefs.theme });
 }
 
+/** Documento de usuario por id (POJO lean) o `null`. Para los RSC de perfil/ajustes. */
+export async function getUserById(id: string) {
+  await connectDB();
+  return User.findById(id).lean();
+}
+
 /** Perfil público por username + sus obras públicas, o `null` si no existe. */
 export async function getPublicProfile(username: string) {
   await connectDB();

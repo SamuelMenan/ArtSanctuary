@@ -1,7 +1,6 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import Link from 'next/link'
-import { connectDB } from '@backend/db/mongoose'
-import Artwork from '@backend/models/Artwork'
+import { getGalleryArtworks } from '@backend/services/artworks.service'
 import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid'
 import { createTranslator, getCategoryLabel } from '@shared/i18n'
 import { getDictionary } from '@shared/i18n/dictionaries'
@@ -15,24 +14,12 @@ export default async function GalleryPage({
 }) {
   const locale = await getRequestLocale()
   const t = createTranslator(getDictionary(locale))
-  // Asegurarnos de tener la BD conectada
-  await connectDB()
 
   // Leer la categoría actual de la URL (?category=pintura)
   const resolvedParams = await searchParams;
   const currentCategory = typeof resolvedParams?.category === 'string' ? resolvedParams.category.toLowerCase() : 'todas';
 
-  // Configurar filtro de MongoDB
-  const filter: Record<string, unknown> = { visibility: 'public' };
-  if (currentCategory !== 'todas') {
-    filter.category = currentCategory;
-  }
-
-  // Consultar obras públicas en la BD
-  const artworks = await Artwork.find(filter)
-    .sort({ uploadDate: -1 })
-    .populate("artistId", "username displayName avatarUrl")
-    .lean();
+  const artworks = await getGalleryArtworks(currentCategory);
 
   const categories = [
     { label: t('gallery.all').toUpperCase(), value: 'todas' },

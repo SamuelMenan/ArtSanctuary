@@ -1,9 +1,8 @@
 import AppShell from '@frontend/shared/layouts/AppShell'
 import { auth } from '@backend/auth'
 import { redirect } from 'next/navigation'
-import { connectDB } from '@backend/db/mongoose'
-import Artwork from '@backend/models/Artwork'
-import User from '@backend/models/User'
+import { getUserById } from '@backend/services/users.service'
+import { getArtworksByArtist } from '@backend/services/artworks.service'
 import Link from 'next/link'
 import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid'
 import { ProfileHero } from '@frontend/features/profile/ProfileHero'
@@ -26,18 +25,10 @@ export default async function ProfilePage() {
   const locale = await getRequestLocale()
   const t = createTranslator(getDictionary(locale))
 
-  await connectDB()
-  const dbUser = await User.findById(session.user.id)
-    .select(
-      'username displayName bio avatarUrl location website socials plan followers following privacySettings createdAt',
-    )
-    .lean()
-
+  const dbUser = await getUserById(session.user.id)
   if (!dbUser) redirect('/login')
 
-  const userArtworks = await Artwork.find({ artistId: dbUser._id })
-    .sort({ uploadDate: -1 })
-    .lean()
+  const userArtworks = await getArtworksByArtist(dbUser._id, { publicOnly: false })
 
   const userId = dbUser._id.toString()
   const name = dbUser.displayName || dbUser.username
