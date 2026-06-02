@@ -20,7 +20,12 @@ const nextConfig: NextConfig = {
         source: '/dashboard/tools/crop',
         headers: [
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          // `credentialless` mantiene crossOriginIsolated (SharedArrayBuffer → IA
+          // multihilo de @imgly/background-removal) pero permite cargar imágenes
+          // cross-origin (Blob/picsum) sin que estas envíen Cross-Origin-Resource-Policy.
+          // Evita que el COEP, arrastrado por soft-navigation del App Router a otras
+          // páginas (galería), bloquee las imágenes con error CORP.
+          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
         ],
       },
     ];
