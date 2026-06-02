@@ -9,14 +9,15 @@ import Notification from "@backend/models/Notification";
 /** Últimas 20 notificaciones del usuario + nº sin leer. */
 export async function getUserNotifications(userId: string) {
   await connectDB();
-  const notifications = await Notification.find({ recipientId: userId })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .populate("actorId", "username displayName avatarUrl")
-    .populate("artworkId", "title imageUrl")
-    .lean();
-
-  const unreadCount = await Notification.countDocuments({ recipientId: userId, read: false });
+  const [notifications, unreadCount] = await Promise.all([
+    Notification.find({ recipientId: userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .populate("actorId", "username displayName avatarUrl")
+      .populate("artworkId", "title imageUrl")
+      .lean(),
+    Notification.countDocuments({ recipientId: userId, read: false }),
+  ]);
   return { notifications, unreadCount };
 }
 

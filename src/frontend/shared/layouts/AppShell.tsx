@@ -20,6 +20,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {/* Botón flotante para volver a mostrar el navbar cuando está oculto */}
       {!navbarOpen && (
         <button
+          type="button"
           onClick={() => setNavbarOpen(true)}
           aria-label={t('common.showTopBar')}
           title={t('common.showTopBar')}

@@ -37,6 +37,7 @@ export default function MobileMenu({
           </h1>
         </div>
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="text-[var(--color-primary)] p-2 focus:outline-none"
         >
@@ -81,6 +82,7 @@ export default function MobileMenu({
                     <span>{t('nav.profile')}</span>
                   </Link>
                   <button
+                    type="button"
                     onClick={() => {
                       setIsOpen(false)
                       signOut({ callbackUrl: '/login' })

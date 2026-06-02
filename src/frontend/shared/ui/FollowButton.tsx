@@ -50,7 +50,8 @@ export default function FollowButton({ targetUserId, initialIsFollowing, onFollo
   };
 
   return (
-    <button 
+    <button
+      type="button"
       onClick={handleToggle}
       disabled={isLoading}
       className={`font-mono text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-sm transition-colors flex items-center justify-center gap-1 min-w-[100px] ${

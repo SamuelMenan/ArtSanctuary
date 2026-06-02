@@ -15,6 +15,7 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
   return (
     <div className="relative" ref={notifRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200 focus:outline-none relative"
       >
@@ -30,7 +31,7 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
           <div className="p-4 border-b border-[var(--color-outline-variant)] flex justify-between items-center bg-[var(--color-surface-container)]">
             <span className="font-sans font-semibold text-[var(--color-primary)] text-sm">{t('menu.notifications')}</span>
             {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className="font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase hover:text-[var(--color-primary)] transition-colors">
+              <button type="button" onClick={markAllAsRead} className="font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase hover:text-[var(--color-primary)] transition-colors">
                 {t('menu.markAllRead')}
               </button>
             )}

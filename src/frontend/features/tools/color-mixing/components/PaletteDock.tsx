@@ -22,6 +22,7 @@ export default function PaletteDock({ L, locale, medium, slots, addPigment }: Pa
           const active = slots.some((s) => s.hex === sw.hex)
           return (
             <button
+              type="button"
               key={sw.hex}
               onClick={() => addPigment(sw)}
               disabled={active || slots.length >= 6}

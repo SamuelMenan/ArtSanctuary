@@ -123,7 +123,8 @@ function ExploreContent() {
               className="w-full bg-[var(--color-surface-container)] border border-[var(--color-surface-container-high)] rounded-full pl-12 pr-4 py-4 text-[var(--color-primary)] text-lg focus:outline-none focus:border-[var(--color-primary)] transition-colors font-sans"
             />
             {query && (
-              <button 
+              <button
+                type="button"
                 onClick={() => setQuery('')}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
               >
@@ -131,7 +132,8 @@ function ExploreContent() {
               </button>
             )}
           </div>
-          <button 
+          <button
+            type="button"
             onClick={() => setShowFilters(!showFilters)}
             className={`shrink-0 flex items-center gap-2 font-mono text-xs uppercase tracking-widest px-6 py-4 rounded-full border transition-colors ${showFilters ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)]' : 'bg-transparent text-[var(--color-primary)] border-[var(--color-outline-variant)] hover:border-[var(--color-primary)]'}`}
           >
@@ -162,7 +164,7 @@ function ExploreContent() {
               <input type="text" value={medium} onChange={(e) => setMedium(e.target.value)} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] font-sans focus:outline-none focus:border-[var(--color-primary)]" />
             </div>
             <div className="flex items-end">
-              <button onClick={clearFilters} className="w-full font-mono text-[10px] uppercase tracking-widest px-4 py-3 border border-[var(--color-error)] text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors">
+              <button type="button" onClick={clearFilters} className="w-full font-mono text-[10px] uppercase tracking-widest px-4 py-3 border border-[var(--color-error)] text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors">
                 {t('explore.clearFilters')}
               </button>
             </div>
@@ -197,7 +199,7 @@ function ExploreContent() {
               <p className="font-sans text-[var(--color-on-surface-variant)] text-center max-w-md">
                 {t('explore.noResultsBody')}
               </p>
-              <button onClick={clearFilters} className="mt-6 font-mono text-xs uppercase tracking-widest text-[var(--color-primary)] underline hover:text-[var(--color-primary-fixed)]">
+              <button type="button" onClick={clearFilters} className="mt-6 font-mono text-xs uppercase tracking-widest text-[var(--color-primary)] underline hover:text-[var(--color-primary-fixed)]">
                 {t('common.clearFilters')}
               </button>
             </div>
@@ -220,8 +222,9 @@ function ExploreContent() {
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {trendingData.trendingTags.map((tag: string) => (
-                    <button 
-                      key={tag} 
+                    <button
+                      type="button"
+                      key={tag}
                       onClick={() => setQuery(tag.startsWith('explore.tags.') ? t(tag) : tag)}
                       className="font-mono text-xs uppercase tracking-widest border border-[var(--color-outline-variant)] px-4 py-2 text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)] hover:border-[var(--color-primary)] transition-colors rounded-sm"
                     >#{tag.startsWith('explore.tags.') ? t(tag) : tag}</button>
@@ -236,8 +239,9 @@ function ExploreContent() {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {trendingData.categories.map((cat) => (
-                    <button 
-                      key={cat.name} 
+                    <button
+                      type="button"
+                      key={cat.name}
                       onClick={() => { setCategory(cat.name); window.scrollTo({ top: 0 }); }}
                       className="flex flex-col items-start p-4 border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)] hover:border-[var(--color-primary)] transition-colors rounded-sm text-left"
                     >

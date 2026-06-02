@@ -12,9 +12,7 @@ export const runtime = "nodejs";
  */
 export const GET = withErrorHandler("GET /api/boards/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
-  const session = await auth();
-
-  const board = await getBoardById(id);
+  const [session, board] = await Promise.all([auth(), getBoardById(id)]);
   if (!board) return apiError("NOT_FOUND", "No encontrado");
 
   const isOwner = session?.user?.id === board.owner.toString();
@@ -31,8 +29,7 @@ export const GET = withErrorHandler("GET /api/boards/[id]", async (req: NextRequ
  * Solo el propietario. Acepta cualquier subconjunto de campos editables.
  */
 export const PATCH = withErrorHandler("PATCH /api/boards/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-  const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
   if (!session?.user?.id) {
     return apiError("UNAUTHORIZED", "No autenticado");
   }
@@ -60,8 +57,7 @@ export const PATCH = withErrorHandler("PATCH /api/boards/[id]", async (req: Next
  * Borra el board. Solo el propietario.
  */
 export const DELETE = withErrorHandler("DELETE /api/boards/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-  const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
   if (!session?.user?.id) {
     return apiError("UNAUTHORIZED", "No autenticado");
   }

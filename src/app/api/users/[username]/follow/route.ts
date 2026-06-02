@@ -5,8 +5,7 @@ import { followUser, unfollowUser } from "@backend/services/users.service";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = withErrorHandler("POST /api/users/[username]/follow", async (req: NextRequest, { params }: { params: Promise<{ username: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const followerId = session.user.id;
@@ -23,8 +22,7 @@ export const POST = withErrorHandler("POST /api/users/[username]/follow", async 
 });
 
 export const DELETE = withErrorHandler("DELETE /api/users/[username]/follow", async (req: NextRequest, { params }: { params: Promise<{ username: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const followerId = session.user.id;

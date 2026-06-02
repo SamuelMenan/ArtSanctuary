@@ -26,28 +26,33 @@ interface Props {
 }
 
 export function FollowListModal({ open, userId, kind, title, emptyMessage, t, onClose }: Props) {
-  const [users, setUsers] = useState<UserItem[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<{ key: string; users: UserItem[] | null; error: string | null }>({
+    key: '',
+    users: null,
+    error: null,
+  })
   const closeRef = useRef<HTMLButtonElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
 
-  // Carga datos al abrir.
+  // Carga datos al abrir. El resultado se etiqueta con la petición que lo produjo
+  // para que `users`/`error` se deriven y se vacíen solos al cambiar userId/kind.
   useEffect(() => {
     if (!open) return
+    const key = `${userId}:${kind}`
     let cancelled = false
-    setUsers(null)
-    setError(null)
     fetch(`/api/users/${userId}/${kind}`)
       .then(async (res) => {
         const data = await res.json()
         if (cancelled) return
         if (!res.ok) {
-          setError(res.status === 403 ? t('profile.privateList') : data?.error?.message ?? 'Error')
+          setResult({ key, users: null, error: res.status === 403 ? t('profile.privateList') : data?.error?.message ?? 'Error' })
           return
         }
-        setUsers(data.users ?? [])
+        setResult({ key, users: data.users ?? [], error: null })
       })
-      .catch(() => !cancelled && setError(t('settings.saveError')))
+      .catch(() => {
+        if (!cancelled) setResult({ key, users: null, error: t('settings.saveError') })
+      })
     return () => {
       cancelled = true
     }
@@ -68,6 +73,12 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
       document.body.style.overflow = prevOverflow
     }
   }, [open, onClose])
+
+  // Solo se muestra el resultado si corresponde a la petición actual; al cambiar
+  // userId/kind queda "obsoleto" y users/error vuelven a null sin ningún setter.
+  const matches = result.key === `${userId}:${kind}`
+  const users = matches ? result.users : null
+  const error = matches ? result.error : null
 
   if (!open) return null
 

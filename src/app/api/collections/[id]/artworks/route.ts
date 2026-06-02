@@ -5,8 +5,7 @@ import { addArtworkToCollection, removeArtworkFromCollection } from "@backend/se
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = withErrorHandler("POST /api/collections/[id]/artworks", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const { artworkId } = await req.json();
@@ -17,8 +16,7 @@ export const POST = withErrorHandler("POST /api/collections/[id]/artworks", asyn
 });
 
 export const DELETE = withErrorHandler("DELETE /api/collections/[id]/artworks", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const url = new URL(req.url);

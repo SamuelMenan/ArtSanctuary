@@ -52,6 +52,7 @@ export default function Navbar() {
       <header className={`hidden md:flex bg-[var(--color-surface)]/60 backdrop-blur-md text-[var(--color-primary)] fixed top-0 right-0 h-16 border-b border-[var(--color-outline-variant)] justify-between items-center px-[var(--spacing-grid-gutter)] z-40 transition-all duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'} ${navbarOpen ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={toggleSidebar}
             aria-label={sidebarOpen ? 'Ocultar menú lateral' : 'Mostrar menú lateral'}
             className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200"
@@ -62,6 +63,7 @@ export default function Navbar() {
           </button>
           <div className="font-display font-bold text-xl text-[var(--color-primary)]">ArtSanctuary</div>
           <button
+            type="button"
             onClick={toggleNavbar}
             aria-label="Ocultar barra superior"
             title="Ocultar barra superior"

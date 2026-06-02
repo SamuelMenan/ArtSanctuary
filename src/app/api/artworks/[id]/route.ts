@@ -5,8 +5,7 @@ import { deleteArtwork, getArtworkForView, updateArtwork } from "@backend/servic
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = withErrorHandler("GET /api/artworks/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-    const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
     const viewCookieName = `viewed_${id}`;
 
     const { artwork, setAnonCookie } = await getArtworkForView(id, {
@@ -30,8 +29,7 @@ export const GET = withErrorHandler("GET /api/artworks/[id]", async (req: NextRe
 });
 
 export const PUT = withErrorHandler("PUT /api/artworks/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-    const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) {
       return apiError("UNAUTHORIZED", "No autenticado");
     }
@@ -44,8 +42,7 @@ export const PUT = withErrorHandler("PUT /api/artworks/[id]", async (req: NextRe
 });
 
 export const DELETE = withErrorHandler("DELETE /api/artworks/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-    const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) {
       return apiError("UNAUTHORIZED", "No autenticado");
     }

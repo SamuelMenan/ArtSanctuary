@@ -30,16 +30,17 @@ export const getExploreTrending = unstable_cache(
     ]);
     const categories = categoryCounts.map((c) => ({ name: c._id || "otras", count: c.count }));
 
-    const recentArtworks = await Artwork.find({ visibility: "public" })
-      .sort({ uploadDate: -1 })
-      .limit(6)
-      .populate("artistId", "username displayName avatarUrl")
-      .lean();
-
-    const featuredArtists = await User.find({})
-      .limit(4)
-      .select("username displayName avatarUrl")
-      .lean();
+    const [recentArtworks, featuredArtists] = await Promise.all([
+      Artwork.find({ visibility: "public" })
+        .sort({ uploadDate: -1 })
+        .limit(6)
+        .populate("artistId", "username displayName avatarUrl")
+        .lean(),
+      User.find({})
+        .limit(4)
+        .select("username displayName avatarUrl")
+        .lean(),
+    ]);
 
     return {
       trendingTags,

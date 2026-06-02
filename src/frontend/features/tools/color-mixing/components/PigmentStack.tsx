@@ -57,6 +57,7 @@ export default function PigmentStack({ L, slots, totalWeight, setWeight, removeS
               />
             </div>
             <button
+              type="button"
               onClick={() => removeSlot(i)}
               className="material-symbols-outlined text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] transition-colors opacity-0 group-hover:opacity-100 text-[18px]"
               title="remove"

@@ -30,6 +30,7 @@ export default function ProfileMenu({
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200 focus:outline-none"
       >
@@ -47,6 +48,7 @@ export default function ProfileMenu({
                 <div className="grid grid-cols-2 gap-2">
                   {(['dark', 'light'] as ThemeMode[]).map((option) => (
                     <button
+                      type="button"
                       key={option}
                       onClick={() => setSelectedTheme(option)}
                       className={`rounded-sm border px-2 py-2 text-[10px] font-mono uppercase tracking-widest transition-colors ${theme === option ? 'border-[var(--color-primary)] bg-[var(--color-surface-container-highest)] text-[var(--color-primary)]' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
@@ -61,6 +63,7 @@ export default function ProfileMenu({
                 <div className="grid grid-cols-2 gap-2">
                   {(['es', 'en'] as Locale[]).map((option) => (
                     <button
+                      type="button"
                       key={option}
                       onClick={() => setSelectedLocale(option)}
                       className={`rounded-sm border px-2 py-2 text-[10px] font-mono uppercase tracking-widest transition-colors ${locale === option ? 'border-[var(--color-primary)] bg-[var(--color-surface-container-highest)] text-[var(--color-primary)]' : 'border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
@@ -92,6 +95,7 @@ export default function ProfileMenu({
               </Link>
               <div className="h-[1px] bg-[var(--color-outline-variant)] w-full"></div>
               <button
+                type="button"
                 onClick={() => {
                   setIsOpen(false)
                   signOut({ callbackUrl: '/login' })

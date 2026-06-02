@@ -13,11 +13,6 @@ import { createTranslator } from '@shared/i18n'
 import { getDictionary } from '@shared/i18n/dictionaries'
 import { getRequestLocale } from '@backend/requestPreferences'
 
-export const metadata = {
-  title: 'Mi Portfolio | ArtSanctuary',
-  description: 'Tu portfolio personal en ArtSanctuary.',
-}
-
 export default async function ProfilePage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/login')

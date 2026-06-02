@@ -5,8 +5,7 @@ import { deleteCollection, getCollectionById, renameCollection } from "@backend/
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = withErrorHandler("GET /api/collections/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
 
     const collection = await getCollectionById(resolvedParams.id);
     if (!collection) return apiError("NOT_FOUND", "No encontrado");
@@ -20,8 +19,7 @@ export const GET = withErrorHandler("GET /api/collections/[id]", async (req: Nex
 });
 
 export const DELETE = withErrorHandler("DELETE /api/collections/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const ok = await deleteCollection(resolvedParams.id, session.user.id);
@@ -30,8 +28,7 @@ export const DELETE = withErrorHandler("DELETE /api/collections/[id]", async (re
 });
 
 export const PUT = withErrorHandler("PUT /api/collections/[id]", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = await params;
-    const session = await auth();
+  const [resolvedParams, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) return apiError("UNAUTHORIZED", "No autenticado");
 
     const { name } = await req.json();

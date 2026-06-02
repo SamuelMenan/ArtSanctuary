@@ -19,9 +19,11 @@ export default async function PublicProfilePage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-  const session = await auth()
-  const locale = await getRequestLocale()
+  const [{ id }, session, locale] = await Promise.all([
+    params,
+    auth(),
+    getRequestLocale(),
+  ])
   const t = createTranslator(getDictionary(locale))
 
   const user = await getUserById(id)

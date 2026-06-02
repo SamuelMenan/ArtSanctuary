@@ -31,9 +31,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
-  let initialLocale = await getRequestLocale()
-  let initialTheme = await getRequestTheme()
+  const [session, requestLocale, requestTheme] = await Promise.all([
+    auth(),
+    getRequestLocale(),
+    getRequestTheme(),
+  ])
+  let initialLocale = requestLocale
+  let initialTheme = requestTheme
 
   if (session?.user?.id) {
     await connectDB()

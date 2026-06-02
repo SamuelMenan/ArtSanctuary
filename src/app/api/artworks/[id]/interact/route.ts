@@ -5,8 +5,7 @@ import { interactWithArtwork } from "@backend/services/artworks.service";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = withErrorHandler("POST /api/artworks/[id]/interact", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-    const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) {
       return apiError("UNAUTHORIZED", "No autenticado");
     }

@@ -63,16 +63,16 @@ export default function ArtworkModal({ artworkId, isOpen, onClose, onPrev, onNex
       <div className="bg-[var(--color-surface-container-lowest)] w-full h-full md:rounded-sm md:h-[90vh] md:max-w-7xl flex flex-col md:flex-row overflow-hidden relative shadow-2xl ring-1 ring-[var(--color-outline-variant)]">
 
         {/* Botones Flotantes (Cerrar, Nav) */}
-        <button onClick={onClose} className="absolute top-4 right-4 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black transition-colors">
+        <button type="button" onClick={onClose} className="absolute top-4 right-4 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black transition-colors">
           <span className="material-symbols-outlined text-2xl">close</span>
         </button>
         {onPrev && (
-          <button onClick={onPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black transition-colors hidden md:block">
+          <button type="button" onClick={onPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black transition-colors hidden md:block">
             <span className="material-symbols-outlined">chevron_left</span>
           </button>
         )}
         {onNext && (
-          <button onClick={onNext} className="absolute right-[31%] top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black transition-colors hidden md:block">
+          <button type="button" onClick={onNext} className="absolute right-[31%] top-1/2 -translate-y-1/2 z-50 bg-black/50 text-white rounded-full p-2 hover:bg-black transition-colors hidden md:block">
             <span className="material-symbols-outlined">chevron_right</span>
           </button>
         )}

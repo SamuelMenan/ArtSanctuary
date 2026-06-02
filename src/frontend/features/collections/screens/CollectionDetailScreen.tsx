@@ -9,9 +9,11 @@ import { createTranslator } from "@shared/i18n";
 import { getDictionary } from "@shared/i18n/dictionaries";
 
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params;
-  const session = await auth();
-  const locale = await getRequestLocale();
+  const [resolvedParams, session, locale] = await Promise.all([
+    params,
+    auth(),
+    getRequestLocale(),
+  ]);
   const t = createTranslator(getDictionary(locale));
 
   const collection = await getCollectionById(resolvedParams.id);

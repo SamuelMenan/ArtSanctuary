@@ -126,56 +126,52 @@ export function getPresets(category: ArtworkCategory) {
 }
 
 export function useArtworkAutoFill(file: File | null, category: ArtworkCategory): AutoFillResult {
-  const [exifData, setExifData] = useState<Record<string, unknown> | null>(null);
-  const [imageDims, setImageDims] = useState<{ width: number; height: number } | undefined>();
-  const [inferredCategory, setInferredCategory] = useState<ArtworkCategory | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [hasExif, setHasExif] = useState(false);
+  // Único estado: el análisis etiquetado con el File que lo produjo. Todo lo demás
+  // (exif, dims, categoría, analizando…) se deriva, así no hace falta resetear nada
+  // cuando cambia `file`: el resultado obsoleto deja de coincidir y se ignora.
+  const [analysis, setAnalysis] = useState<{
+    file: File;
+    exif: Record<string, unknown> | null;
+    dims?: { width: number; height: number };
+  } | null>(null);
 
   useEffect(() => {
-    if (!file) {
-      setExifData(null);
-      setImageDims(undefined);
-      setInferredCategory(null);
-      setHasExif(false);
-      return;
-    }
+    if (!file) return;
 
     let cancelled = false;
-    setIsAnalyzing(true);
 
     (async () => {
-      try {
-        const exif = await exifr.parse(file).catch(() => null);
-        const dims = await new Promise<{ width: number; height: number } | undefined>(resolve => {
-          const img = new Image();
-          const url = URL.createObjectURL(file);
-          img.onload = () => {
-            resolve({ width: img.naturalWidth, height: img.naturalHeight });
-            URL.revokeObjectURL(url);
-          };
-          img.onerror = () => {
-            URL.revokeObjectURL(url);
-            resolve(undefined);
-          };
-          img.src = url;
-        });
+      const exif = await exifr.parse(file).catch(() => null);
+      const dims = await new Promise<{ width: number; height: number } | undefined>(resolve => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          URL.revokeObjectURL(url);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(undefined);
+        };
+        img.src = url;
+      });
 
-        if (cancelled) return;
-
-        setExifData(exif);
-        setImageDims(dims);
-        setHasExif(!!exif && Object.keys(exif).length > 0);
-        setInferredCategory(inferCategoryFromExif(exif, file.name));
-      } finally {
-        if (!cancelled) setIsAnalyzing(false);
-      }
+      if (cancelled) return;
+      setAnalysis({ file, exif, dims });
     })();
 
     return () => {
       cancelled = true;
     };
   }, [file]);
+
+  // El análisis solo vale si corresponde al `file` actual; si no, se trata como vacío.
+  const current = file && analysis?.file === file ? analysis : null;
+  const exifData = current?.exif ?? null;
+  const imageDims = current?.dims;
+  const hasExif = !!exifData && Object.keys(exifData).length > 0;
+  const inferredCategory = current ? inferCategoryFromExif(exifData, current.file.name) : null;
+  const isAnalyzing = !!file && analysis?.file !== file;
 
   const suggestions = buildSuggestions(exifData, category, file?.name || '', imageDims);
 

@@ -50,7 +50,7 @@ export default function LayersPanel({
     <div className="absolute bottom-4 right-4 w-64 max-h-[60%] bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-xl shadow-2xl flex flex-col z-30 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
       <div className="flex items-center justify-between px-3 h-10 border-b border-[var(--color-outline-variant)] shrink-0">
         <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">{t('boards.layers')}</span>
-        <button onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
+        <button type="button" onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
           <span className="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -71,7 +71,7 @@ export default function LayersPanel({
               }`}
             >
               <span className="material-symbols-outlined text-[14px] text-[var(--color-on-surface-variant)]/40 cursor-grab">drag_indicator</span>
-              <button onClick={(e) => { e.stopPropagation(); onToggleVisible(o.id) }} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] shrink-0" title={hidden ? t('boards.show') : t('boards.hide')}>
+              <button type="button" onClick={(e) => { e.stopPropagation(); onToggleVisible(o.id) }} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] shrink-0" title={hidden ? t('boards.show') : t('boards.hide')}>
                 <span className="material-symbols-outlined text-[18px]">{hidden ? 'visibility_off' : 'visibility'}</span>
               </button>
               <span className={`material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] shrink-0 ${hidden ? 'opacity-40' : ''}`}>{LAYER_ICONS[o.type]}</span>
@@ -81,7 +81,7 @@ export default function LayersPanel({
                 onClick={(e) => e.stopPropagation()}
                 className={`flex-1 min-w-0 bg-transparent text-xs text-[var(--color-on-surface)] outline-none truncate focus:text-[var(--color-primary)] ${hidden ? 'opacity-40' : ''}`}
               />
-              <button onClick={(e) => { e.stopPropagation(); onToggleLock(o.id) }} className={`shrink-0 hover:text-[var(--color-primary)] ${o.locked ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)]/40 group-hover:text-[var(--color-on-surface-variant)]'}`} title={o.locked ? t('boards.unlockTip') : t('boards.lockTip')}>
+              <button type="button" onClick={(e) => { e.stopPropagation(); onToggleLock(o.id) }} className={`shrink-0 hover:text-[var(--color-primary)] ${o.locked ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)]/40 group-hover:text-[var(--color-on-surface-variant)]'}`} title={o.locked ? t('boards.unlockTip') : t('boards.lockTip')}>
                 <span className="material-symbols-outlined text-[16px]">{o.locked ? 'lock' : 'lock_open'}</span>
               </button>
             </li>

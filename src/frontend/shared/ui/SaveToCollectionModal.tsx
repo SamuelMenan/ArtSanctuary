@@ -98,7 +98,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
       <div className="bg-[var(--color-surface-container-lowest)] w-full max-w-sm rounded-sm shadow-2xl overflow-hidden ring-1 ring-[var(--color-outline-variant)]">
         <div className="p-4 border-b border-[var(--color-outline-variant)] flex items-center justify-between">
           <h3 className="font-sans font-bold text-[var(--color-primary)]">{t('modal.saveToCollection')}</h3>
-          <button onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
+          <button type="button" onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -113,7 +113,8 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
               {collections.map(c => {
                 const isSaved = c.artworks?.includes(artworkId);
                 return (
-                  <button 
+                  <button
+                    type="button"
                     key={c._id}
                     onClick={() => handleToggle(c)}
                     disabled={savingId === c._id}
@@ -149,7 +150,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
           </form>
           
           <div className="mt-4 pt-4 border-t border-[var(--color-outline-variant)]">
-            <button onClick={handleUnsaveAll} className="w-full text-center text-red-500 font-mono text-[10px] uppercase tracking-widest py-2 hover:bg-red-500/10 rounded-sm transition-colors">
+            <button type="button" onClick={handleUnsaveAll} className="w-full text-center text-red-500 font-mono text-[10px] uppercase tracking-widest py-2 hover:bg-red-500/10 rounded-sm transition-colors">
               Eliminar de mis guardados
             </button>
           </div>

@@ -47,6 +47,7 @@ export default function MixControls({
 
       <div className="ml-auto flex gap-2">
         <button
+          type="button"
           onClick={clearAll}
           disabled={slotsCount === 0}
           className="font-mono text-label-sm uppercase tracking-widest px-3 py-1.5 border border-[var(--color-outline)] rounded text-[var(--color-on-surface-variant)] hover:border-[var(--color-error)] hover:text-[var(--color-error)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"

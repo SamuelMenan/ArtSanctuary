@@ -5,8 +5,7 @@ import { markNotificationRead } from "@backend/services/notifications.service";
 import { NextRequest, NextResponse } from "next/server";
 
 export const PATCH = withErrorHandler("PATCH /api/notifications/[id]/read", async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params;
-    const session = await auth();
+  const [{ id }, session] = await Promise.all([params, auth()]);
     if (!session?.user?.id) {
       return apiError("UNAUTHORIZED", "No autenticado");
     }
