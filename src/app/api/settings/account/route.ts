@@ -1,14 +1,8 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
-import mongoose from "mongoose";
-import { connectDB } from "@backend/db/mongoose";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
-import { deleteAvatarFile } from "@backend/upload/avatar";
-import User from "@backend/models/User";
-import Artwork from "@backend/models/Artwork";
-import Collection from "@backend/models/Collection";
-import Notification from "@backend/models/Notification";
+import { deleteAccountCascade } from "@backend/services/users.service";
 
 const CONFIRM_WORD = "ELIMINAR";
 
@@ -42,31 +36,7 @@ export async function DELETE(req: NextRequest) {
     });
   }
 
-  await connectDB();
-  const userId = r.user._id;
-  const avatar = r.user.avatarUrl;
-
-  // Cascada. Sin transacciones (Mongo standalone): orden cuidadoso.
-  // 1. Obras del autor → eliminar.
-  // 2. Colecciones del owner → eliminar.
-  // 3. Notificaciones donde el usuario es actor o destinatario → eliminar.
-  // 4. Quitar el id de following/followers de otros usuarios.
-  // 5. Eliminar el usuario.
-  await Artwork.deleteMany({ artistId: userId });
-  await Collection.deleteMany({ owner: userId });
-  await Notification.deleteMany({
-    $or: [{ recipientId: userId }, { actorId: userId }],
-  });
-  await User.updateMany(
-    { $or: [{ following: userId }, { followers: userId }] },
-    { $pull: { following: userId, followers: userId } }
-  );
-  await User.deleteOne({ _id: userId });
-
-  if (avatar) await deleteAvatarFile(avatar);
-
-  // Garantizamos cierre limpio aunque connectDB cachee la conexión.
-  void mongoose;
+  await deleteAccountCascade(r.user._id.toString(), r.user.avatarUrl);
 
   return apiOk({ deleted: true });
 }

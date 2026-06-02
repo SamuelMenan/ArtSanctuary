@@ -5,9 +5,43 @@
  */
 import "server-only";
 import { connectDB } from "@backend/db/mongoose";
+import { deleteAvatarFile } from "@backend/upload/avatar";
 import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";
+import Collection from "@backend/models/Collection";
 import Notification from "@backend/models/Notification";
+
+/** ¿El username está tomado por otro usuario? */
+export async function isUsernameTaken(username: string, excludeUserId: string) {
+  await connectDB();
+  const exists = await User.findOne({ username, _id: { $ne: excludeUserId } });
+  return !!exists;
+}
+
+/** ¿El email está tomado por otro usuario? */
+export async function isEmailTaken(email: string, excludeUserId: string) {
+  await connectDB();
+  const dup = await User.findOne({ email, _id: { $ne: excludeUserId } });
+  return !!dup;
+}
+
+/**
+ * Borrado en cascada de la cuenta (Mongo standalone, sin transacciones):
+ * obras, colecciones, notificaciones, referencias en follows, el usuario y su
+ * avatar. Orden cuidadoso.
+ */
+export async function deleteAccountCascade(userId: string, avatarUrl?: string | null) {
+  await connectDB();
+  await Artwork.deleteMany({ artistId: userId });
+  await Collection.deleteMany({ owner: userId });
+  await Notification.deleteMany({ $or: [{ recipientId: userId }, { actorId: userId }] });
+  await User.updateMany(
+    { $or: [{ following: userId }, { followers: userId }] },
+    { $pull: { following: userId, followers: userId } },
+  );
+  await User.deleteOne({ _id: userId });
+  if (avatarUrl) await deleteAvatarFile(avatarUrl);
+}
 
 /** Actualiza idioma/tema del usuario. */
 export async function updateUserPreferences(userId: string, prefs: { locale: string; theme: string }) {

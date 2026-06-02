@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import User from "@backend/models/User";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { isUsernameTaken } from "@backend/services/users.service";
 import { validateProfile } from "@shared/lib/validation/settings";
 
 export async function PATCH(req: NextRequest) {
@@ -15,8 +15,8 @@ export async function PATCH(req: NextRequest) {
   const v = result.value;
 
   if (v.username && v.username !== r.user.username) {
-    const exists = await User.findOne({ username: v.username, _id: { $ne: r.user._id } });
-    if (exists) {
+    const taken = await isUsernameTaken(v.username, r.user._id.toString());
+    if (taken) {
       return apiError("CONFLICT", "Ese nombre de usuario ya está en uso", {
         username: "Nombre no disponible",
       });

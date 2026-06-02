@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
-import User from "@backend/models/User";
 import { requireUser } from "@backend/auth/requireUser";
 import { apiError, apiOk } from "@backend/http/errors";
+import { isEmailTaken } from "@backend/services/users.service";
 import { validateEmail } from "@shared/lib/validation/settings";
 
 export async function PATCH(req: NextRequest) {
@@ -34,7 +34,7 @@ export async function PATCH(req: NextRequest) {
     return apiOk({ email: r.user.email, changed: false });
   }
 
-  const dup = await User.findOne({ email: emailRes.value, _id: { $ne: r.user._id } });
+  const dup = await isEmailTaken(emailRes.value, r.user._id.toString());
   if (dup) {
     return apiError("CONFLICT", "Email en uso", { newEmail: "Email en uso" });
   }
