@@ -47,27 +47,27 @@ export function AppearanceForm() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-3">
-        <span className={labelCls}>{t('settings.theme')}</span>
-        <div role="group" aria-label={t('settings.theme')} className="flex flex-wrap gap-3">
+      <fieldset className="space-y-3">
+        <legend className={labelCls}>{t('settings.theme')}</legend>
+        <div className="flex flex-wrap gap-3">
           {themes.map((opt) => (
             <SegBtn key={opt.value} active={theme === opt.value} onClick={() => setTheme(opt.value)}>
               {opt.label}
             </SegBtn>
           ))}
         </div>
-      </div>
+      </fieldset>
 
-      <div className="space-y-3">
-        <span className={labelCls}>{t('settings.language')}</span>
-        <div role="group" aria-label={t('settings.language')} className="flex flex-wrap gap-3">
+      <fieldset className="space-y-3">
+        <legend className={labelCls}>{t('settings.language')}</legend>
+        <div className="flex flex-wrap gap-3">
           {locales.map((opt) => (
             <SegBtn key={opt.value} active={locale === opt.value} onClick={() => setLocale(opt.value)}>
               {opt.label}
             </SegBtn>
           ))}
         </div>
-      </div>
+      </fieldset>
     </div>
   )
 }

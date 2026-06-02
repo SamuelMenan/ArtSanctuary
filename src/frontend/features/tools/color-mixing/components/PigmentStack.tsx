@@ -49,6 +49,7 @@ export default function PigmentStack({ L, slots, totalWeight, setWeight, removeS
               </div>
               <input
                 type="range"
+                aria-label={s.name}
                 min="1"
                 max="100"
                 value={s.weight}

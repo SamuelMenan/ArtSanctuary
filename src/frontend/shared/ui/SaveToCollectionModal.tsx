@@ -139,6 +139,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
           <form onSubmit={handleCreate} className="flex gap-2">
             <input 
               type="text" 
+              aria-label={t('modal.newCollection')}
               placeholder={t('modal.newCollection')} 
               value={newCollectionName}
               onChange={e => setNewCollectionName(e.target.value)}

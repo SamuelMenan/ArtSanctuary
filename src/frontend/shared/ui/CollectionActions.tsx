@@ -48,6 +48,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
       <div className="flex gap-2 items-center mb-2">
         <input 
           type="text" 
+          aria-label="Nombre de la colección"
           value={name} 
           onChange={e => setName(e.target.value)} 
           className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-1 text-sm font-sans focus:border-[var(--color-primary)] outline-none text-[var(--color-primary)] rounded-sm"

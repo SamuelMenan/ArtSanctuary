@@ -39,13 +39,13 @@ export default function ArtworkForm({
 
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.title')}</label>
-          <input type="text" required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className={inputClass} placeholder={t('upload.placeholderTitle')} />
+          <input type="text" aria-label={t('upload.title')} required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className={inputClass} placeholder={t('upload.placeholderTitle')} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.category')}</label>
-            <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as ArtworkCategory })} className={`${inputClass} appearance-none cursor-pointer`}>
+            <select aria-label={t('upload.category')} value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as ArtworkCategory })} className={`${inputClass} appearance-none cursor-pointer`}>
               <option value="pintura">{t('upload.catPainting')}</option>
               <option value="escultura">{t('upload.catSculpture')}</option>
               <option value="ilustracion">{t('upload.catIllustration')}</option>
@@ -56,7 +56,7 @@ export default function ArtworkForm({
 
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.visibility')}</label>
-            <select value={formData.visibility} onChange={e => setFormData({ ...formData, visibility: e.target.value })} className={`${inputClass} appearance-none cursor-pointer`}>
+            <select aria-label={t('upload.visibility')} value={formData.visibility} onChange={e => setFormData({ ...formData, visibility: e.target.value })} className={`${inputClass} appearance-none cursor-pointer`}>
               <option value="public">{t('upload.public')}</option>
               <option value="unlisted">{t('upload.unlisted')}</option>
               <option value="private">{t('upload.private')}</option>
@@ -74,7 +74,7 @@ export default function ArtworkForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.format')}</label>
-            <select value={formData.dateType} onChange={e => setFormData({ ...formData, dateType: e.target.value as DateType })} className={`${inputClass} appearance-none cursor-pointer`}>
+            <select aria-label={t('upload.format')} value={formData.dateType} onChange={e => setFormData({ ...formData, dateType: e.target.value as DateType })} className={`${inputClass} appearance-none cursor-pointer`}>
               <option value="year">{t('upload.year')}</option>
               <option value="exact">{t('upload.exact')}</option>
               <option value="monthyear">{t('upload.monthyear')}</option>
@@ -87,6 +87,7 @@ export default function ArtworkForm({
             <label className={labelClass}>{t('upload.value')}</label>
             <input
               type={formData.dateType === 'exact' ? 'date' : 'text'}
+              aria-label={t('upload.value')}
               value={formData.dateValue}
               onChange={e => setFormData({ ...formData, dateValue: e.target.value })}
               className={inputClass}
@@ -105,7 +106,7 @@ export default function ArtworkForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.medium')}</label>
-            <input type="text" value={formData.medium} onChange={e => setFormData({ ...formData, medium: e.target.value })} className={inputClass} placeholder={presets.mediums[0] ? t(presets.mediums[0]) :  t('upload.placeholderMedium')} />
+            <input type="text" aria-label={t('upload.medium')} value={formData.medium} onChange={e => setFormData({ ...formData, medium: e.target.value })} className={inputClass} placeholder={presets.mediums[0] ? t(presets.mediums[0]) :  t('upload.placeholderMedium')} />
             {presets.mediums.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {presets.mediums.map(m => (
@@ -116,7 +117,7 @@ export default function ArtworkForm({
           </div>
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.technique')}</label>
-            <input type="text" value={formData.technique} onChange={e => setFormData({ ...formData, technique: e.target.value })} className={inputClass} placeholder={presets.techniques[0] ? t(presets.techniques[0]) :  t('upload.placeholderTechnique')} />
+            <input type="text" aria-label={t('upload.technique')} value={formData.technique} onChange={e => setFormData({ ...formData, technique: e.target.value })} className={inputClass} placeholder={presets.techniques[0] ? t(presets.techniques[0]) :  t('upload.placeholderTechnique')} />
             {presets.techniques.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {presets.techniques.map(tk => (
@@ -130,16 +131,16 @@ export default function ArtworkForm({
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.dimensions')}</label>
           <div className="flex gap-2">
-            <input type="number" placeholder={t('upload.width')} value={formData.dimWidth} onChange={e => setFormData({ ...formData, dimWidth: e.target.value })} className={`${inputClass} text-center`} />
+            <input type="number" aria-label={t('upload.width')} placeholder={t('upload.width')} value={formData.dimWidth} onChange={e => setFormData({ ...formData, dimWidth: e.target.value })} className={`${inputClass} text-center`} />
             <span className="text-[var(--color-on-surface-variant)] flex items-center">x</span>
-            <input type="number" placeholder={t('upload.height')} value={formData.dimHeight} onChange={e => setFormData({ ...formData, dimHeight: e.target.value })} className={`${inputClass} text-center`} />
+            <input type="number" aria-label={t('upload.height')} placeholder={t('upload.height')} value={formData.dimHeight} onChange={e => setFormData({ ...formData, dimHeight: e.target.value })} className={`${inputClass} text-center`} />
             {showDepth && (
               <>
                 <span className="text-[var(--color-on-surface-variant)] flex items-center">x</span>
-                <input type="number" placeholder={t('upload.depth')} value={formData.dimDepth} onChange={e => setFormData({ ...formData, dimDepth: e.target.value })} className={`${inputClass} text-center`} />
+                <input type="number" aria-label={t('upload.depth')} placeholder={t('upload.depth')} value={formData.dimDepth} onChange={e => setFormData({ ...formData, dimDepth: e.target.value })} className={`${inputClass} text-center`} />
               </>
             )}
-            <select value={formData.dimUnit} onChange={e => setFormData({ ...formData, dimUnit: e.target.value })} className={`${inputClass} text-center cursor-pointer w-32`}>
+            <select aria-label={t('upload.dimUnit')} value={formData.dimUnit} onChange={e => setFormData({ ...formData, dimUnit: e.target.value })} className={`${inputClass} text-center cursor-pointer w-32`}>
               {dimensionUnitOptions.map(u => (
                 <option key={u} value={u}>{u}</option>
               ))}
@@ -156,17 +157,17 @@ export default function ArtworkForm({
 
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.curatorialDescription')}</label>
-          <textarea rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className={`${inputClass} resize-none`} placeholder={t('upload.placeholderContext')} />
+          <textarea aria-label={t('upload.curatorialDescription')} rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className={`${inputClass} resize-none`} placeholder={t('upload.placeholderContext')} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.copyrightHolder')}</label>
-            <input type="text" value={formData.copyrightHolder} onChange={e => setFormData({ ...formData, copyrightHolder: e.target.value })} className={inputClass} placeholder={t('upload.placeholderAuthor')} />
+            <input type="text" aria-label={t('upload.copyrightHolder')} value={formData.copyrightHolder} onChange={e => setFormData({ ...formData, copyrightHolder: e.target.value })} className={inputClass} placeholder={t('upload.placeholderAuthor')} />
           </div>
           <div className="space-y-2">
             <label className={labelClass}>{t('upload.license')}</label>
-            <select value={formData.licenseType} onChange={e => setFormData({ ...formData, licenseType: e.target.value })} className={`${inputClass} appearance-none cursor-pointer`}>
+            <select aria-label={t('upload.license')} value={formData.licenseType} onChange={e => setFormData({ ...formData, licenseType: e.target.value })} className={`${inputClass} appearance-none cursor-pointer`}>
               <option value="all-rights-reserved">{t('upload.licenseAllRights')}</option>
               <option value="cc-by">{t('upload.licenseCcBy')}</option>
               <option value="cc-by-nc">{t('upload.licenseCcByNc')}</option>
@@ -176,7 +177,7 @@ export default function ArtworkForm({
 
         <div className="space-y-2">
           <label className={labelClass}>{t('upload.tagsCommaSeparated')}</label>
-          <input type="text" value={formData.tags} onChange={e => setFormData({ ...formData, tags: e.target.value })} className={inputClass} placeholder={t('upload.placeholderTags')} />
+          <input type="text" aria-label={t('upload.tagsCommaSeparated')} value={formData.tags} onChange={e => setFormData({ ...formData, tags: e.target.value })} className={inputClass} placeholder={t('upload.placeholderTags')} />
         </div>
       </section>
 

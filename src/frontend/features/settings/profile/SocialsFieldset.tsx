@@ -25,6 +25,7 @@ export function SocialsFieldset({ legend, socials, fieldErrors, updateSocial }: 
               <input
                 id={`s-${k}`}
                 type="url"
+                aria-label={k}
                 inputMode="url"
                 placeholder={`https://${k}.com/...`}
                 value={socials[k] ?? ''}

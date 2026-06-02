@@ -52,6 +52,7 @@ export default function ArtworkComments({
         <form onSubmit={handleComment} className="flex gap-2">
           <input
             type="text"
+            aria-label={t('modal.addComment')}
             value={commentText}
             onChange={e => setCommentText(e.target.value)}
             placeholder={t('modal.addComment')}

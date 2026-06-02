@@ -60,7 +60,7 @@ export function EmailSection({ initialEmail }: EmailSectionProps) {
       </h4>
       <div className="space-y-2">
         <label className={labelCls}>{t('settings.email')}</label>
-        <input type="email" value={email} disabled readOnly className={inputCls + ' opacity-60 cursor-not-allowed'} />
+        <input type="email" aria-label={t('settings.email')} value={email} disabled readOnly className={inputCls + ' opacity-60 cursor-not-allowed'} />
       </div>
       <div className="space-y-2">
         <label htmlFor="newEmail" className={labelCls}>

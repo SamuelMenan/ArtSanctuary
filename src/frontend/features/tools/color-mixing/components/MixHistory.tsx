@@ -22,6 +22,7 @@ export default function MixHistory({ L, history, savedPalette }: MixHistoryProps
             {history.map((h, i) => (
               <button
                 type="button"
+                aria-label={h}
                 key={`${h}-${i}`}
                 className="size-8 rounded-full shrink-0 ring-1 ring-white/10 hover:scale-110 transition-transform"
                 style={{
@@ -42,6 +43,7 @@ export default function MixHistory({ L, history, savedPalette }: MixHistoryProps
             {savedPalette.map((h, i) => (
               <button
                 type="button"
+                aria-label={h}
                 key={`${h}-${i}`}
                 className="size-8 rounded shrink-0 ring-1 ring-white/10 hover:scale-110 transition-transform"
                 style={{ background: h }}

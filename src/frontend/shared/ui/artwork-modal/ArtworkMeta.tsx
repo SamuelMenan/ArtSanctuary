@@ -104,18 +104,18 @@ export default function ArtworkMeta({
 
       <div className="space-y-1">
         <label className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('modal.title')}</label>
-        <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none" />
+        <input type="text" aria-label={t('modal.title')} value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none" />
       </div>
 
       <div className="space-y-1">
         <label className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('upload.description')}</label>
-        <textarea value={editForm.description} rows={4} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none resize-none" />
+        <textarea value={editForm.description} aria-label={t('upload.description')} rows={4} onChange={e => setEditForm({...editForm, description: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none resize-none" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('modal.discipline')}</label>
-          <select value={editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none">
+          <select value={editForm.category} aria-label={t('modal.discipline')} onChange={e => setEditForm({...editForm, category: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none">
             <option value="pintura">Pintura</option>
             <option value="escultura">Escultura</option>
             <option value="ilustracion">{getCategoryLabel(locale, artwork.category)}</option>
@@ -125,7 +125,7 @@ export default function ArtworkMeta({
         </div>
         <div className="space-y-1">
           <label className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('modal.visibility')}</label>
-          <select value={editForm.visibility} onChange={e => setEditForm({...editForm, visibility: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none">
+          <select value={editForm.visibility} aria-label={t('modal.visibility')} onChange={e => setEditForm({...editForm, visibility: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none">
             <option value="public">{t('upload.public')}</option>
             <option value="unlisted">{t('upload.unlisted')}</option>
             <option value="private">{t('upload.private')}</option>
@@ -135,12 +135,12 @@ export default function ArtworkMeta({
 
       <div className="space-y-1">
         <label className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('modal.support')}</label>
-        <input type="text" value={editForm.medium} onChange={e => setEditForm({...editForm, medium: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none" />
+        <input type="text" value={editForm.medium} aria-label={t('modal.support')} onChange={e => setEditForm({...editForm, medium: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none" />
       </div>
 
       <div className="space-y-1">
         <label className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('modal.tags')}</label>
-        <input type="text" value={editForm.tags} onChange={e => setEditForm({...editForm, tags: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none" />
+        <input type="text" value={editForm.tags} aria-label={t('modal.tags')} onChange={e => setEditForm({...editForm, tags: e.target.value})} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] rounded-sm focus:border-[var(--color-primary)] outline-none" />
       </div>
 
       <div className="pt-4 flex gap-2 border-t border-[var(--color-outline-variant)] mt-6">

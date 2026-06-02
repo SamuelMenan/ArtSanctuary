@@ -89,6 +89,7 @@ export default function UploadDropzone({
                       <input
                         type="checkbox"
                         id={`sug-${s.field}`}
+                        aria-label={t(s.label)}
                         checked={!!acceptedFields[s.field]}
                         onChange={e => setAcceptedFields(prev => ({ ...prev, [s.field]: e.target.checked }))}
                         className="mt-0.5 accent-[var(--color-primary)]"

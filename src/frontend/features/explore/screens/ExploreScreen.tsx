@@ -120,6 +120,7 @@ function ExploreContent() {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-[var(--color-on-surface-variant)]">search</span>
             <input 
               type="text" 
+              aria-label={t('explore.placeholder')}
               placeholder={t('explore.placeholder')} 
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -160,11 +161,11 @@ function ExploreContent() {
             </div>
             <div className="space-y-2">
               <label className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">{t('explore.techLabel')}</label>
-              <input type="text" value={technique} onChange={(e) => setTechnique(e.target.value)} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] font-sans focus:outline-none focus:border-[var(--color-primary)]" />
+              <input type="text" aria-label={t('explore.techLabel')} value={technique} onChange={(e) => setTechnique(e.target.value)} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] font-sans focus:outline-none focus:border-[var(--color-primary)]" />
             </div>
             <div className="space-y-2">
               <label className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">{t('explore.mediumLabel')}</label>
-              <input type="text" value={medium} onChange={(e) => setMedium(e.target.value)} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] font-sans focus:outline-none focus:border-[var(--color-primary)]" />
+              <input type="text" aria-label={t('explore.mediumLabel')} value={medium} onChange={(e) => setMedium(e.target.value)} className="w-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-2 text-sm text-[var(--color-primary)] font-sans focus:outline-none focus:border-[var(--color-primary)]" />
             </div>
             <div className="flex items-end">
               <button type="button" onClick={clearFilters} className="w-full font-mono text-[10px] uppercase tracking-widest px-4 py-3 border border-[var(--color-error)] text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors">
@@ -266,6 +267,14 @@ function ExploreContent() {
                       <div 
                         key={art._id.toString()} 
                         onClick={() => setDirectArtworkOpen(art._id.toString())}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setDirectArtworkOpen(art._id.toString());
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
                         className="snap-start shrink-0 w-64 group cursor-pointer relative"
                       >
                         <div className="aspect-square bg-[var(--color-surface-container-low)] overflow-hidden rounded-sm border border-[var(--color-outline-variant)] group-hover:border-[var(--color-primary)] transition-colors">

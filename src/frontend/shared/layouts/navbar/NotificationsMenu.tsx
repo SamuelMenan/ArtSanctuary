@@ -39,17 +39,11 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
 
           <div className="max-h-96 overflow-y-auto custom-scrollbar flex flex-col">
             {notifications.length > 0 ? notifications.map((n) => (
-              <div
+              <button
+                type="button"
                 key={n._id}
                 onClick={() => handleNotifClick(n)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleNotifClick(n);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                className={`p-4 border-b border-[var(--color-outline-variant)] flex items-start gap-3 hover:bg-[var(--color-surface-container-low)] transition-colors cursor-pointer ${!n.read ? 'bg-[var(--color-surface-container-lowest)] border-l-2 border-l-[var(--color-primary)]' : 'opacity-70'}`}
+                className={`w-full text-left p-4 border-b border-[var(--color-outline-variant)] flex items-start gap-3 hover:bg-[var(--color-surface-container-low)] transition-colors cursor-pointer ${!n.read ? 'bg-[var(--color-surface-container-lowest)] border-l-2 border-l-[var(--color-primary)]' : 'opacity-70'}`}
               >
                 <div className="shrink-0 mt-1">
                   <span className="material-symbols-outlined text-[var(--color-on-surface-variant)] text-lg">
@@ -69,7 +63,7 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
                     {new Date(n.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-              </div>
+              </button>
             )) : (
               <div className="p-8 text-center text-[var(--color-on-surface-variant)] font-sans text-xs">
                 {t('menu.noNotifications')}

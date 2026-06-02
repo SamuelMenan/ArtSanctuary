@@ -83,13 +83,18 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
   if (!open) return null
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-labelledby="follow-modal-title"
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 m-0 w-full max-w-none h-full max-h-none border-0"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          if (e.target === e.currentTarget) onClose()
+        }
       }}
     >
       <div
@@ -171,6 +176,6 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
           )}
         </div>
       </div>
-    </div>
+    </dialog>
   )
 }

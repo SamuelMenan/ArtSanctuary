@@ -92,7 +92,7 @@ export default function GridControls({
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => { pushSnapshot(); setRealWidthCm((w) => snapMul(w - squareCm)); }} className={stepBtn} aria-label={t('grid.minusSquareTip')}>remove</button>
             <input
-              type="number" min={squareCm} step={squareCm} value={realWidthCm}
+              type="number" aria-label={t('grid.width')} min={squareCm} step={squareCm} value={realWidthCm}
               onFocus={() => pushSnapshot()}
               onChange={(e) => setRealWidthCm(Number(e.target.value))}
               onBlur={(e) => setRealWidthCm(snapMul(Number(e.target.value)))}
@@ -105,7 +105,7 @@ export default function GridControls({
         <div className="flex items-center justify-between gap-2">
           <span className={lbl}>{t('grid.square')}</span>
           <div className="flex items-center gap-1.5">
-            <input type="number" min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
+            <input type="number" aria-label={t('grid.square')} min={0.1} step={0.5} value={squareCm} onFocus={() => pushSnapshot()} onChange={(e) => setSquareCm(Math.max(0.1, Number(e.target.value)))} className={numInput} />
             <span className={lbl}>cm</span>
           </div>
         </div>
@@ -142,6 +142,7 @@ export default function GridControls({
           <div className="w-9 h-9 shrink-0 rounded-lg border border-[var(--color-outline-variant)] hover:border-[var(--color-outline)] transition-colors relative overflow-hidden" title={t('grid.color')}>
             <input
               type="color"
+              aria-label={t('grid.color')}
               value={color}
               onFocus={() => { prevColor.current = color }}
               onBlur={() => { if (color !== prevColor.current) pushSnapshot({ color: prevColor.current }) }}

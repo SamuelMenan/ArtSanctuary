@@ -62,10 +62,18 @@ export default function LayersPanel({
             <li
               key={o.id}
               draggable
+              role="button"
+              tabIndex={0}
               onDragStart={() => { dragRef.current = o.id }}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => { if (dragRef.current) onMove(dragRef.current, o.id); dragRef.current = null }}
               onClick={() => onSelect(o.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelect(o.id);
+                }
+              }}
               className={`group flex items-center gap-1.5 px-2 h-9 cursor-pointer border-l-2 ${
                 sel ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]' : 'border-transparent hover:bg-[var(--color-surface-container-high)]'
               }`}
@@ -76,6 +84,7 @@ export default function LayersPanel({
               </button>
               <span className={`material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)] shrink-0 ${hidden ? 'opacity-40' : ''}`}>{LAYER_ICONS[o.type]}</span>
               <input
+                aria-label={t('boards.layerName') || 'Nombre de capa'}
                 value={layerLabel(o, t)}
                 onChange={(e) => onPatch(o.id, { name: e.target.value })}
                 onClick={(e) => e.stopPropagation()}
@@ -94,7 +103,7 @@ export default function LayersPanel({
       {selectedObj && (
         <div className="border-t border-[var(--color-outline-variant)] px-3 py-2 shrink-0 flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">opacity</span>
-          <input type="range" min={0} max={100} value={selectedObj.opacity ?? 100} onChange={(e) => onPatch(selectedObj.id, { opacity: Number(e.target.value) })} className="flex-1 custom-range" />
+          <input type="range" min={0} max={100} aria-label={t('boards.opacity') || 'Opacidad'} value={selectedObj.opacity ?? 100} onChange={(e) => onPatch(selectedObj.id, { opacity: Number(e.target.value) })} className="flex-1 custom-range" />
           <span className="font-mono text-[10px] text-[var(--color-primary)] w-9 text-right">{selectedObj.opacity ?? 100}%</span>
         </div>
       )}
