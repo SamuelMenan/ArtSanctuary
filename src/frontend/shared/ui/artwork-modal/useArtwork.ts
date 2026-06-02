@@ -45,14 +45,16 @@ export function useArtwork({ artworkId, isOpen, onClose, onUpdated }: UseArtwork
   useEffect(() => {
     if (!isOpen || !artworkId) return;
 
+    let ignore = false;
     const fetchArtwork = async () => {
       setLoading(true);
       setError('');
       setIsEditing(false);
       try {
-        const res = await fetch(`/api/artworks/${artworkId}`);
+        const res = await window.fetch(`/api/artworks/${artworkId}`);
         if (!res.ok) throw new Error(t('modal.loadError'));
         const data = await res.json();
+        if (ignore) return;
         setArtwork(data);
 
         if (session?.user?.id) {
@@ -80,7 +82,8 @@ export function useArtwork({ artworkId, isOpen, onClose, onUpdated }: UseArtwork
     };
 
     fetchArtwork();
-  }, [artworkId, isOpen, session]);
+    return () => { ignore = true; };
+  }, [artworkId, isOpen, session, t]);
 
   // Manejo de ESC
   useEffect(() => {

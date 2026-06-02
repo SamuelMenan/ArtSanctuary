@@ -26,11 +26,13 @@ export default function BoardsListPage() {
   const [hasHandoff, setHasHandoff] = useState(false)
 
   useEffect(() => {
+    let ignore = false;
     setHasHandoff(!!peekHandoff())
-    fetch('/api/boards')
+    window.fetch('/api/boards')
       .then((r) => (r.ok ? r.json() : { boards: [] }))
-      .then((d) => setBoards(d.boards ?? []))
-      .finally(() => setLoading(false))
+      .then((d) => { if (!ignore) setBoards(d.boards ?? []) })
+      .finally(() => { if (!ignore) setLoading(false) })
+    return () => { ignore = true; }
   }, [])
 
   const createBoard = async () => {

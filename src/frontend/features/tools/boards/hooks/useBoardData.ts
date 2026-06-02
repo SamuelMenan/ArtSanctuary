@@ -42,7 +42,7 @@ export function useBoardData(
   /* ── Carga inicial ── */
   useEffect(() => {
     let active = true
-    fetch(`/api/boards/${boardId}`)
+    window.fetch(`/api/boards/${boardId}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d: { board: BoardData; isOwner: boolean }) => {
         if (!active) return
@@ -131,7 +131,7 @@ export function useBoardData(
       } catch {
         thumbnailUrl = undefined
       }
-      fetch(`/api/boards/${boardId}`, {
+      window.fetch(`/api/boards/${boardId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

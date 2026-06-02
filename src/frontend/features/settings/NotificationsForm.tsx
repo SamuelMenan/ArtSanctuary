@@ -22,7 +22,7 @@ interface Props {
 
 export function NotificationsForm({ initial }: Props) {
   const { t } = usePreferences()
-  const [state, setState] = useState<NotificationSettings>(initial)
+  const [state, setState] = useState<NotificationSettings>(() => initial)
   const [pending, start] = useTransition()
   const { status, set } = useStatus()
 

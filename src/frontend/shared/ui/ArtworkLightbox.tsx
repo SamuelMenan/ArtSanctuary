@@ -2,13 +2,14 @@
 'use client';
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import ArtworkModal from './ArtworkModal';
 
 /**
  * Isla cliente del grid: abre el modal según `?art=<id>` en la URL. Mantiene el
  * grid (tarjetas) como Server Component; solo este overlay lleva JS al cliente.
  */
-export default function ArtworkLightbox({ artworks }: { artworks: any[] }) {
+function ArtworkLightboxInner({ artworks }: { artworks: any[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -38,5 +39,13 @@ export default function ArtworkLightbox({ artworks }: { artworks: any[] }) {
       onNext={idx < artworks.length - 1 ? () => go(artworks[idx + 1]._id.toString()) : undefined}
       onUpdated={() => router.refresh()}
     />
+  );
+}
+
+export default function ArtworkLightbox({ artworks }: { artworks: any[] }) {
+  return (
+    <Suspense fallback={null}>
+      <ArtworkLightboxInner artworks={artworks} />
+    </Suspense>
   );
 }

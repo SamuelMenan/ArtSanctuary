@@ -23,14 +23,16 @@ export default function Sidebar() {
   const [collections, setCollections] = useState<{ _id: string; name: string }[]>([])
 
   useEffect(() => {
+    let ignore = false;
     if (session?.user?.id) {
-      fetch('/api/collections')
+      window.fetch('/api/collections')
         .then(res => res.json())
         .then(data => {
-          if (data.collections) setCollections(data.collections)
+          if (!ignore && data.collections) setCollections(data.collections)
         })
         .catch(err => console.error(err))
     }
+    return () => { ignore = true; };
   }, [session])
 
   return (

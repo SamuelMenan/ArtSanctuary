@@ -47,23 +47,29 @@ export function useUploadArtwork() {
     formData.category
   );
 
-  const [acceptedFields, setAcceptedFields] = useState<Record<string, boolean>>({});
+  const [userAcceptedFields, setUserAcceptedFields] = useState<Record<string, boolean>>({});
 
-  // Default checked = high-confidence suggestions
-  useEffect(() => {
-    const next: Record<string, boolean> = {};
+  const acceptedFields = useMemo(() => {
+    const next: Record<string, boolean> = { ...userAcceptedFields };
     suggestions.forEach(s => {
-      next[s.field] = s.confidence > 0.8;
+      if (!(s.field in next)) {
+        next[s.field] = s.confidence > 0.8;
+      }
     });
-    setAcceptedFields(next);
-  }, [suggestions.length, imageFile?.name]);
+    return next;
+  }, [suggestions, userAcceptedFields]);
+
+  const setAcceptedFields = (val: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => {
+    setUserAcceptedFields(typeof val === 'function' ? val(acceptedFields) : val);
+  };
 
   // Auto-switch category when inferred (only if user hasn't manually changed yet — heuristic: still default pintura)
   useEffect(() => {
     if (inferredCategory && inferredCategory !== formData.category && formData.category === 'pintura') {
       setFormData(prev => ({ ...prev, category: inferredCategory }));
     }
-  }, [inferredCategory]);
+    return () => {};
+  }, [inferredCategory, formData.category]);
 
   const presets = useMemo(() => getPresets(formData.category), [formData.category]);
   const showDepth = formData.category === 'escultura';

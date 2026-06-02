@@ -36,11 +36,13 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
 
   useEffect(() => {
     if (tab !== 'collections' || collections.length > 0) return;
+    let ignore = false;
     setLoadingList(true);
-    fetch('/api/collections')
+    window.fetch('/api/collections')
       .then((r) => (r.ok ? r.json() : { collections: [] }))
-      .then((d) => setCollections(d.collections ?? []))
-      .finally(() => setLoadingList(false));
+      .then((d) => { if (!ignore) setCollections(d.collections ?? []) })
+      .finally(() => { if (!ignore) setLoadingList(false) });
+    return () => { ignore = true; };
   }, [tab, collections.length]);
 
   const openDetail = async (c: Collection) => {

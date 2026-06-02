@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, use, useState, useEffect, ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 
 type ChromeCtx = {
@@ -17,7 +17,7 @@ type ChromeCtx = {
 const Ctx = createContext<ChromeCtx | null>(null)
 
 export function useChrome() {
-  const c = useContext(Ctx)
+  const c = use(Ctx)
   if (!c) throw new Error('useChrome debe usarse dentro de <ChromeProvider>')
   return c
 }
@@ -35,13 +35,10 @@ export default function ChromeProvider({ children }: { children: ReactNode }) {
   // El navbar arranca visible; el usuario lo esconde/muestra a voluntad.
   const [navbarOpen, setNavbarOpen] = useState(true)
 
-  // Auto-colapsa el sidebar al entrar a una inmersiva y restaura al salir, sin
-  // useEffect: ajuste de estado en render al cambiar de ruta (patrón de React).
-  const [prevImmersive, setPrevImmersive] = useState(isImmersive)
-  if (prevImmersive !== isImmersive) {
-    setPrevImmersive(isImmersive)
+  // Auto-colapsa el sidebar al entrar a una inmersiva y restaura al salir.
+  useEffect(() => {
     setSidebarOpen(!isImmersive)
-  }
+  }, [isImmersive])
 
   return (
     <Ctx.Provider

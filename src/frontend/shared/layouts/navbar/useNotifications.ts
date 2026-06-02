@@ -30,9 +30,10 @@ export function useNotifications(onNavigate?: () => void) {
       return new URL(path, window.location.origin).toString()
     }
 
+    let ignore = false;
     const fetchNotifs = async () => {
       try {
-        const res = await fetch(buildApiUrl('/api/notifications'), {
+        const res = await window.fetch(buildApiUrl('/api/notifications'), {
           method: 'GET',
           credentials: 'include',
           cache: 'no-store',
@@ -40,7 +41,7 @@ export function useNotifications(onNavigate?: () => void) {
         if (!res.ok) return
 
         const data = await res.json();
-        if (data.notifications) {
+        if (!ignore && data.notifications) {
           setNotifications(data.notifications);
           setUnreadCount(data.unreadCount);
         }
@@ -51,7 +52,7 @@ export function useNotifications(onNavigate?: () => void) {
 
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 30000); // Polling cada 30s
-    return () => clearInterval(interval);
+    return () => { ignore = true; clearInterval(interval); };
   }, [status]);
 
   const markAllAsRead = async () => {

@@ -44,18 +44,21 @@ function ExploreContent() {
 
   // Debounce hook customizado o implementado aquí para la búsqueda
   useEffect(() => {
+    let ignore = false;
     const fetchTrending = async () => {
       try {
-        const res = await fetch('/api/explore/trending');
+        const res = await window.fetch('/api/explore/trending');
         const data = await res.json();
+        if (ignore) return;
         setTrendingData(data);
       } catch (err) {
         console.error(err);
       } finally {
-        initialLoadingRef.current = false;
+        if (!ignore) initialLoadingRef.current = false;
       }
     };
     fetchTrending();
+    return () => { ignore = true; };
   }, []);
 
   const performSearch = useCallback(async () => {
@@ -77,7 +80,7 @@ function ExploreContent() {
       // Actualizar URL sin recargar
       push(`/explore?${params.toString()}`, { scroll: false });
 
-      const res = await fetch(`/api/artworks/search?${params.toString()}`);
+      const res = await window.fetch(`/api/artworks/search?${params.toString()}`);
       const data = await res.json();
       setResults(data.artworks || []);
     } catch (err) {

@@ -21,7 +21,7 @@ interface Props {
 
 export function PrivacyForm({ initial }: Props) {
   const { t } = usePreferences()
-  const [state, setState] = useState<PrivacySettings>(initial)
+  const [state, setState] = useState<PrivacySettings>(() => initial)
   const [pending, start] = useTransition()
   const { status, set } = useStatus()
 

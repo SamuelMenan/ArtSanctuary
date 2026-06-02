@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   createTranslator,
@@ -54,8 +54,8 @@ export default function AppPreferencesProvider({
   userId?: string | null
 }) {
   const router = useRouter()
-  const [locale, setLocaleState] = useState<Locale>(normalizeLocale(initialLocale))
-  const [theme, setThemeState] = useState<ThemeMode>(normalizeTheme(initialTheme))
+  const [locale, setLocaleState] = useState<Locale>(() => normalizeLocale(initialLocale))
+  const [theme, setThemeState] = useState<ThemeMode>(() => normalizeTheme(initialTheme))
   const [systemDark, setSystemDark] = useState<boolean>(false)
   // Diccionario del idioma activo. Inicial llega del servidor (solo ese idioma
   // viaja al bundle); al cambiar de idioma se carga el otro chunk bajo demanda.
@@ -84,7 +84,7 @@ export default function AppPreferencesProvider({
     localStorage.setItem(THEME_COOKIE, theme)
   }, [locale, theme, resolvedTheme])
 
-  const persist = async (nextLocale: Locale, nextTheme: ThemeMode) => {
+  const persist = useCallback(async (nextLocale: Locale, nextTheme: ThemeMode) => {
     if (!userId) return
     try {
       await fetch('/api/preferences', {
@@ -95,19 +95,19 @@ export default function AppPreferencesProvider({
     } catch {
       // Cookies y estado local siguen siendo fuente de verdad si falla la red.
     }
-  }
+  }, [userId])
 
-  const setLocale = (nextLocale: Locale) => {
+  const setLocale = useCallback((nextLocale: Locale) => {
     setLocaleState(nextLocale)
     void loadDictionary(nextLocale).then(setDict)
     void persist(nextLocale, theme)
     router.refresh()
-  }
+  }, [persist, theme, router])
 
-  const setTheme = (nextTheme: ThemeMode) => {
+  const setTheme = useCallback((nextTheme: ThemeMode) => {
     setThemeState(nextTheme)
     void persist(locale, nextTheme)
-  }
+  }, [persist, locale])
 
   const value = useMemo(() => {
     return {
@@ -118,13 +118,13 @@ export default function AppPreferencesProvider({
       setTheme,
       t: createTranslator(dict),
     }
-  }, [locale, theme, resolvedTheme, dict])
+  }, [locale, theme, resolvedTheme, dict, setLocale, setTheme])
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }
 
 export function usePreferences() {
-  const ctx = useContext(PreferencesContext)
+  const ctx = use(PreferencesContext)
   if (!ctx) throw new Error('usePreferences must be used within AppPreferencesProvider')
   return ctx
 }

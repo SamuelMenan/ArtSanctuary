@@ -40,7 +40,7 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
     if (!open) return
     const key = `${userId}:${kind}`
     let cancelled = false
-    fetch(`/api/users/${userId}/${kind}`)
+    window.fetch(`/api/users/${userId}/${kind}`)
       .then(async (res) => {
         const data = await res.json()
         if (cancelled) return
