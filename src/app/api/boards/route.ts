@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import Board from "@backend/models/Board";
 import { auth } from "@backend/auth";
+import { getUserBoards, countUserBoards, createBoard, MAX_FREE_BOARDS } from "@backend/services/boards.service";
 
 export const runtime = "nodejs";
 
@@ -16,14 +15,8 @@ export async function GET() {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    await connectDB();
-
-    const boards = await Board.find({ owner: session.user.id })
-      .select("name isPrivate thumbnailUrl updatedAt createdAt")
-      .sort({ updatedAt: -1 })
-      .lean();
-
-    return NextResponse.json({ boards: JSON.parse(JSON.stringify(boards)) });
+    const boards = await getUserBoards(session.user.id);
+    return NextResponse.json({ boards });
   } catch (error) {
     console.error("[GET /api/boards]", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
@@ -44,12 +37,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const { name, isPrivate } = body;
 
-    await connectDB();
-
-    // Límite de boards para plan Free
-    const count = await Board.countDocuments({ owner: session.user.id });
     // TODO: verificar plan del usuario para ajustar límite
-    const MAX_FREE_BOARDS = 5;
+    const count = await countUserBoards(session.user.id);
     if (count >= MAX_FREE_BOARDS) {
       return NextResponse.json(
         {
@@ -59,13 +48,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const board = await Board.create({
-      name: name?.trim() || "Board sin título",
-      isPrivate: isPrivate ?? false,
-      owner: session.user.id,
-    });
-
-    return NextResponse.json({ board: JSON.parse(JSON.stringify(board)) }, { status: 201 });
+    const board = await createBoard(session.user.id, { name, isPrivate });
+    return NextResponse.json({ board }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/boards]", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

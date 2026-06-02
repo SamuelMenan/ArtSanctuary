@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import Board from "@backend/models/Board";
 import { auth } from "@backend/auth";
+import { getBoardById, updateBoard, deleteBoard } from "@backend/services/boards.service";
 
 export const runtime = "nodejs";
 
@@ -14,8 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const session = await auth();
 
-    await connectDB();
-    const board = await Board.findById(id).lean();
+    const board = await getBoardById(id);
     if (!board) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
     const isOwner = session?.user?.id === board.owner.toString();
@@ -23,7 +21,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Board privado" }, { status: 403 });
     }
 
-    return NextResponse.json({ board: JSON.parse(JSON.stringify(board)), isOwner });
+    return NextResponse.json({ board, isOwner });
   } catch (error) {
     console.error("[GET /api/boards/[id]]", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
@@ -56,15 +54,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });
     }
 
-    await connectDB();
-    const board = await Board.findOneAndUpdate(
-      { _id: id, owner: session.user.id },
-      { $set: update },
-      { new: true }
-    ).lean();
-
+    const board = await updateBoard(id, session.user.id, update);
     if (!board) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
-    return NextResponse.json({ board: JSON.parse(JSON.stringify(board)) });
+    return NextResponse.json({ board });
   } catch (error) {
     console.error("[PATCH /api/boards/[id]]", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
@@ -83,9 +75,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    await connectDB();
-    const board = await Board.findOneAndDelete({ _id: id, owner: session.user.id });
-    if (!board) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+    const ok = await deleteBoard(id, session.user.id);
+    if (!ok) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[DELETE /api/boards/[id]]", error);
