@@ -7,7 +7,7 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
-import { applyScale, formatCm, formatScaled } from '@shared/lib/measure'
+import { applyScale, formatScaled } from '@shared/lib/measure'
 import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
 import { computeGridGeometry, snapToSquare } from '@frontend/features/tools/grid/lib/gridGeometry'
 import { renderGridBlob } from '@frontend/features/tools/grid/lib/renderGridBlob'
@@ -16,7 +16,6 @@ import { useGridHistory } from '@frontend/features/tools/grid/hooks/useGridHisto
 import { useGridPanZoom } from '@frontend/features/tools/grid/hooks/useGridPanZoom'
 import GridControls from '@frontend/features/tools/grid/components/GridControls'
 import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
-import MeasureBar from '@frontend/features/tools/shared/workspace/MeasureBar'
 
 export default function ReferenceGridScreen() {
   const { t } = usePreferences()
@@ -85,7 +84,7 @@ export default function ReferenceGridScreen() {
   }, [])
 
   // ── Geometría de la cuadrícula (pura) ──
-  const { cols, rows, targetCm, factor, canvasW, canvasH, frameW, frameH, refW, refH, gridStyle } =
+  const { cols, rows, targetCm, frameW, frameH, refW, refH, gridStyle } =
     computeGridGeometry({ realWidthCm, squareCm, imgNatural, stage, opacity, color })
 
   // ── Pan + zoom ──
@@ -245,29 +244,22 @@ export default function ReferenceGridScreen() {
               </button>
             )}
           </div>
+          {/* Medidas discretas: chip flotante dentro del lienzo, solo con imagen. */}
+          {imageUrl && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-0.5 max-w-[calc(100%-2rem)] rounded-lg border border-[var(--color-outline-variant)]/60 bg-[var(--color-surface-container)]/80 px-3 py-1.5 font-mono text-[10px] text-[var(--color-on-surface-variant)] shadow-lg backdrop-blur-sm">
+              <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
+              <span className="opacity-30">·</span>
+              <span>{squareCm}cm → {targetCm}cm</span>
+              <span className="opacity-30">·</span>
+              <span className="text-[var(--color-on-surface)] tabular-nums">{t('grid.wAbbr')} {formatScaled(refW)} · {t('grid.hAbbr')} {formatScaled(refH)}</span>
+            </div>
+          )}
           {exportWarning && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded-sm px-3 py-1.5 z-30">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded-sm px-3 py-1.5 z-30">
               {exportWarning}
             </div>
           )}
         </div>
-  )
-
-  const footer = (
-    <MeasureBar
-      referenceLabel={`${t('grid.wAbbr')} ${formatCm(refW)} · ${t('grid.hAbbr')} ${formatCm(refH)}`}
-      finalLabel={`${t('grid.wAbbr')} ${formatScaled(refW)} · ${t('grid.hAbbr')} ${formatScaled(refH)}`}
-      extra={
-        <>
-          <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
-          <span className="opacity-40">·</span>
-          <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
-          <span className="opacity-40">·</span>
-          <span>{t('grid.canvasSize', { w: canvasW, h: canvasH })}</span>
-          {imageUrl && <><span className="opacity-40">·</span><span>{t('grid.zoom', { z: Math.round(zoom * 100) })}</span></>}
-        </>
-      }
-    />
   )
 
   return (
@@ -276,7 +268,6 @@ export default function ReferenceGridScreen() {
         <ToolWorkspace
           panel={panel}
           stage={stageNode}
-          footer={footer}
           modal={modalOpen && (
             <ImageSourceModal
               onClose={() => setModalOpen(false)}

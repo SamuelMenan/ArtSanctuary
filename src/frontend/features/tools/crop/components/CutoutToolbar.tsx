@@ -35,6 +35,7 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
           onRedo={redo}
         />
         <ToolButton variant="icon" icon="crop_free" title={t('crop.trimTip')} disabled={off} onClick={autoTrim} />
+        <ToolButton variant="icon" icon="grid_on" title={t('tools.sendGrid')} disabled={off || busy} onClick={() => sendTo('grid')} />
       </ToolRow>
 
       <ToolCluster name="IA">
@@ -81,9 +82,9 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
         <SendActions
           isReturn={!!back.current?.boardId}
           busy={off || busy}
+          showGrid={false}
           onBack={() => sendTo('back')}
           onSendBoards={() => sendTo('boards')}
-          onSendGrid={() => sendTo('grid')}
           onExport={exportPng}
         />
       </ToolPanelFooter>

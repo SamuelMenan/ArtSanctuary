@@ -274,6 +274,7 @@ export default function CropTool() {
           onRedo={redo}
         />
         <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} disabled={off} onClick={reset} />
+        <ToolButton variant="icon" icon="grid_on" title={t('tools.sendGrid')} disabled={off || busy} onClick={() => sendTo('grid')} />
       </ToolRow>
 
       <ToolCluster name={t('crop.aspectRatio')}>
@@ -299,9 +300,9 @@ export default function CropTool() {
         <SendActions
           isReturn={!!back.current?.boardId}
           busy={off || busy}
+          showGrid={false}
           onBack={() => sendTo('back')}
           onSendBoards={() => sendTo('boards')}
-          onSendGrid={() => sendTo('grid')}
           onExport={exportPng}
         />
       </ToolPanelFooter>
