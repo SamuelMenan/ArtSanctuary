@@ -111,7 +111,8 @@ async function DashboardHome({ user }: { user: { id: string; name?: string | nul
               </Link>
             </div>
           ) : (
-            <ArtworkGrid 
+            <ArtworkGrid
+              locale={locale}
               artworks={JSON.parse(JSON.stringify(feedArtworks))}
               emptyState={
                 <div className="w-full flex flex-col items-center justify-center py-20 bg-[var(--color-surface-container-lowest)] border border-dashed border-[var(--color-outline-variant)] rounded-sm">

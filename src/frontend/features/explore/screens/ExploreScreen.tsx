@@ -189,7 +189,7 @@ function ExploreContent() {
               <span className="material-symbols-outlined animate-spin text-4xl text-[var(--color-primary)]">refresh</span>
             </div>
           ) : results.length > 0 ? (
-            <ArtworkGrid artworks={results} />
+            <ArtworkGrid artworks={results} locale={locale} />
           ) : (
             <div className="w-full flex flex-col items-center justify-center py-32 bg-[var(--color-surface-container-lowest)] border border-dashed border-[var(--color-outline-variant)] rounded-sm">
               <span className="material-symbols-outlined text-4xl text-[var(--color-on-surface-variant)] mb-4 opacity-50">search_off</span>

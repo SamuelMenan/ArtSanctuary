@@ -69,7 +69,8 @@ export default async function GalleryPage({
           </div>
         </header>
 
-        <ArtworkGrid 
+        <ArtworkGrid
+          locale={locale}
           artworks={JSON.parse(JSON.stringify(artworks))} // Fix para pasar lean objects a client component
           emptyState={
             <div className="w-full flex flex-col items-center justify-center py-32 bg-[var(--color-surface-container-lowest)] border border-dashed border-[var(--color-outline-variant)] rounded-sm">

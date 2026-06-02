@@ -150,7 +150,7 @@ export default async function PublicProfilePage({
         {userArtworks.length === 0 ? (
           <EmptyPortfolio ownerView={false} t={t} />
         ) : (
-          <ArtworkGrid artworks={JSON.parse(JSON.stringify(userArtworks))} />
+          <ArtworkGrid artworks={JSON.parse(JSON.stringify(userArtworks))} locale={locale} />
         )}
       </div>
     </AppShell>

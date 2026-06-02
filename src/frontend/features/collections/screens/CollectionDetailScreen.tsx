@@ -4,12 +4,14 @@ import ArtworkGrid from "@frontend/shared/ui/ArtworkGrid";
 import CollectionActions from "@frontend/shared/ui/CollectionActions";
 import AppShell from "@frontend/shared/layouts/AppShell";
 import { auth } from "@backend/auth";
+import { getRequestLocale } from "@backend/requestPreferences";
 import { notFound } from "next/navigation";
 
 export default async function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const session = await auth();
-  
+  const locale = await getRequestLocale();
+
   await connectDB();
   const collection = await Collection.findById(resolvedParams.id).populate('artworks').lean();
   
@@ -43,8 +45,9 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
         </div>
         
         {collection.artworks && collection.artworks.length > 0 ? (
-          <ArtworkGrid 
-             artworks={JSON.parse(JSON.stringify(collection.artworks))} 
+          <ArtworkGrid
+             locale={locale}
+             artworks={JSON.parse(JSON.stringify(collection.artworks))}
           />
         ) : (
           <div className="text-center py-20 text-[var(--color-on-surface-variant)] font-mono text-sm uppercase tracking-widest border border-dashed border-[var(--color-outline-variant)] rounded-sm">
