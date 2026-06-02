@@ -547,6 +547,8 @@ export const en = {
     numbers: 'Number',
     color: 'Grid color',
     centerTip: 'Center image',
+    zoomIn: 'Zoom in',
+    zoomOut: 'Zoom out',
     backBoardTip: 'Back to board with this size',
     sendBoardsTip: 'Send to Boards (keeps the size)',
     board: 'BOARD',

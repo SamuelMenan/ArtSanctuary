@@ -9,17 +9,21 @@ export default function HistoryButtons({
   canRedo,
   onUndo,
   onRedo,
+  fill = false,
 }: {
   canUndo: boolean
   canRedo: boolean
   onUndo: () => void
   onRedo: () => void
+  /** Reparte los botones a lo ancho de la fila (flex-1) en vez de tamaño fijo. */
+  fill?: boolean
 }) {
   const { t } = usePreferences()
+  const cls = fill ? 'flex-1 min-w-0' : ''
   return (
     <>
-      <ToolButton variant="icon" icon="undo" title={t('tools.undoTip')} disabled={!canUndo} onClick={onUndo} />
-      <ToolButton variant="icon" icon="redo" title={t('tools.redoTip')} disabled={!canRedo} onClick={onRedo} />
+      <ToolButton variant="icon" icon="undo" title={t('tools.undoTip')} disabled={!canUndo} onClick={onUndo} className={cls} />
+      <ToolButton variant="icon" icon="redo" title={t('tools.redoTip')} disabled={!canRedo} onClick={onRedo} className={cls} />
     </>
   )
 }

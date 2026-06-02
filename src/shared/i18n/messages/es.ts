@@ -553,6 +553,8 @@ export const es = {
     numbers: 'Numerar',
     color: 'Color de la cuadrícula',
     centerTip: 'Centrar imagen',
+    zoomIn: 'Acercar',
+    zoomOut: 'Alejar',
     backBoardTip: 'Volver al tablero con esta medida',
     sendBoardsTip: 'Enviar a Tableros (respeta el tamaño)',
     board: 'TABLERO',

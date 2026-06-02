@@ -42,6 +42,8 @@ export default function GridControls({
   onUndo,
   onRedo,
   onReset,
+  onZoomIn,
+  onZoomOut,
   onSend,
   onExport,
 }: {
@@ -68,6 +70,8 @@ export default function GridControls({
   onUndo: () => void
   onRedo: () => void
   onReset: () => void
+  onZoomIn: () => void
+  onZoomOut: () => void
   onSend: () => void
   onExport: () => void
 }) {
@@ -76,8 +80,10 @@ export default function GridControls({
     <>
       <SourceButton onClick={onChangePhoto} />
       <ToolRow>
-        <HistoryButtons canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
-        <ToolButton variant="icon" icon="recenter" title={t('grid.centerTip')} disabled={!imageUrl} onClick={onReset} />
+        <HistoryButtons fill canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
+        <ToolButton variant="icon" icon="recenter" title={t('grid.centerTip')} disabled={!imageUrl} onClick={onReset} className="flex-1 min-w-0" />
+        <ToolButton variant="icon" icon="zoom_out" title={t('grid.zoomOut')} disabled={!imageUrl} onClick={onZoomOut} className="flex-1 min-w-0" />
+        <ToolButton variant="icon" icon="zoom_in" title={t('grid.zoomIn')} disabled={!imageUrl} onClick={onZoomIn} className="flex-1 min-w-0" />
       </ToolRow>
 
       <ToolCluster name={t('grid.measures')}>

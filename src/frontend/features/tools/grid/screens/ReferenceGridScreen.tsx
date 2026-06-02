@@ -92,6 +92,13 @@ export default function ReferenceGridScreen() {
     imageUrl, frameRef, zoom, pan, setZoom, setPan, pushSnapshot,
   })
 
+  // Zoom por botones (centrado), mismo rango que la rueda (0.1–5).
+  const zoomBy = (mul: number) => {
+    if (!imageUrl) return
+    pushSnapshot()
+    setZoom((z) => Math.min(5, Math.max(0.1, z * mul)))
+  }
+
   // Ancho siempre múltiplo del cuadro
   const snapMul = (cm: number) => snapToSquare(cm, squareCm)
   // Re-ajusta ancho cuando cambia el tamaño del cuadro
@@ -181,6 +188,8 @@ export default function ReferenceGridScreen() {
       onUndo={undo}
       onRedo={redo}
       onReset={resetView}
+      onZoomIn={() => zoomBy(1.2)}
+      onZoomOut={() => zoomBy(1 / 1.2)}
       onSend={sendToBoards}
       onExport={exportPNG}
     />

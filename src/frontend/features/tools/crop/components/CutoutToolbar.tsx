@@ -29,13 +29,14 @@ export default function CutoutToolbar({ editor }: { editor: CutoutEditor }) {
       <SourceButton onClick={() => setModalOpen(true)} />
       <ToolRow>
         <HistoryButtons
+          fill
           canUndo={pastData.current.length > 0}
           canRedo={futureData.current.length > 0}
           onUndo={undo}
           onRedo={redo}
         />
-        <ToolButton variant="icon" icon="crop_free" title={t('crop.trimTip')} disabled={off} onClick={autoTrim} />
-        <ToolButton variant="icon" icon="grid_on" title={t('tools.sendGrid')} disabled={off || busy} onClick={() => sendTo('grid')} />
+        <ToolButton variant="icon" icon="crop_free" title={t('crop.trimTip')} disabled={off} onClick={autoTrim} className="flex-1 min-w-0" />
+        <ToolButton variant="icon" icon="grid_on" title={t('tools.sendGrid')} disabled={off || busy} onClick={() => sendTo('grid')} className="flex-1 min-w-0" />
       </ToolRow>
 
       <ToolCluster name="IA">

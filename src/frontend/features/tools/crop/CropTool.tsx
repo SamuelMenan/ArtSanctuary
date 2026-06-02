@@ -268,13 +268,14 @@ export default function CropTool() {
       <SourceButton onClick={() => setModalOpen(true)} />
       <ToolRow>
         <HistoryButtons
+          fill
           canUndo={pastCrop.current.length > 0}
           canRedo={futureCrop.current.length > 0}
           onUndo={undo}
           onRedo={redo}
         />
-        <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} disabled={off} onClick={reset} />
-        <ToolButton variant="icon" icon="grid_on" title={t('tools.sendGrid')} disabled={off || busy} onClick={() => sendTo('grid')} />
+        <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} disabled={off} onClick={reset} className="flex-1 min-w-0" />
+        <ToolButton variant="icon" icon="grid_on" title={t('tools.sendGrid')} disabled={off || busy} onClick={() => sendTo('grid')} className="flex-1 min-w-0" />
       </ToolRow>
 
       <ToolCluster name={t('crop.aspectRatio')}>
