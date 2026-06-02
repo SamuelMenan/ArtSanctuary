@@ -141,20 +141,24 @@ export function useArtworkAutoFill(file: File | null, category: ArtworkCategory)
     let cancelled = false;
 
     (async () => {
-      const exif = await exifr.parse(file).catch(() => null);
-      const dims = await new Promise<{ width: number; height: number } | undefined>(resolve => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-          resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          URL.revokeObjectURL(url);
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          resolve(undefined);
-        };
-        img.src = url;
-      });
+      // exif y dims salen ambos del mismo File pero son independientes entre sí:
+      // se leen en paralelo, así el tiempo total es el del más lento, no la suma.
+      const [exif, dims] = await Promise.all([
+        exifr.parse(file).catch(() => null),
+        new Promise<{ width: number; height: number } | undefined>(resolve => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          img.onload = () => {
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+            URL.revokeObjectURL(url);
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve(undefined);
+          };
+          img.src = url;
+        }),
+      ]);
 
       if (cancelled) return;
       setAnalysis({ file, exif, dims });
