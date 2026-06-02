@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import Collection from "@backend/models/Collection";
 import { auth } from "@backend/auth";
+import { getCollectionById, deleteCollection, renameCollection } from "@backend/services/collections.service";
 
 /**
  * GET /api/collections/[id]
@@ -13,11 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const resolvedParams = await params;
     const session = await auth();
 
-    await connectDB();
-    const collection = await Collection.findById(resolvedParams.id)
-      .populate("artworks", "title imageUrl thumbnails")
-      .lean();
-
+    const collection = await getCollectionById(resolvedParams.id);
     if (!collection) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
     const isOwner = session?.user?.id === collection.owner.toString();
@@ -25,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Colección privada" }, { status: 403 });
     }
 
-    return NextResponse.json({ collection: JSON.parse(JSON.stringify(collection)) });
+    return NextResponse.json({ collection });
   } catch (err) {
     return NextResponse.json({ error: "Error" }, { status: 500 });
   }
@@ -36,10 +31,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     const resolvedParams = await params;
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    
-    await connectDB();
-    const collection = await Collection.findOneAndDelete({ _id: resolvedParams.id, owner: session.user.id });
-    if (!collection) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+    const ok = await deleteCollection(resolvedParams.id, session.user.id);
+    if (!ok) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (err) {
     return NextResponse.json({ error: "Error" }, { status: 500 });
@@ -51,14 +45,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const resolvedParams = await params;
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    
+
     const { name } = await req.json();
-    await connectDB();
-    const collection = await Collection.findOneAndUpdate(
-      { _id: resolvedParams.id, owner: session.user.id },
-      { name },
-      { new: true }
-    );
+    const collection = await renameCollection(resolvedParams.id, session.user.id, name);
     if (!collection) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
     return NextResponse.json({ success: true, collection });
   } catch (err) {

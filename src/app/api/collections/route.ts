@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import Collection from "@backend/models/Collection";
 import { auth } from "@backend/auth";
+import { getUserCollections, countUserCollections, createCollection, MAX_FREE_COLLECTIONS } from "@backend/services/collections.service";
 
 /**
  * GET /api/collections
@@ -14,12 +13,7 @@ export async function GET() {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    await connectDB();
-
-    const collections = await Collection.find({ owner: session.user.id })
-      .sort({ updatedAt: -1 })
-      .lean();
-
+    const collections = await getUserCollections(session.user.id);
     return NextResponse.json({ collections });
   } catch (error) {
     console.error("[GET /api/collections]", error);
@@ -49,12 +43,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await connectDB();
-
-    // Límite de colecciones para plan Free
-    const count = await Collection.countDocuments({ owner: session.user.id });
     // TODO: verificar plan del usuario para ajustar límite
-    const MAX_FREE_COLLECTIONS = 3;
+    const count = await countUserCollections(session.user.id);
     if (count >= MAX_FREE_COLLECTIONS) {
       return NextResponse.json(
         {
@@ -64,13 +54,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const collection = await Collection.create({
-      name,
-      description: description ?? "",
-      isPrivate: isPrivate ?? false,
-      owner: session.user.id,
-    });
-
+    const collection = await createCollection(session.user.id, { name, description, isPrivate });
     return NextResponse.json({ collection }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/collections]", error);
