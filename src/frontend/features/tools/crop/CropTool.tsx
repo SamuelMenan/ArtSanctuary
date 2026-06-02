@@ -8,7 +8,8 @@ import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploa
 import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/autocrop'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { cmOf, applyScale, formatCm, formatScaled } from '@shared/lib/measure'
-import ToolToolbar, { ToolDivider, ToolSpacer } from '@frontend/features/tools/shared/workspace/ToolToolbar'
+import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
+import { ToolRow } from '@frontend/features/tools/shared/workspace/ToolPanel'
 import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
 import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
 import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
@@ -260,91 +261,92 @@ export default function CropTool() {
   }
 
   const handle = 'absolute w-3 h-3 bg-[var(--color-primary)] border border-white rounded-sm'
+  const off = !img
 
-  return (
-    <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-      <ToolToolbar>
-        <SourceButton onClick={() => setModalOpen(true)} />
-        <ToolDivider />
+  const panel = (
+    <>
+      <SourceButton onClick={() => setModalOpen(true)} />
+      <ToolRow>
         <HistoryButtons
           canUndo={pastCrop.current.length > 0}
           canRedo={futureCrop.current.length > 0}
           onUndo={undo}
           onRedo={redo}
         />
+        <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} disabled={off} onClick={reset} />
+      </ToolRow>
 
-        {img && (
-          <>
-            <ToolDivider />
-            <ToolSelect
-              value={aspectIdx}
-              title={t('crop.aspectRatio')}
-              onChange={applyAspect}
-              options={ASPECTS.map((a, i) => ({ value: String(i), label: a.value === null ? t('crop.free') : a.label }))}
-            />
+      <ToolSelect
+        value={aspectIdx}
+        title={t('crop.aspectRatio')}
+        onChange={applyAspect}
+        options={ASPECTS.map((a, i) => ({ value: String(i), label: a.value === null ? t('crop.free') : a.label }))}
+      />
 
-            <ToolCluster name={t('crop.autoCrop')}>
-              <ToolButton variant="ghost" icon="crop_free" label={t('crop.auto')} title={t('crop.autoCrop')} onClick={autoCrop} />
-              <ToolSlider icon="tune" min={0} max={60} value={tolerance} title={t('crop.autoCropTip')} onChange={setTolerance} />
-              <label className="flex items-center gap-1 shrink-0" title={t('crop.padTip')}>
-                <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
-                <input type="number" min={0} value={padding} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-14 h-9 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none" />
-              </label>
-            </ToolCluster>
+      <ToolCluster name={t('crop.autoCrop')}>
+        <ToolButton variant="ghost" icon="crop_free" label={t('crop.auto')} title={t('crop.autoCrop')} disabled={off} onClick={autoCrop} className="w-full" />
+        <ToolSlider icon="tune" min={0} max={60} value={tolerance} title={t('crop.autoCropTip')} onChange={setTolerance} />
+        <label className="flex items-center gap-1 shrink-0" title={t('crop.padTip')}>
+          <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
+          <input type="number" min={0} value={padding} disabled={off} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-14 h-9 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none" />
+        </label>
+      </ToolCluster>
 
-            <ToolButton variant="icon" icon="restart_alt" title={t('crop.resetTip')} onClick={reset} />
+      <div className="mt-auto">
+        <SendActions
+          isReturn={!!back.current?.boardId}
+          busy={off || busy}
+          onBack={() => sendTo('back')}
+          onSendBoards={() => sendTo('boards')}
+          onSendGrid={() => sendTo('grid')}
+          onExport={exportPng}
+        />
+      </div>
+    </>
+  )
 
-            <ToolSpacer />
-
-            <SendActions
-              isReturn={!!back.current?.boardId}
-              busy={busy}
-              onBack={() => sendTo('back')}
-              onSendBoards={() => sendTo('boards')}
-              onSendGrid={() => sendTo('grid')}
-              onExport={exportPng}
-            />
-          </>
-        )}
-      </ToolToolbar>
-
-      <ToolStage
-        stageRef={stageRef}
-        hasImage={!!img}
-        emptyIcon="crop"
-        emptyPrompt={t('crop.uploadPromptCrop')}
-        onPickImage={() => setModalOpen(true)}
-        error={error}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
+  const stageNode = (
+    <ToolStage
+      stageRef={stageRef}
+      hasImage={!!img}
+      emptyIcon="crop"
+      emptyPrompt={t('crop.uploadPromptCrop')}
+      onPickImage={() => setModalOpen(true)}
+      error={error}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageUrl ?? undefined} alt="" draggable={false} className="absolute pointer-events-none" style={{ left: fit.ox, top: fit.oy, width: fit.dw, height: fit.dh }} />
+      <div className="absolute pointer-events-none" style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height, boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }} />
+      <div
+        className="absolute border border-[var(--color-primary)] cursor-move"
+        style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height }}
+        onPointerDown={(e) => startDrag('move', e)}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl ?? undefined} alt="" draggable={false} className="absolute pointer-events-none" style={{ left: fit.ox, top: fit.oy, width: fit.dw, height: fit.dh }} />
-        <div className="absolute pointer-events-none" style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height, boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }} />
-        <div
-          className="absolute border border-[var(--color-primary)] cursor-move"
-          style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height }}
-          onPointerDown={(e) => startDrag('move', e)}
-        >
-          <div className={`${handle} -left-1.5 -top-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('nw', e)} />
-          <div className={`${handle} -right-1.5 -top-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('ne', e)} />
-          <div className={`${handle} -left-1.5 -bottom-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('sw', e)} />
-          <div className={`${handle} -right-1.5 -bottom-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('se', e)} />
-        </div>
-      </ToolStage>
+        <div className={`${handle} -left-1.5 -top-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('nw', e)} />
+        <div className={`${handle} -right-1.5 -top-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('ne', e)} />
+        <div className={`${handle} -left-1.5 -bottom-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('sw', e)} />
+        <div className={`${handle} -right-1.5 -bottom-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('se', e)} />
+      </div>
+    </ToolStage>
+  )
 
-      {img && (
+  return (
+    <ToolWorkspace
+      panel={panel}
+      stage={stageNode}
+      footer={img && (
         <MeasureBar
           referenceLabel={`${formatCm(cmOf(crop.w))} × ${formatCm(cmOf(crop.h))}`}
           finalLabel={`${formatScaled(cmOf(crop.w))} × ${formatScaled(cmOf(crop.h))}`}
           extra={<span>{Math.round(crop.w)} × {Math.round(crop.h)} px</span>}
         />
       )}
-
-      {modalOpen && (
+      modal={modalOpen && (
         <ImageSourceModal onClose={() => setModalOpen(false)} onSelect={(url) => { setImageUrl(url); setModalOpen(false) }} />
       )}
-    </div>
+    />
   )
 }

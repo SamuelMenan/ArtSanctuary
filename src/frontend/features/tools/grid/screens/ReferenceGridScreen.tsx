@@ -15,6 +15,7 @@ import { useGridPrefs } from '@frontend/features/tools/grid/hooks/useGridPrefs'
 import { useGridHistory } from '@frontend/features/tools/grid/hooks/useGridHistory'
 import { useGridPanZoom } from '@frontend/features/tools/grid/hooks/useGridPanZoom'
 import GridControls from '@frontend/features/tools/grid/components/GridControls'
+import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
 import MeasureBar from '@frontend/features/tools/shared/workspace/MeasureBar'
 
 export default function ReferenceGridScreen() {
@@ -156,39 +157,38 @@ export default function ReferenceGridScreen() {
     }
   }
 
-  return (
-    <AppShell>
-      <ToolActiveLayout>
-        <GridControls
-          imageUrl={imageUrl}
-          sending={sending}
-          isReturn={!!back.current?.boardId}
-          canUndo={pastData.current.length > 0}
-          canRedo={futureData.current.length > 0}
-          realWidthCm={realWidthCm}
-          squareCm={squareCm}
-          opacity={opacity}
-          color={color}
-          showNumbers={showNumbers}
-          prevColor={prevColor}
-          prevOpacity={prevOpacity}
-          pushSnapshot={pushSnapshot}
-          snapMul={snapMul}
-          setRealWidthCm={setRealWidthCm}
-          setSquareCm={setSquareCm}
-          setOpacity={setOpacity}
-          setColor={setColor}
-          setShowNumbers={setShowNumbers}
-          onChangePhoto={() => setModalOpen(true)}
-          onUndo={undo}
-          onRedo={redo}
-          onReset={resetView}
-          onSend={sendToBoards}
-          onExport={exportPNG}
-        />
+  const panel = (
+    <GridControls
+      imageUrl={imageUrl}
+      sending={sending}
+      isReturn={!!back.current?.boardId}
+      canUndo={pastData.current.length > 0}
+      canRedo={futureData.current.length > 0}
+      realWidthCm={realWidthCm}
+      squareCm={squareCm}
+      opacity={opacity}
+      color={color}
+      showNumbers={showNumbers}
+      prevColor={prevColor}
+      prevOpacity={prevOpacity}
+      pushSnapshot={pushSnapshot}
+      snapMul={snapMul}
+      setRealWidthCm={setRealWidthCm}
+      setSquareCm={setSquareCm}
+      setOpacity={setOpacity}
+      setColor={setColor}
+      setShowNumbers={setShowNumbers}
+      onChangePhoto={() => setModalOpen(true)}
+      onUndo={undo}
+      onRedo={redo}
+      onReset={resetView}
+      onSend={sendToBoards}
+      onExport={exportPNG}
+    />
+  )
 
-        {/* Escenario (lienzo) */}
-        <div ref={stageRef} className="flex-1 bg-[var(--color-surface-container-lowest)] p-[var(--spacing-grid-gutter)] flex items-center justify-center relative min-h-0 overflow-hidden">
+  const stageNode = (
+    <div ref={stageRef} className="flex-1 bg-[var(--color-surface-container-lowest)] p-[var(--spacing-grid-gutter)] flex items-center justify-center relative min-h-0 overflow-hidden">
           <div
             ref={frameRef}
             onPointerDown={onPointerDown}
@@ -245,41 +245,50 @@ export default function ReferenceGridScreen() {
               </button>
             )}
           </div>
+          {exportWarning && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded-sm px-3 py-1.5 z-30">
+              {exportWarning}
+            </div>
+          )}
         </div>
+  )
 
-        {/* Pie: métricas + calculadora (MeasureBar unificado) */}
-        <MeasureBar
-          referenceLabel={`${t('grid.wAbbr')} ${formatCm(refW)} · ${t('grid.hAbbr')} ${formatCm(refH)}`}
-          finalLabel={`${t('grid.wAbbr')} ${formatScaled(refW)} · ${t('grid.hAbbr')} ${formatScaled(refH)}`}
-          extra={
-            <>
-              <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
-              <span className="opacity-40">·</span>
-              <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
-              <span className="opacity-40">·</span>
-              <span>{t('grid.canvasSize', { w: canvasW, h: canvasH })}</span>
-              {imageUrl && <><span className="opacity-40">·</span><span>{t('grid.zoom', { z: Math.round(zoom * 100) })}</span></>}
-            </>
-          }
+  const footer = (
+    <MeasureBar
+      referenceLabel={`${t('grid.wAbbr')} ${formatCm(refW)} · ${t('grid.hAbbr')} ${formatCm(refH)}`}
+      finalLabel={`${t('grid.wAbbr')} ${formatScaled(refW)} · ${t('grid.hAbbr')} ${formatScaled(refH)}`}
+      extra={
+        <>
+          <span className="text-[var(--color-primary)]">{t('grid.squaresCount', { cols, rows })}</span>
+          <span className="opacity-40">·</span>
+          <span>{squareCm}cm → {targetCm}cm (×{Number.isInteger(factor) ? factor : factor.toFixed(1)})</span>
+          <span className="opacity-40">·</span>
+          <span>{t('grid.canvasSize', { w: canvasW, h: canvasH })}</span>
+          {imageUrl && <><span className="opacity-40">·</span><span>{t('grid.zoom', { z: Math.round(zoom * 100) })}</span></>}
+        </>
+      }
+    />
+  )
+
+  return (
+    <AppShell>
+      <ToolActiveLayout>
+        <ToolWorkspace
+          panel={panel}
+          stage={stageNode}
+          footer={footer}
+          modal={modalOpen && (
+            <ImageSourceModal
+              onClose={() => setModalOpen(false)}
+              onSelect={(url) => {
+                setImageUrl(url)
+                setModalOpen(false)
+                resetView()
+                setExportWarning(null)
+              }}
+            />
+          )}
         />
-
-        {exportWarning && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 font-sans text-xs text-red-500 bg-red-500/10 border border-red-500/30 rounded-sm px-3 py-1.5 z-30">
-            {exportWarning}
-          </div>
-        )}
-
-        {modalOpen && (
-          <ImageSourceModal
-            onClose={() => setModalOpen(false)}
-            onSelect={(url) => {
-              setImageUrl(url)
-              setModalOpen(false)
-              resetView()
-              setExportWarning(null)
-            }}
-          />
-        )}
       </ToolActiveLayout>
     </AppShell>
   )

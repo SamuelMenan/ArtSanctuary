@@ -503,6 +503,7 @@ export const en = {
     restoreTip: 'Brush to restore the original image',
     toleranceTip: 'Wand tolerance',
     brushTip: 'Brush size',
+    brushTools: 'Brush',
     trim: 'TRIM',
     trimTip: 'Crop to the subject (removes the transparent border)',
     reference: 'Reference',

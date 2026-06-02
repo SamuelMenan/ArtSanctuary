@@ -509,6 +509,7 @@ export const es = {
     restoreTip: 'Pincel para restaurar imagen original',
     toleranceTip: 'Tolerancia de la varita',
     brushTip: 'Tamaño del pincel',
+    brushTools: 'Pincel',
     trim: 'AJUSTAR',
     trimTip: 'Recortar al sujeto (quita el borde transparente)',
     reference: 'Referencia',

@@ -3,17 +3,17 @@
 import type { ReactNode } from 'react'
 
 /**
- * Agrupa controles relacionados en una caja con etiqueta (la etiqueta se oculta
- * en pantallas chicas para ahorrar ancho — sin scroll). Mismo patrón para las 3
- * herramientas.
+ * Sección del panel de la herramienta: etiqueta arriba + controles debajo que
+ * **envuelven** dentro de la caja (nunca desbordan a la página). Ocupa el ancho
+ * del panel.
  */
 export default function ToolCluster({ name, children }: { name: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 px-3 h-10 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60 shrink-0">
-      <span className="font-mono text-[9px] text-[var(--color-on-surface-variant)]/70 uppercase tracking-[0.12em] hidden xl:inline">
+    <div className="rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/60 p-2.5 flex flex-col gap-2">
+      <span className="font-mono text-[9px] text-[var(--color-on-surface-variant)]/70 uppercase tracking-[0.12em]">
         {name}
       </span>
-      {children}
+      <div className="flex flex-wrap items-center gap-2">{children}</div>
     </div>
   )
 }
