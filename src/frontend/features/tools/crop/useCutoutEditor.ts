@@ -7,11 +7,13 @@ import { computeContentBounds } from '@shared/lib/image/autocrop'
 import { floodErase } from '@shared/lib/image/floodfill'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { cmOf, applyScale } from '@shared/lib/measure'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
 export type CutoutToolMode = 'wand' | 'erase' | 'restore' | null
 
 /** Estado y lógica del recortador de fondo (canvas, historial, pincel, IA, handoff). */
 export function useCutoutEditor() {
+  const { t } = usePreferences()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [aiModel, setAiModel] = useState<'isnet' | 'isnet_fp16'>('isnet')
@@ -160,7 +162,7 @@ export function useCutoutEditor() {
         setReady(true)
         render()
       })
-      .catch(() => active && setError('No se pudo cargar la imagen'))
+      .catch(() => active && setError(t('crop.errLoad')))
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrl])
@@ -170,10 +172,10 @@ export function useCutoutEditor() {
     if (!imageUrl) return
     setBusy(true)
     setError(null)
-    setStatus('Cargando modelo…')
+    setStatus(t('crop.loadingModel'))
     try {
       const { removeBackground } = await import('@imgly/background-removal')
-      setStatus('Procesando…')
+      setStatus(t('crop.processing'))
       const absoluteUrl = new URL(imageUrl, window.location.href).href
       const blob = await removeBackground(absoluteUrl, {
         model: aiModel,
@@ -185,9 +187,9 @@ export function useCutoutEditor() {
       work.current = imageToCanvas(img)
       URL.revokeObjectURL(url)
       render()
-      setStatus('Fondo eliminado')
+      setStatus(t('crop.bgRemoved'))
     } catch {
-      setError('Falló el quitado de fondo IA.')
+      setError(t('crop.errRemoveBg'))
       setStatus(null)
     } finally {
       setBusy(false)
@@ -277,7 +279,7 @@ export function useCutoutEditor() {
     pushSnapshot()
     work.current = cropCanvas(w, b)
     if (original.current) original.current = cropCanvas(original.current, b)
-    setStatus('Recortado al sujeto')
+    setStatus(t('crop.trimmed'))
     render()
   }
 
@@ -288,7 +290,7 @@ export function useCutoutEditor() {
       const blob = await canvasToBlob(work.current, 'image/png')
       downloadBlob(blob, 'sin-fondo.png')
     } catch {
-      setError('No se pudo exportar.')
+      setError(t('crop.errExport'))
     } finally {
       setBusy(false)
     }
@@ -318,7 +320,7 @@ export function useCutoutEditor() {
         router.push('/dashboard/boards')
       }
     } catch {
-      setError('No se pudo enviar.')
+      setError(t('crop.errSend'))
       setBusy(false)
     }
   }
