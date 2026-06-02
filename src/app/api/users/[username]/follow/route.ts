@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import User from "@backend/models/User";
-import Notification from "@backend/models/Notification";
 import { auth } from "@backend/auth";
+import { followUser, unfollowUser } from "@backend/services/users.service";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ username: string }> }) {
   try {
     const resolvedParams = await params;
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    
+
     const followerId = session.user.id;
     const followingId = resolvedParams.username;
 
@@ -17,33 +15,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
       return NextResponse.json({ error: "No puedes seguirte a ti mismo" }, { status: 400 });
     }
 
-    await connectDB();
+    const result = await followUser(followerId, followingId);
+    if (!result) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
-    const userToFollow = await User.findByIdAndUpdate(
-      followingId,
-      { $addToSet: { followers: followerId } },
-      { returnDocument: 'after' }
-    );
-
-    if (!userToFollow) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
-    }
-
-    await User.findByIdAndUpdate(
-      followerId,
-      { $addToSet: { following: followingId } }
-    );
-
-    const existingNotif = await Notification.findOne({ recipientId: followingId, actorId: followerId, type: "follow" });
-    if (!existingNotif) {
-      await Notification.create({
-        recipientId: followingId,
-        actorId: followerId,
-        type: "follow",
-      });
-    }
-
-    return NextResponse.json({ success: true, followersCount: userToFollow.followers?.length || 1 });
+    return NextResponse.json({ success: true, followersCount: result.followersCount });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
@@ -55,31 +30,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ u
     const resolvedParams = await params;
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-    
+
     const followerId = session.user.id;
     const followingId = resolvedParams.username;
 
-    await connectDB();
+    const result = await unfollowUser(followerId, followingId);
+    if (!result) return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
 
-    const userToUnfollow = await User.findByIdAndUpdate(
-      followingId,
-      { $pull: { followers: followerId } },
-      { returnDocument: 'after' }
-    );
-
-    if (!userToUnfollow) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
-    }
-
-    await User.findByIdAndUpdate(
-      followerId,
-      { $pull: { following: followingId } }
-    );
-
-    // Optional: remove the follow notification if they unfollow quickly
-    await Notification.findOneAndDelete({ recipientId: followingId, actorId: followerId, type: "follow" });
-
-    return NextResponse.json({ success: true, followersCount: userToUnfollow.followers?.length || 0 });
+    return NextResponse.json({ success: true, followersCount: result.followersCount });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });

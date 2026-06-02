@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import User from "@backend/models/User";
-import Artwork from "@backend/models/Artwork";
+import { getPublicProfile } from "@backend/services/users.service";
 
 interface RouteParams {
   params: Promise<{ username: string }>;
@@ -15,34 +13,14 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { username } = await params;
 
-    await connectDB();
-
-    const user = await User.findOne({ username: username.toLowerCase() })
-      .select("username displayName bio avatarUrl location plan createdAt")
-      .lean();
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Artista no encontrado" },
-        { status: 404 }
-      );
+    const profile = await getPublicProfile(username);
+    if (!profile) {
+      return NextResponse.json({ error: "Artista no encontrado" }, { status: 404 });
     }
 
-    // Obras públicas del artista
-    const artworks = await Artwork.find({
-      author: user._id,
-      isPublic: true,
-    })
-      .sort({ createdAt: -1 })
-      .select("title imageUrl thumbnailUrl category technique year createdAt")
-      .lean();
-
-    return NextResponse.json({ user, artworks });
+    return NextResponse.json(profile);
   } catch (error) {
     console.error("[GET /api/users/:username]", error);
-    return NextResponse.json(
-      { error: "Error interno del servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

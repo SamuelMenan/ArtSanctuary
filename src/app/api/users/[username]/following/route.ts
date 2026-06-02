@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import User from "@backend/models/User";
 import { auth } from "@backend/auth";
+import { getFollowConnections } from "@backend/services/users.service";
 
 export async function GET(
   _req: NextRequest,
@@ -9,34 +8,19 @@ export async function GET(
 ) {
   try {
     const { username: id } = await params;
-    await connectDB();
 
-    const target = await User.findById(id)
-      .select("following privacySettings")
-      .lean();
-    if (!target) {
+    const data = await getFollowConnections(id, "following");
+    if (!data) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
     const session = await auth();
     const isOwner = session?.user?.id === id;
-    const allowFollow = target.privacySettings?.allowFollow ?? true;
-    if (!allowFollow && !isOwner) {
+    if (!data.allowFollow && !isOwner) {
       return NextResponse.json({ error: "Lista privada" }, { status: 403 });
     }
 
-    const users = await User.find({ _id: { $in: target.following || [] } })
-      .select("username displayName avatarUrl")
-      .lean();
-
-    return NextResponse.json({
-      users: users.map((u) => ({
-        _id: u._id.toString(),
-        username: u.username,
-        displayName: u.displayName,
-        avatarUrl: u.avatarUrl,
-      })),
-    });
+    return NextResponse.json({ users: data.users });
   } catch (error) {
     console.error("[GET /api/users/:id/following]", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
