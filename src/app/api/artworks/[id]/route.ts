@@ -1,61 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@backend/db/mongoose";
-import Artwork from "@backend/models/Artwork";
 import { auth } from "@backend/auth";
+import { getArtworkForView, updateArtwork, deleteArtwork } from "@backend/services/artworks.service";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params;
-    await connectDB();
-    
-    // Buscar obra y popular autor
-    const artwork = await Artwork.findById(resolvedParams.id)
-      .populate("artistId", "username displayName avatarUrl")
-      .lean();
+    const { id } = await params;
+    const session = await auth();
+    const viewCookieName = `viewed_${id}`;
+
+    const { artwork, setAnonCookie } = await getArtworkForView(id, {
+      userId: session?.user?.id,
+      alreadyViewedCookie: req.cookies.has(viewCookieName),
+    });
 
     if (!artwork) {
       return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
     }
 
-    const session = await auth();
-    let shouldIncrementView = false;
-    const cookieStore = req.cookies;
-    const viewCookieName = `viewed_${resolvedParams.id}`;
-
-    if (session?.user?.id) {
-      const userId = session.user.id;
-      // Verificar si el usuario ya vio la obra
-      const alreadyViewed = await Artwork.exists({ _id: resolvedParams.id, viewedBy: userId });
-      if (!alreadyViewed) {
-        shouldIncrementView = true;
-        // Se incrementa y se añade al array en background
-        Artwork.findByIdAndUpdate(resolvedParams.id, {
-          $inc: { views: 1 },
-          $addToSet: { viewedBy: userId }
-        }).exec();
-      }
-    } else {
-      // Usuario no autenticado: usar cookie
-      if (!cookieStore.has(viewCookieName)) {
-        shouldIncrementView = true;
-        Artwork.findByIdAndUpdate(resolvedParams.id, { $inc: { views: 1 } }).exec();
-      }
-    }
-
     const response = NextResponse.json(artwork);
-
-    // Setear cookie si fue una nueva vista anónima
-    if (shouldIncrementView && !session?.user?.id) {
-      response.cookies.set(viewCookieName, 'true', {
+    if (setAnonCookie) {
+      response.cookies.set(viewCookieName, "true", {
         maxAge: 60 * 60 * 24, // 24 horas
         httpOnly: true,
-        sameSite: 'lax'
+        sameSite: "lax",
       });
     }
-
     return response;
   } catch (error) {
     console.error("[GET /api/artworks/[id]]", error);
@@ -68,36 +40,17 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params;
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    await connectDB();
-    const artwork = await Artwork.findById(resolvedParams.id);
-
-    if (!artwork) {
-      return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
-    }
-
-    if (artwork.artistId.toString() !== session.user.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
-
     const body = await req.json();
-    
-    // Actualizar campos
-    const mutableArtwork = artwork as typeof artwork & Record<string, unknown>;
-    Object.keys(body).forEach(key => {
-      if (key !== '_id' && key !== 'artistId' && key !== 'uploadDate' && key !== 'views' && key !== 'likes') {
-        mutableArtwork[key] = body[key];
-      }
-    });
-
-    await artwork.save();
-
-    return NextResponse.json(artwork);
+    const result = await updateArtwork(id, session.user.id, body);
+    if (result.status === "notfound") return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
+    if (result.status === "forbidden") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    return NextResponse.json(result.data);
   } catch (error) {
     console.error("[PUT /api/artworks/[id]]", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
@@ -109,25 +62,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await params;
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    await connectDB();
-    const artwork = await Artwork.findById(resolvedParams.id);
-
-    if (!artwork) {
-      return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
-    }
-
-    if (artwork.artistId.toString() !== session.user.id) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-    }
-
-    await Artwork.findByIdAndDelete(resolvedParams.id);
-
+    const result = await deleteArtwork(id, session.user.id);
+    if (result.status === "notfound") return NextResponse.json({ error: "Obra no encontrada" }, { status: 404 });
+    if (result.status === "forbidden") return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[DELETE /api/artworks/[id]]", error);
