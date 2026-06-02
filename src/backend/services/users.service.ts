@@ -9,6 +9,12 @@ import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";
 import Notification from "@backend/models/Notification";
 
+/** Actualiza idioma/tema del usuario. */
+export async function updateUserPreferences(userId: string, prefs: { locale: string; theme: string }) {
+  await connectDB();
+  await User.findByIdAndUpdate(userId, { locale: prefs.locale, theme: prefs.theme });
+}
+
 /** Perfil público por username + sus obras públicas, o `null` si no existe. */
 export async function getPublicProfile(username: string) {
   await connectDB();

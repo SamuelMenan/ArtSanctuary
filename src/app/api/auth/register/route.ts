@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { connectDB } from "@backend/db/mongoose";
-import User from "@backend/models/User";
+import { registerUser } from "@backend/services/auth.service";
 
 /**
  * POST /api/auth/register
@@ -27,43 +25,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await connectDB();
-
-    // Verificar duplicados
-    const existingUser = await User.findOne({
-      $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
-    });
-
-    if (existingUser) {
-      const field = existingUser.email === email.toLowerCase() ? "email" : "username";
+    const result = await registerUser({ username, email, password });
+    if (result.status === "conflict") {
       return NextResponse.json(
-        { error: `Ya existe una cuenta con ese ${field}` },
+        { error: `Ya existe una cuenta con ese ${result.field}` },
         { status: 409 }
       );
     }
 
-    // Hash de la contraseña
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    // Crear usuario
-    const user = await User.create({
-      username: username.toLowerCase().trim(),
-      email: email.toLowerCase().trim(),
-      passwordHash,
-      displayName: username,
-    });
-
-    return NextResponse.json(
-      {
-        user: {
-          id: user._id.toString(),
-          username: user.username,
-          email: user.email,
-          plan: user.plan,
-        },
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({ user: result.user }, { status: 201 });
   } catch (error) {
     console.error("[POST /api/auth/register]", error);
 

@@ -1,7 +1,6 @@
 import { auth } from '@backend/auth'
-import { connectDB } from '@backend/db/mongoose'
 import { normalizeLocale, normalizeTheme } from '@shared/i18n'
-import User from '@backend/models/User'
+import { updateUserPreferences } from '@backend/services/users.service'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PATCH(req: NextRequest) {
@@ -14,8 +13,7 @@ export async function PATCH(req: NextRequest) {
   const locale = normalizeLocale(body.locale)
   const theme = normalizeTheme(body.theme)
 
-  await connectDB()
-  await User.findByIdAndUpdate(session.user.id, { locale, theme })
+  await updateUserPreferences(session.user.id, { locale, theme })
 
   return NextResponse.json({ ok: true, locale, theme })
 }
