@@ -167,6 +167,23 @@ export function useCutoutEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrl])
 
+  // Precarga el modelo de IA en segundo plano tras montar la herramienta, para
+  // que la primera "quitar fondo" no espere la descarga de wasm + pesos (~MB).
+  // Arranca con un retardo para no competir con el render inicial; descarta
+  // errores (se reintenta de forma natural al pulsar el botón).
+  const preloadedRef = useRef(false)
+  useEffect(() => {
+    if (preloadedRef.current) return
+    preloadedRef.current = true
+    const id = window.setTimeout(() => {
+      import('@imgly/background-removal')
+        .then((m) => m.preload({ model: aiModel }))
+        .catch(() => { preloadedRef.current = false })
+    }, 1500)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Quitar fondo con IA (carga perezosa del modelo)
   const removeBgAI = async () => {
     if (!imageUrl) return
