@@ -5,31 +5,43 @@
  */
 import "server-only";
 import { Types } from "mongoose";
+import { unstable_cache } from "next/cache";
 import { connectDB } from "@backend/db/mongoose";
 import Artwork from "@backend/models/Artwork";
 import Notification from "@backend/models/Notification";
 import Collection from "@backend/models/Collection";
 
+/** Tag de caché de las listas públicas de obras; se invalida en mutaciones. */
+export const ARTWORKS_TAG = "artworks";
+
 interface PageParams { page: number; limit: number }
 
-/** Galería pública paginada (filtro opcional por categoría). */
-export async function getPublicGallery({ page, limit, category }: PageParams & { category?: string | null }) {
-  await connectDB();
-  const skip = (page - 1) * limit;
-  const filter: Record<string, unknown> = { visibility: "public" };
-  if (category && category !== "todas") filter.category = category;
+/**
+ * Galería pública paginada (filtro opcional por categoría). Cacheada por
+ * `unstable_cache` (clave = args) con tag `artworks` → se sirve desde caché
+ * entre peticiones y se revalida al crear/editar/borrar una obra.
+ */
+export const getPublicGallery = unstable_cache(
+  async ({ page, limit, category }: PageParams & { category?: string | null }) => {
+    await connectDB();
+    const skip = (page - 1) * limit;
+    const filter: Record<string, unknown> = { visibility: "public" };
+    if (category && category !== "todas") filter.category = category;
 
-  const [artworks, total] = await Promise.all([
-    Artwork.find(filter)
-      .sort({ uploadDate: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("artistId", "username displayName avatarUrl")
-      .lean(),
-    Artwork.countDocuments(filter),
-  ]);
-  return { artworks, total };
-}
+    const [artworks, total] = await Promise.all([
+      Artwork.find(filter)
+        .sort({ uploadDate: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate("artistId", "username displayName avatarUrl")
+        .lean(),
+      Artwork.countDocuments(filter),
+    ]);
+    return { artworks: JSON.parse(JSON.stringify(artworks)), total };
+  },
+  ["public-gallery"],
+  { tags: [ARTWORKS_TAG], revalidate: 60 },
+);
 
 /** Búsqueda pública con texto libre + filtros. */
 export async function searchArtworks(opts: PageParams & {
@@ -81,7 +93,7 @@ export async function createArtwork(userId: string, payload: Record<string, any>
   };
   const thumbnails = { small: imageUrl, medium: imageUrl, large: imageUrl };
 
-  return Artwork.create({
+  const created = await Artwork.create({
     title: payload.title,
     imageUrl,
     artistId: userId,
@@ -105,6 +117,7 @@ export async function createArtwork(userId: string, payload: Record<string, any>
     fileMeta,
     thumbnails,
   });
+  return created;
 }
 
 /**
