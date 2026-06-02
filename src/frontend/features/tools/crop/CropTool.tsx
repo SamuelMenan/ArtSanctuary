@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
 import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/autocrop'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
@@ -19,6 +20,7 @@ const ASPECTS: { label: string; value: number | null }[] = [
 ]
 
 export default function CropTool() {
+  const { t } = usePreferences()
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -71,7 +73,7 @@ export default function CropTool() {
         setCrop({ x: 0, y: 0, w: image.naturalWidth, h: image.naturalHeight })
         setError(null)
       })
-      .catch(() => active && setError('No se pudo cargar la imagen'))
+      .catch(() => active && setError(t('crop.errLoad')))
     return () => { active = false }
   }, [imageUrl])
 
@@ -143,11 +145,11 @@ export default function CropTool() {
       const ctx = canvas.getContext('2d')!
       const data = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const b = computeContentBounds(data, tolerance)
-      if (!b) { setError('La imagen no tiene contenido recortable.'); return }
+      if (!b) { setError(t('crop.errNoContent')); return }
       setError(null)
       setCrop(padding ? padBounds(b, padding, canvas.width, canvas.height) : b)
     } catch {
-      setError('No se pudo analizar la imagen (CORS).')
+      setError(t('crop.errAnalyze'))
     }
   }
 
@@ -159,7 +161,7 @@ export default function CropTool() {
       const blob = await canvasToBlob(out, 'image/png')
       downloadBlob(blob, 'crop.png')
     } catch {
-      setError('No se pudo exportar.')
+      setError(t('crop.errExport'))
     } finally {
       setBusy(false)
     }
@@ -190,7 +192,7 @@ export default function CropTool() {
         router.push('/dashboard/boards')
       }
     } catch {
-      setError('No se pudo enviar.')
+      setError(t('crop.errSend'))
       setBusy(false)
     }
   }
@@ -206,7 +208,7 @@ export default function CropTool() {
       <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2.5 flex items-center gap-3 overflow-x-auto whitespace-nowrap">
         <button onClick={() => setModalOpen(true)} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90">
           <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
-          IMAGEN
+          {t('crop.image')}
         </button>
 
         {img && (
@@ -215,53 +217,53 @@ export default function CropTool() {
             <select
               onChange={(e) => applyAspect(ASPECTS[Number(e.target.value)].value)}
               className="h-10 px-2 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] font-mono text-label-sm text-[var(--color-on-surface)] outline-none"
-              title="Proporción"
+              title={t('crop.aspectRatio')}
               defaultValue={0}
             >
-              {ASPECTS.map((a, i) => <option key={a.label} value={i}>{a.label}</option>)}
+              {ASPECTS.map((a, i) => <option key={a.label} value={i}>{a.value === null ? t('crop.free') : a.label}</option>)}
             </select>
 
-            <button onClick={autoCrop} className={ctrlBtn} title="Recorte automático">
+            <button onClick={autoCrop} className={ctrlBtn} title={t('crop.autoCrop')}>
               <span className="material-symbols-outlined text-[18px]">crop_free</span>
-              AUTO
+              {t('crop.auto')}
             </button>
-            <label className="flex items-center gap-1.5 shrink-0" title="Tolerancia del auto-crop (imágenes sin transparencia)">
+            <label className="flex items-center gap-1.5 shrink-0" title={t('crop.autoCropTip')}>
               <span className="material-symbols-outlined text-[16px] text-[var(--color-on-surface-variant)]">tune</span>
               <input type="range" min={0} max={60} value={tolerance} onChange={(e) => setTolerance(Number(e.target.value))} className="w-20 custom-range" />
               <span className="font-mono text-[10px] text-[var(--color-primary)] w-5">{tolerance}</span>
             </label>
-            <label className="flex items-center gap-1 shrink-0" title="Margen al recortar (px)">
-              <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">Pad</span>
+            <label className="flex items-center gap-1 shrink-0" title={t('crop.padTip')}>
+              <span className="font-mono text-[10px] uppercase text-[var(--color-on-surface-variant)]">{t('crop.pad')}</span>
               <input type="number" min={0} value={padding} onChange={(e) => setPadding(Math.max(0, Number(e.target.value) || 0))} className="w-14 h-9 bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)] rounded-md px-2 font-mono text-sm text-center text-[var(--color-on-surface)] outline-none" />
             </label>
 
-            <button onClick={reset} className={ctrlBtn} title="Restablecer">
+            <button onClick={reset} className={ctrlBtn} title={t('crop.resetTip')}>
               <span className="material-symbols-outlined text-[18px]">restart_alt</span>
             </button>
 
             <div className="flex-1" />
             <div className="flex flex-col items-end gap-0.5">
               <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{Math.round(crop.w)} × {Math.round(crop.h)} px</span>
-              <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">Referencia · {formatCm(cmOf(crop.w))} × {formatCm(cmOf(crop.h))}</span>
-              <span className="font-mono text-[10px] text-[var(--color-primary)] shrink-0">Final · {formatScaled(cmOf(crop.w))} × {formatScaled(cmOf(crop.h))}</span>
+              <span className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">{t('crop.reference')} · {formatCm(cmOf(crop.w))} × {formatCm(cmOf(crop.h))}</span>
+              <span className="font-mono text-[10px] text-[var(--color-primary)] shrink-0">{t('crop.final')} · {formatScaled(cmOf(crop.w))} × {formatScaled(cmOf(crop.h))}</span>
             </div>
             {back.current?.boardId ? (
-              <button onClick={() => sendTo('back')} disabled={busy} className={`${ctrlBtn} !text-[var(--color-primary)] !border-[var(--color-primary)]`} title="Volver al board">
+              <button onClick={() => sendTo('back')} disabled={busy} className={`${ctrlBtn} !text-[var(--color-primary)] !border-[var(--color-primary)]`} title={t('crop.backBoardTip')}>
                 <span className="material-symbols-outlined text-[18px]">undo</span>
-                BOARD
+                {t('crop.board')}
               </button>
             ) : (
-              <button onClick={() => sendTo('boards')} disabled={busy} className={ctrlBtn} title="Enviar a Boards">
+              <button onClick={() => sendTo('boards')} disabled={busy} className={ctrlBtn} title={t('crop.sendBoards')}>
                 <span className="material-symbols-outlined text-[18px]">dashboard</span>
-                BOARDS
+                {t('crop.boards')}
               </button>
             )}
-            <button onClick={() => sendTo('grid')} disabled={busy} className={ctrlBtn} title="Enviar a Cuadrícula">
+            <button onClick={() => sendTo('grid')} disabled={busy} className={ctrlBtn} title={t('crop.sendGrid')}>
               <span className="material-symbols-outlined text-[18px]">grid_on</span>
             </button>
             <button onClick={exportPng} disabled={busy} className="flex items-center gap-2 h-10 px-4 rounded-lg bg-[var(--color-secondary-container)] text-[var(--color-on-secondary-container)] font-mono text-label-sm font-semibold shrink-0 hover:opacity-90 disabled:opacity-40">
               <span className="material-symbols-outlined text-[18px]">download</span>
-              EXPORTAR
+              {t('crop.export')}
             </button>
           </>
         )}
@@ -296,7 +298,7 @@ export default function CropTool() {
         ) : (
           <button onClick={() => setModalOpen(true)} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
             <span className="material-symbols-outlined text-5xl">crop</span>
-            <span className="font-mono text-label-sm uppercase tracking-widest">Sube o elige una imagen para recortar</span>
+            <span className="font-mono text-label-sm uppercase tracking-widest">{t('crop.uploadPromptCrop')}</span>
           </button>
         )}
 

@@ -327,6 +327,12 @@ export const en = {
     saveChanges: 'Save changes',
   },
   crop: {
+    tabCrop: 'Crop',
+    tabCutout: 'Remove background',
+    image: 'IMAGE',
+    auto: 'AUTO',
+    pad: 'Pad',
+    export: 'EXPORT',
     changePhoto: 'CHANGE PHOTO',
     undoTip: 'Undo (Ctrl+Z)',
     redoTip: 'Redo (Ctrl+Shift+Z)',

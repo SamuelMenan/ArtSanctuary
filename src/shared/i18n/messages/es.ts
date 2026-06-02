@@ -333,6 +333,12 @@ export const es = {
     saveChanges: 'Guardar cambios',
   },
   crop: {
+    tabCrop: 'Recortar',
+    tabCutout: 'Quitar fondo',
+    image: 'IMAGEN',
+    auto: 'AUTO',
+    pad: 'Pad',
+    export: 'EXPORTAR',
     changePhoto: 'CAMBIAR FOTO',
     undoTip: 'Deshacer (Ctrl+Z)',
     redoTip: 'Rehacer (Ctrl+Shift+Z)',
