@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
 
 export default function CollectionActions({ collectionId, initialName }: { collectionId: string, initialName: string }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -10,6 +11,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { t } = usePreferences();
+  const { refresh } = useCollections();
 
   const handleRename = async () => {
     if (!name.trim() || name === initialName) {
@@ -24,6 +26,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
     });
     if (res.ok) {
       setIsEditing(false);
+      void refresh();
       router.refresh();
     }
     setLoading(false);
@@ -36,6 +39,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
       method: 'DELETE'
     });
     if (res.ok) {
+      void refresh();
       router.push('/');
     } else {
       setLoading(false);

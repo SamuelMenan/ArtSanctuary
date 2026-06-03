@@ -6,8 +6,10 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
 
 export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatusChange }: { artworkId: string; onClose: () => void; onSavedStatusChange?: (saved: boolean) => void }) {
+  const { collections: cached, refresh } = useCollections();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -15,18 +17,12 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
   const router = useRouter();
   const { t } = usePreferences();
 
+  // Lista desde la caché compartida (sin fetch al abrir); copia local para el
+  // estado optimista de pertenencia al togglear artworks.
   useEffect(() => {
-    fetchCollections();
-  }, []);
-
-  const fetchCollections = async () => {
-    const res = await fetch('/api/collections');
-    if (res.ok) {
-      const data = await res.json();
-      setCollections(data.collections);
-    }
+    setCollections(cached);
     setLoading(false);
-  };
+  }, [cached]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +34,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
     });
     if (res.ok) {
       setNewCollectionName('');
-      fetchCollections();
+      void refresh();
     }
   };
 
