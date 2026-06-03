@@ -31,3 +31,30 @@ export const formatScaled = (cm: number) => {
 
 // Helper to format a raw cm value (no scaling) consistently
 export const formatCm = (cm: number) => `${trimFloat(+cm.toFixed(2))} cm`
+
+// ── Escala por-Board (Carnaval) ───────────────────────────────────────────
+// Un Board puede tener su propia escala (1:10 disfraz/comparsa, 1:15 carroza)
+// distinta de la global 215/14 (Board Libre). `createScaler` produce un objeto
+// con la misma API que applyScale/formatScaled pero parametrizado.
+export type Scaler = {
+	/** obra:boceto. p. ej. 10 → 1:10. */
+	ratio: number
+	applyScale: (cm: number) => number
+	formatScaled: (cm: number) => string
+}
+
+export function createScaler(num: number, den = 1): Scaler {
+	const ratio = num / den
+	const apply = (cm: number) => (cm * num) / den
+	const fmt = (cm: number) => {
+		const scaled = apply(cm)
+		const cmStr = `${trimFloat(+scaled.toFixed(2))} cm`
+		if (scaled < 100) return cmStr
+		const m = scaled / 100
+		return `${cmStr} (${trimFloat(+m.toFixed(2))} m)`
+	}
+	return { ratio, applyScale: apply, formatScaled: fmt }
+}
+
+/** Escala por defecto (Board Libre): la global exacta 215/14. */
+export const defaultScaler = createScaler(SCALE_RATIO_NUM, SCALE_RATIO_DEN)

@@ -9,6 +9,8 @@ import ShapeNode from '../nodes/ShapeNode'
 import GridLayer from '../layers/GridLayer'
 import MeasureLayer from '../layers/MeasureLayer'
 import type { GridLines } from '../lib/grid'
+import { BoardExtLayers } from '../extensions/Host'
+import type { BoardExtension, BoardExtSlotProps } from '../extensions/boardExtension'
 
 type Vec = { x: number; y: number }
 type MeasureSeg = { ax: number; ay: number; bx: number; by: number } | null
@@ -34,6 +36,8 @@ export default function BoardStage({
   gridLines,
   gridColor,
   background,
+  extension,
+  extSlot,
   sorted,
   readOnly,
   selectedIds,
@@ -59,6 +63,8 @@ export default function BoardStage({
   gridLines: GridLines
   gridColor: string
   background: BoardBackground
+  extension?: BoardExtension
+  extSlot: BoardExtSlotProps
   sorted: BoardObject[]
   readOnly: boolean
   selectedIds: string[]
@@ -92,6 +98,9 @@ export default function BoardStage({
     >
       {/* Capa de fondo (grid milimetrado: menores 1cm + mayores 2cm) */}
       <GridLayer lines={gridLines} color={gridColor} scale={scale} opacity={background.opacity} />
+
+      {/* Capa de la extensión del workspace (guías/huellas), si la hay. */}
+      <BoardExtLayers extension={extension} slot={extSlot} />
 
       {/* Capa de objetos */}
       <Layer>

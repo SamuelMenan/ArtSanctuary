@@ -13,6 +13,7 @@ const navItems = [
   { key: 'nav.gallery', href: '/gallery', icon: 'grid_view' },
   { key: 'nav.explore', href: '/explore', icon: 'explore' },
   { key: 'nav.tools', href: '/dashboard/tools', icon: 'handyman' },
+  { key: 'nav.workspaces', href: '/dashboard/workspaces', icon: 'folder_special' },
 ]
 
 export default function Sidebar() {

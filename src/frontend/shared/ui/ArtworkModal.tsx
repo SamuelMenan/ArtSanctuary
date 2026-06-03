@@ -84,6 +84,8 @@ export default function ArtworkModal({ artworkId, isOpen, onClose, onPrev, onNex
           </div>
         ) : error ? (
           <div className="w-full h-full flex items-center justify-center text-[var(--color-error)]">{error}</div>
+        ) : !artwork ? (
+          <div className="w-full h-full flex items-center justify-center text-[var(--color-error)]">{t('modal.loadError') || 'Error loading artwork'}</div>
         ) : (
           <>
             <ArtworkMedia artwork={artwork} />

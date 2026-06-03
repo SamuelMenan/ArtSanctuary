@@ -278,7 +278,7 @@ function ExploreContent() {
                         className="snap-start shrink-0 w-64 group cursor-pointer relative"
                       >
                         <div className="aspect-square bg-[var(--color-surface-container-low)] overflow-hidden rounded-sm border border-[var(--color-outline-variant)] group-hover:border-[var(--color-primary)] transition-colors">
-                           <Image src={art.imageUrl} alt={art.title || ''} width={256} height={256} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                           <Image src={art.imageUrl} alt={art.title || ''} width={256} height={256} priority className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
                         </div>
                         <div className="mt-3">
                           <h3 className="font-sans font-semibold text-sm text-[var(--color-primary)] truncate">{art.title}</h3>

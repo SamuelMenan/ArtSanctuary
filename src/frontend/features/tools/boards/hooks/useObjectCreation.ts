@@ -76,5 +76,14 @@ export function useObjectCreation(
     })
   }
 
-  return { addImage, addText, addSticky, addShape }
+  /**
+   * Añade un objeto ya construido por una extensión de workspace (p. ej. la
+   * figura humana reglamentaria de Carnaval). El motor solo asigna id/z y lo
+   * selecciona; la extensión decide tipo, posición y tamaño. Mantiene a `boards`
+   * agnóstico de cualquier tipo concreto.
+   */
+  const addExtensionObject = (obj: Omit<BoardObject, 'id' | 'z'>) =>
+    addObject({ ...obj, id: uid(), z: nextZ() })
+
+  return { addImage, addText, addSticky, addShape, addExtensionObject }
 }

@@ -41,6 +41,20 @@ export interface IBoardViewport {
   zoom: number;
 }
 
+/** Workspace del board: Board Libre o modalidad Carnaval (Corpocarnaval). */
+export interface IBoardWorkspace {
+  kind: "free" | "carnaval";
+  modality?: "disfraz" | "comparsa" | "carroAlegorico" | "carroza";
+  view?:
+    | "frontal"
+    | "posterior"
+    | "lateralIzq"
+    | "lateralDer"
+    | "superior"
+    | "bastidores"
+    | "jugadores";
+}
+
 export interface IBoard extends Document {
   _id: Types.ObjectId;
   name: string;
@@ -48,6 +62,8 @@ export interface IBoard extends Document {
   background: IBoardBackground;
   objects: IBoardObject[];
   viewport: IBoardViewport;
+  workspace: IBoardWorkspace;
+  projectId?: Types.ObjectId;
   thumbnailUrl: string;
   owner: Types.ObjectId;
   createdAt: Date;
@@ -70,6 +86,29 @@ const ViewportSchema = new Schema<IBoardViewport>(
     x: { type: Number, default: 0 },
     y: { type: Number, default: 0 },
     zoom: { type: Number, default: 1 },
+  },
+  { _id: false }
+);
+
+const WorkspaceSchema = new Schema<IBoardWorkspace>(
+  {
+    kind: { type: String, enum: ["free", "carnaval"], default: "free" },
+    modality: {
+      type: String,
+      enum: ["disfraz", "comparsa", "carroAlegorico", "carroza"],
+    },
+    view: {
+      type: String,
+      enum: [
+        "frontal",
+        "posterior",
+        "lateralIzq",
+        "lateralDer",
+        "superior",
+        "bastidores",
+        "jugadores",
+      ],
+    },
   },
   { _id: false }
 );
@@ -112,6 +151,11 @@ const BoardSchema = new Schema<IBoard>(
     objects: { type: [BoardObjectSchema], default: [] },
 
     viewport: { type: ViewportSchema, default: () => ({}) },
+
+    workspace: { type: WorkspaceSchema, default: () => ({ kind: "free" }) },
+
+    // Proyecto Carnaval (Fase 3): este board es un plano del proyecto.
+    projectId: { type: Schema.Types.ObjectId, ref: "CarnivalProject", index: true },
 
     thumbnailUrl: { type: String, default: "" },
 

@@ -73,6 +73,24 @@ export type BoardBackground = {
 
 export type BoardViewport = { x: number; y: number; zoom: number }
 
+// ── Workspace (Fase 2 — Carnaval) ──
+// 'free' = Board Libre (escala global 215/14). 'carnaval' = modalidad
+// Corpocarnaval con su escala, reglas y zonas reglamentarias.
+// NOTA: solo imports de TIPO desde carnaval (se borran al compilar). El motor
+// `boards` no tiene dependencia de runtime con ningún tipo de workspace; la
+// resolución de escala vive en `@shared/lib/workspaces/registry` (workspaceScaler).
+import type { CarnavalModality, CarnavalPlano } from '@shared/lib/workspaces/carnaval'
+
+export type BoardWorkspaceKind = 'free' | 'carnaval'
+export type BoardWorkspace = {
+  kind: BoardWorkspaceKind
+  modality?: CarnavalModality
+  /** Plano que representa este board dentro de un proyecto (Fase 3/5). */
+  view?: CarnavalPlano
+}
+
+export const DEFAULT_WORKSPACE: BoardWorkspace = { kind: 'free' }
+
 export type BoardData = {
   _id: string
   name: string
@@ -80,6 +98,9 @@ export type BoardData = {
   background: BoardBackground
   objects: BoardObject[]
   viewport: BoardViewport
+  workspace?: BoardWorkspace
+  /** Proyecto Carnaval al que pertenece este plano, si aplica (Fase 3). */
+  projectId?: string
 }
 
 // 96 dpi: 1 cm ≈ 37.795 px (world). Single source in lib/measure.

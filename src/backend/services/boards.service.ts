@@ -6,14 +6,28 @@
 import "server-only";
 import { connectDB } from "@backend/db/mongoose";
 import Board from "@backend/models/Board";
+import {
+  getCarnavalRule,
+  isCarnavalModality,
+  type CarnavalModality,
+} from "@shared/lib/workspaces/carnaval";
+
+export type BoardWorkspaceInput = {
+  kind?: "free" | "carnaval";
+  modality?: string;
+};
 
 /** Límite de boards para el plan Free. */
 export const MAX_FREE_BOARDS = 5;
 
-/** Metadatos de los boards del usuario (sin objetos), recientes primero. */
+/**
+ * Metadatos de los boards SUELTOS del usuario (sin objetos), recientes primero.
+ * Excluye los planos que pertenecen a un proyecto Workspace (tienen projectId);
+ * esos se gestionan dentro de su proyecto, no en la lista general de boards.
+ */
 export async function getUserBoards(userId: string) {
   await connectDB();
-  const boards = await Board.find({ owner: userId })
+  const boards = await Board.find({ owner: userId, projectId: { $exists: false } })
     .select("name isPrivate thumbnailUrl updatedAt createdAt")
     .sort({ updatedAt: -1 })
     .lean();
@@ -26,16 +40,34 @@ export async function countUserBoards(userId: string) {
   return Board.countDocuments({ owner: userId });
 }
 
-/** Crea un board vacío para el usuario. */
+/** Crea un board vacío para el usuario. Workspace Carnaval ajusta cuadrícula. */
 export async function createBoard(
   userId: string,
-  data: { name?: string; isPrivate?: boolean },
+  data: { name?: string; isPrivate?: boolean; workspace?: BoardWorkspaceInput },
 ) {
   await connectDB();
+
+  // Resuelve workspace válido (defensivo ante input del cliente).
+  let workspace: { kind: "free" | "carnaval"; modality?: CarnavalModality } = {
+    kind: "free",
+  };
+  let background: Record<string, unknown> | undefined;
+  if (
+    data.workspace?.kind === "carnaval" &&
+    isCarnavalModality(data.workspace.modality)
+  ) {
+    const modality = data.workspace.modality;
+    workspace = { kind: "carnaval", modality };
+    // Cuadrícula sugerida por la modalidad (cm/cuadro sobre el boceto).
+    background = { type: "grid", squareCm: getCarnavalRule(modality).gridSquareCm };
+  }
+
   const board = await Board.create({
     name: data.name?.trim() || "Board sin título",
     isPrivate: data.isPrivate ?? false,
     owner: userId,
+    workspace,
+    ...(background ? { background } : {}),
   });
   return JSON.parse(JSON.stringify(board));
 }
@@ -59,7 +91,7 @@ export async function updateBoard(
   const board = await Board.findOneAndUpdate(
     { _id: id, owner: ownerId },
     { $set: update },
-    { new: true },
+    { returnDocument: 'after' },
   ).lean();
   return board ? JSON.parse(JSON.stringify(board)) : null;
 }

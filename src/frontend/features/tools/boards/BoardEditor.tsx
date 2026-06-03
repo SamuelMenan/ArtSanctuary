@@ -30,7 +30,11 @@ import { useSpacePan } from './hooks/useSpacePan'
 import { useTextEditing } from './hooks/useTextEditing'
 import { useBoardExport } from './hooks/useBoardExport'
 import { buildGridLines } from './lib/grid'
-import { BoardObject, BoardBackground } from '@shared/lib/boards/types'
+import { getBoardExtension } from './extensions/registry'
+import { BoardExtProvider, BoardExtOverlays } from './extensions/Host'
+import type { BoardExtSlotProps } from './extensions/boardExtension'
+import { BoardObject, BoardBackground, BoardWorkspace, DEFAULT_WORKSPACE } from '@shared/lib/boards/types'
+import { workspaceScaler } from '@shared/lib/workspaces/registry'
 
 const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
@@ -55,6 +59,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     opacity: 35,
   })
   const [name, setName] = useState('Board sin título')
+  const [workspace, setWorkspace] = useState<BoardWorkspace>(DEFAULT_WORKSPACE)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [snap, setSnap] = useState(true)
@@ -106,8 +111,12 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   /* ── Carga inicial + autosave ── */
   const { loaded, notFound, readOnly, saveState } = useBoardData(boardId, stageRef, trRef, {
     objects, background, name, pos, scale,
-    setObjects, setBackground, setName, setPos, setScale, setFitTarget,
+    setObjects, setBackground, setName, setPos, setScale, setFitTarget, setWorkspace,
   })
+
+  /* ── Extensión de lienzo del workspace (Carnaval u otro tipo) ── */
+  const extension = getBoardExtension(workspace.kind)
+  const scaler = useMemo(() => workspaceScaler(workspace), [workspace])
 
   /* ── Transformer sigue a la selección · espacio = paneo ── */
   useTransformerSync(trRef, stageRef, selectedIds, editingId, objects)
@@ -150,9 +159,14 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   )
 
   /* ── Creación de objetos (centro de la vista) ── */
-  const { addImage, addText, addSticky, addShape } = useObjectCreation(
+  const { addImage, addText, addSticky, addShape, addExtensionObject } = useObjectCreation(
     objects, stageSize, pos, scale, mutate, setSelectedIds, setEditingId,
   )
+
+  /* ── Estado del board que se pasa a la extensión del workspace ── */
+  const extSlot: BoardExtSlotProps = {
+    workspace, objects, readOnly, scale, addObject: addExtensionObject,
+  }
 
   // Selección simple (los paneles de formato solo aplican a un objeto).
   const selectedId = selectedIds.length === 1 ? selectedIds[0] : null
@@ -238,6 +252,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
       {/* Escenario */}
       <div ref={containerRef} className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${panMode ? 'cursor-grab active:cursor-grabbing' : tool === 'measure' ? 'cursor-crosshair' : ''}`}>
+        <BoardExtProvider extension={extension} slot={extSlot}>
         <BoardStage
           stageRef={stageRef}
           trRef={trRef}
@@ -251,6 +266,8 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           gridLines={gridLines}
           gridColor={gridColor}
           background={background}
+          extension={extension}
+          extSlot={extSlot}
           sorted={sorted}
           readOnly={readOnly}
           selectedIds={selectedIds}
@@ -300,6 +317,10 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           />
         )}
 
+        {/* Overlays de la extensión del workspace (guías/alertas/inspector) */}
+        <BoardExtOverlays extension={extension} slot={extSlot} />
+        </BoardExtProvider>
+
         {/* Isla inferior izquierda: controles de vista */}
         <ZoomIsland scale={scale} onZoomIn={() => zoomBy(1.2)} onZoomOut={() => zoomBy(1 / 1.2)} onReset={resetView} />
 
@@ -323,11 +344,11 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {selRect && <SelectionRect rect={selRect} />}
 
         {/* Etiqueta de distancia de la regla */}
-        {measure && <MeasureLabel measure={measure} pos={pos} scale={scale} isGrid={background.type === 'grid'} />}
+        {measure && <MeasureLabel measure={measure} pos={pos} scale={scale} isGrid={background.type === 'grid'} scaler={scaler} />}
 
         {/* Cota de tamaño real del objeto seleccionado */}
         {selectedObj && !editingId && (
-          <DimensionLabel o={selectedObj} pos={pos} scale={scale} isGrid={background.type === 'grid'} />
+          <DimensionLabel o={selectedObj} pos={pos} scale={scale} isGrid={background.type === 'grid'} scaler={scaler} />
         )}
 
         {loaded && objects.length === 0 && !readOnly && (

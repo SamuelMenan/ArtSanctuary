@@ -1,6 +1,6 @@
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { BoardObject } from '@shared/lib/boards/types'
-import { cmOf, formatCm, formatScaled } from '@shared/lib/measure'
+import { cmOf, formatCm, defaultScaler, type Scaler } from '@shared/lib/measure'
 
 const round1 = (n: number) => Math.round(n * 10) / 10
 const fmtM = (cm: number) => {
@@ -15,11 +15,13 @@ export default function DimensionLabel({
   pos,
   scale,
   isGrid,
+  scaler = defaultScaler,
 }: {
   o: BoardObject
   pos: { x: number; y: number }
   scale: number
   isGrid: boolean
+  scaler?: Scaler
 }) {
   const { t } = usePreferences()
   const isLin = o.type === 'line' || o.type === 'arrow'
@@ -36,7 +38,7 @@ export default function DimensionLabel({
   // Cota doble (Referencia + Final): ambas escalas SIEMPRE visibles en cuadrícula.
   if (isGrid) {
     const sLabelRef = () => (isLin ? formatCm(diagCm) : `${formatCm(wCm)} × ${formatCm(hCm)}`)
-    const sLabelFin = () => (isLin ? formatScaled(diagCm) : `${formatScaled(wCm)} × ${formatScaled(hCm)}`)
+    const sLabelFin = () => (isLin ? scaler.formatScaled(diagCm) : `${scaler.formatScaled(wCm)} × ${scaler.formatScaled(hCm)}`)
     return (
       <div className="absolute -translate-x-1/2 rounded bg-[var(--color-primary)] text-[var(--color-on-primary)] font-mono text-[10px] pointer-events-none z-20 whitespace-nowrap overflow-hidden" style={{ left, top }}>
         <div className="px-1.5 py-0.5 opacity-90 border-b border-[var(--color-on-primary)]/20">

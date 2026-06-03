@@ -75,9 +75,9 @@ export function useArtwork({ artworkId, isOpen, onClose, onUpdated }: UseArtwork
           medium: data.medium || '',
         });
       } catch (err: any) {
-        setError(err.message);
+        if (!ignore) setError(err.message);
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 

@@ -54,6 +54,7 @@ export default function MobileMenu({
               { label: t('nav.gallery'), href: '/gallery', icon: 'grid_view' },
               { label: t('nav.explore'), href: '/explore', icon: 'explore' },
               { label: t('nav.tools'), href: '/dashboard/tools', icon: 'handyman' },
+              { label: t('nav.workspaces'), href: '/dashboard/workspaces', icon: 'folder_special' },
             ].map((item) => {
               const isActive = pathname === item.href
               return (

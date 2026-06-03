@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RefObject, Dispatch, SetStateAction } from 'react'
 import type Konva from 'konva'
-import { BoardData, BoardObject, BoardBackground, PX_PER_CM } from '@shared/lib/boards/types'
+import { BoardData, BoardObject, BoardBackground, BoardWorkspace, PX_PER_CM } from '@shared/lib/boards/types'
 import { pxOf } from '@shared/lib/measure'
 import { takeHandoff } from '@shared/lib/tools/handoff'
 import { uid } from '../lib/uid'
@@ -21,6 +21,7 @@ interface BoardStateBridge {
   setPos: Dispatch<SetStateAction<Vec>>
   setScale: Dispatch<SetStateAction<number>>
   setFitTarget: Dispatch<SetStateAction<FitTarget>>
+  setWorkspace: Dispatch<SetStateAction<BoardWorkspace>>
 }
 
 /**
@@ -88,6 +89,7 @@ export function useBoardData(
 
         s.setObjects(objs)
         if (bg) s.setBackground(bg)
+        if (d.board.workspace) s.setWorkspace(d.board.workspace)
         s.setName(d.board.name)
         if (vp) {
           s.setPos({ x: vp.x, y: vp.y })

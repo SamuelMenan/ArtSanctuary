@@ -59,7 +59,7 @@ export async function deleteCollection(id: string, ownerId: string) {
 /** Renombra la colección si es del usuario. POJO o `null`. */
 export async function renameCollection(id: string, ownerId: string, name: string) {
   await connectDB();
-  return Collection.findOneAndUpdate({ _id: id, owner: ownerId }, { name }, { new: true }).lean();
+  return Collection.findOneAndUpdate({ _id: id, owner: ownerId }, { name }, { returnDocument: 'after' }).lean();
 }
 
 /** Añade un artwork a la colección (+ marca savedBy). POJO o `null`. */
@@ -68,7 +68,7 @@ export async function addArtworkToCollection(id: string, ownerId: string, artwor
   const collection = await Collection.findOneAndUpdate(
     { _id: id, owner: ownerId },
     { $addToSet: { artworks: artworkId } },
-    { new: true },
+    { returnDocument: 'after' },
   ).lean();
   if (!collection) return null;
   await Artwork.findByIdAndUpdate(artworkId, { $addToSet: { savedBy: ownerId } });
@@ -81,7 +81,7 @@ export async function removeArtworkFromCollection(id: string, ownerId: string, a
   const collection = await Collection.findOneAndUpdate(
     { _id: id, owner: ownerId },
     { $pull: { artworks: artworkId } },
-    { new: true },
+    { returnDocument: 'after' },
   ).lean();
   if (!collection) return null;
 

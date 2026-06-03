@@ -31,7 +31,7 @@ export const POST = withErrorHandler("POST /api/boards", async (req: NextRequest
   }
 
   const body = await req.json().catch(() => ({}));
-  const { name, isPrivate } = body;
+  const { name, isPrivate, workspace } = body;
 
   // TODO: verificar plan del usuario para ajustar límite
   const count = await countUserBoards(session.user.id);
@@ -44,7 +44,7 @@ export const POST = withErrorHandler("POST /api/boards", async (req: NextRequest
     );
   }
 
-  const board = await createBoard(session.user.id, { name, isPrivate });
+  const board = await createBoard(session.user.id, { name, isPrivate, workspace });
   return NextResponse.json({ board }, { status: 201 });
 });
 
