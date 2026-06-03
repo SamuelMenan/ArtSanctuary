@@ -1,3 +1,0 @@
-mcp/lib/fs-utils.ts
-mcp/lib/parsers.ts
-mcp/lib/paths.ts
