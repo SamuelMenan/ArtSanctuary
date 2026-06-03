@@ -55,7 +55,7 @@ export default function LayersPanel({
         </button>
       </div>
       <ul className="flex-1 overflow-y-auto custom-scrollbar">
-        {[...objects].sort((a, b) => b.z - a.z).map((o) => {
+        {objects.toSorted((a, b) => b.z - a.z).map((o) => {
           const sel = selectedIds.includes(o.id)
           const hidden = o.visible === false
           return (

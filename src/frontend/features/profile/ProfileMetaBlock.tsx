@@ -18,13 +18,19 @@ interface Props {
   t: T
 }
 
+const formatters = new Map<string, Intl.DateTimeFormat>()
+function getFormatter(locale: string) {
+  const code = locale === 'en' ? 'en-US' : 'es-ES'
+  if (!formatters.has(code)) {
+    formatters.set(code, new Intl.DateTimeFormat(code, { year: 'numeric', month: 'short' }))
+  }
+  return formatters.get(code)!
+}
+
 function fmtDate(d?: Date | string | null, locale = 'es') {
   if (!d) return null
   try {
-    return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'es-ES', {
-      year: 'numeric',
-      month: 'short',
-    }).format(new Date(d))
+    return getFormatter(locale).format(new Date(d))
   } catch {
     return null
   }

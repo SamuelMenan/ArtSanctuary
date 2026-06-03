@@ -213,7 +213,7 @@ export function useArtwork({ artworkId, isOpen, onClose, onUpdated }: UseArtwork
     try {
       const payload = {
         ...editForm,
-        tags: editForm.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+        tags: editForm.tags.split(',').flatMap((t: string) => t.trim() ? [t.trim()] : [])
       };
       const res = await fetch(`/api/artworks/${artworkId}`, {
         method: 'PUT',

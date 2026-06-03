@@ -128,8 +128,8 @@ export function useUploadArtwork() {
     }
 
     try {
-      const materialsArray = formData.materials.split(',').map(m => m.trim()).filter(Boolean);
-      const tagsArray = formData.tags.split(',').map(s => s.trim()).filter(Boolean);
+      const materialsArray = formData.materials.split(',').flatMap(m => m.trim() ? [m.trim()] : []);
+      const tagsArray = formData.tags.split(',').flatMap(s => s.trim() ? [s.trim()] : []);
 
       if (!imageFile) {
         throw new Error(t('upload.noImage'));

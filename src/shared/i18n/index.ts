@@ -21,8 +21,8 @@ export type TranslationDictionary =
 
 /** Carga el diccionario de un idioma bajo demanda (un chunk por idioma). */
 export async function loadDictionary(locale: Locale): Promise<TranslationDictionary> {
-  const m = await import(`./messages/${locale}`)
-  return (m as Record<string, TranslationDictionary>)[locale]
+  if (locale === 'en') return (await import('./messages/en'))['en']
+  return (await import('./messages/es'))['es']
 }
 
 export function createTranslator(dictionary: TranslationDictionary) {

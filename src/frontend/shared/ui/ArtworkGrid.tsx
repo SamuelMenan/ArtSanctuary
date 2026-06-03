@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- 'artwork' es JSON poblado del API con forma dinámica; el tipado estricto cascada sin valor real aquí. */
 import Link from 'next/link';
+import Image from 'next/image';
 import ArtworkLightbox from './ArtworkLightbox';
 import { getCategoryLabel, type Locale } from '@shared/i18n';
 
@@ -31,10 +32,11 @@ export default function ArtworkGrid({ artworks, locale, emptyState }: ArtworkGri
             scroll={false}
             className="masonry-item relative group bg-[var(--color-surface-container-low)] cursor-pointer overflow-hidden rounded-[var(--radius-sm)] block mb-[var(--spacing-grid-gutter)]"
           >
-            <img
+            <Image
               src={art.imageUrl}
               alt={art.title}
-              loading="lazy"
+              width={600}
+              height={600}
               className="w-full h-auto block transition-transform duration-500 group-hover:scale-[1.02]"
             />
 

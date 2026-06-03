@@ -5,6 +5,8 @@ import fs from "fs";
 
 export const runtime = "nodejs";
 
+const UPLOADS_DIR = path.join(process.cwd(), "storage", "uploads");
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
@@ -21,7 +23,7 @@ export async function GET(
     const safePath = path.normalize(pathArray.join("/")).replace(/^(\.\.(\/|\\|$))+/, "");
     
     // Construir la ruta absoluta apuntando a storage/uploads/...
-    const abs = path.join(process.cwd(), "storage", "uploads", safePath);
+    const abs = path.join(UPLOADS_DIR, safePath);
 
     if (!fs.existsSync(abs)) {
       return new NextResponse("Not Found", { status: 404 });

@@ -121,6 +121,12 @@ export function ProfileHero({
   )
 }
 
+const CHIP_MAP = {
+  default: 'text-[var(--color-on-surface-variant)] border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)]',
+  accent: 'text-[var(--color-primary)] border-[var(--color-primary)] bg-[var(--color-surface-container)]',
+  muted: 'text-[var(--color-on-surface-variant)] border-transparent bg-[var(--color-surface-container)] opacity-80',
+} as const
+
 function Chip({
   children,
   variant = 'default',
@@ -132,16 +138,9 @@ function Chip({
 }) {
   const base =
     'inline-flex items-center font-mono text-[10px] uppercase tracking-[0.18em] px-2 py-0.5 rounded-sm border whitespace-nowrap max-w-full truncate leading-tight'
-  const map = {
-    default:
-      'text-[var(--color-on-surface-variant)] border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)]',
-    accent:
-      'text-[var(--color-primary)] border-[var(--color-primary)] bg-[var(--color-surface-container)]',
-    muted:
-      'text-[var(--color-on-surface-variant)] border-transparent bg-[var(--color-surface-container)] opacity-80',
-  } as const
+  
   return (
-    <span className={`${base} ${map[variant]}`} title={title}>
+    <span className={`${base} ${CHIP_MAP[variant]}`} title={title}>
       {children}
     </span>
   )
