@@ -13,10 +13,6 @@ import { NotificationsForm } from '@frontend/features/settings/NotificationsForm
 import { PrivacyForm } from '@frontend/features/settings/PrivacyForm'
 import { DangerZone } from '@frontend/features/settings/DangerZone'
 
-export const metadata = {
-  title: 'Configuración | ArtSanctuary',
-  description: 'Ajustes de cuenta y perfil',
-}
 
 export default async function SettingsPage() {
   const session = await auth()
