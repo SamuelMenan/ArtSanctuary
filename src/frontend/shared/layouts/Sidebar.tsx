@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import UploadButton from '@frontend/shared/ui/UploadButton'
 import { usePathname } from 'next/navigation'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { useCollections } from '@frontend/shared/providers/CollectionsProvider'
 import { useChrome } from './ChromeProvider'
 
 const navItems = [
@@ -21,20 +22,8 @@ export default function Sidebar() {
   const { data: session } = useSession()
   const { t } = usePreferences()
   const { sidebarOpen } = useChrome()
-  const [collections, setCollections] = useState<{ _id: string; name: string }[]>([])
-
-  useEffect(() => {
-    let ignore = false;
-    if (session?.user?.id) {
-      window.fetch('/api/collections')
-        .then(res => res.json())
-        .then(data => {
-          if (!ignore && data.collections) setCollections(data.collections)
-        })
-        .catch(err => console.error(err))
-    }
-    return () => { ignore = true; };
-  }, [session])
+  // Lista compartida (CollectionsProvider): una sola carga, sin re-fetch por navegación.
+  const { collections } = useCollections()
 
   return (
     <nav className={`hidden md:flex flex-col h-full py-8 gap-[var(--spacing-stack-md)] bg-[var(--color-surface-container)] fixed left-0 top-0 w-[var(--spacing-sidebar-width)] border-r border-[var(--color-outline-variant)] z-50 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>

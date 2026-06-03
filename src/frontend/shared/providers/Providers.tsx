@@ -3,6 +3,7 @@
 import { SessionProvider } from 'next-auth/react';
 import { ReactNode } from 'react';
 import AppPreferencesProvider from './AppPreferencesProvider';
+import CollectionsProvider from './CollectionsProvider';
 import type { Locale, ThemeMode, TranslationDictionary } from '@shared/i18n';
 
 export default function Providers({
@@ -21,7 +22,9 @@ export default function Providers({
   return (
     <SessionProvider>
       <AppPreferencesProvider initialLocale={initialLocale} initialTheme={initialTheme} initialDictionary={initialDictionary} userId={userId}>
-        {children}
+        <CollectionsProvider userId={userId}>
+          {children}
+        </CollectionsProvider>
       </AppPreferencesProvider>
     </SessionProvider>
   );

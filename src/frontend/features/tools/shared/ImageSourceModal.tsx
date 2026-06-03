@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
 
 type Props = {
   onClose: () => void;
@@ -25,25 +26,13 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Colecciones
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [loadingList, setLoadingList] = useState(false);
+  // Colecciones (lista desde la caché compartida; detalle bajo demanda).
+  const { collections, loading: loadingList } = useCollections();
   const [openCollection, setOpenCollection] = useState<Collection | null>(null);
   const [detail, setDetail] = useState<CollectionDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    if (tab !== 'collections' || collections.length > 0) return;
-    let ignore = false;
-    setLoadingList(true);
-    window.fetch('/api/collections')
-      .then((r) => (r.ok ? r.json() : { collections: [] }))
-      .then((d) => { if (!ignore) setCollections(d.collections ?? []) })
-      .finally(() => { if (!ignore) setLoadingList(false) });
-    return () => { ignore = true; };
-  }, [tab, collections.length]);
 
   const openDetail = async (c: Collection) => {
     setOpenCollection(c);
