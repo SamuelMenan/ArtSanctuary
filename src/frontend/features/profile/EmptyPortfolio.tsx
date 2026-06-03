@@ -30,7 +30,7 @@ export function EmptyPortfolio({ ownerView, t }: Props) {
         {/* Copy */}
         <div className="flex flex-col justify-center gap-4">
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--color-on-surface-variant)] opacity-70">
-            — {ownerView ? 'ARCHIVO VACÍO' : 'PORTAFOLIO'}
+            : {ownerView ? 'ARCHIVO VACÍO' : 'PORTAFOLIO'}
           </span>
           <h3 className="font-sans font-semibold text-2xl sm:text-3xl text-[var(--color-primary)] tracking-tight leading-tight">
             {t('profile.noWorks')}

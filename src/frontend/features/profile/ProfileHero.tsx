@@ -148,7 +148,7 @@ function Chip({
 
 function Metric({ value, label }: { value: number; label: string }) {
   return (
-    <div className="px-3 py-3 flex flex-col gap-0.5 justify-center bg-[var(--color-surface-container-lowest)]">
+    <div className="p-3 flex flex-col gap-0.5 justify-center bg-[var(--color-surface-container-lowest)]">
       <span className="font-sans font-semibold text-xl text-[var(--color-primary)] leading-none tabular-nums">
         {value}
       </span>

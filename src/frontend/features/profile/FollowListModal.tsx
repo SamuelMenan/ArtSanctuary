@@ -119,13 +119,13 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-2 py-2">
+        <div className="flex-1 overflow-y-auto p-2">
           {error ? (
             <div className="text-center py-10 font-mono text-xs uppercase tracking-widest text-[var(--color-error)]">
               {error}
             </div>
           ) : users === null ? (
-            <ul className="space-y-2 px-3 py-3" aria-live="polite">
+            <ul className="space-y-2 p-3" aria-live="polite">
               {[0, 1, 2, 3].map((i) => (
                 <li
                   key={i}
@@ -144,7 +144,7 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
                   <Link
                     href={`/profile/${u._id}`}
                     onClick={onClose}
-                    className="flex items-center gap-3 px-3 py-3 hover:bg-[var(--color-surface-container-low)] transition-colors"
+                    className="flex items-center gap-3 p-3 hover:bg-[var(--color-surface-container-low)] transition-colors"
                   >
                     {u.avatarUrl ? (
                       <Image

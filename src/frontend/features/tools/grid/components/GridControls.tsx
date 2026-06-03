@@ -139,7 +139,7 @@ export default function GridControls({
           onChange={setOpacity}
         />
         <ToolRow>
-          <div className="w-9 h-9 shrink-0 rounded-lg border border-[var(--color-outline-variant)] hover:border-[var(--color-outline)] transition-colors relative overflow-hidden" title={t('grid.color')}>
+          <div className="size-9 shrink-0 rounded-lg border border-[var(--color-outline-variant)] hover:border-[var(--color-outline)] transition-colors relative overflow-hidden" title={t('grid.color')}>
             <input
               type="color"
               aria-label={t('grid.color')}
@@ -147,7 +147,7 @@ export default function GridControls({
               onFocus={() => { prevColor.current = color }}
               onBlur={() => { if (color !== prevColor.current) pushSnapshot({ color: prevColor.current }) }}
               onChange={(e) => setColor(e.target.value)}
-              className="absolute inset-[-25%] w-[150%] h-[150%] cursor-pointer"
+              className="absolute inset-[-25%] size-[150%] cursor-pointer"
             />
           </div>
           <ToolButton

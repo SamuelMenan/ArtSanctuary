@@ -70,7 +70,7 @@ function MetricBtn({
     <button
       type="button"
       onClick={onClick}
-      className="text-left bg-[var(--color-surface-container-lowest)] px-3 py-3 flex flex-col gap-0.5 justify-center transition-colors hover:bg-[var(--color-surface-container-low)] focus:outline-none focus-visible:bg-[var(--color-surface-container)] group"
+      className="text-left bg-[var(--color-surface-container-lowest)] p-3 flex flex-col gap-0.5 justify-center transition-colors hover:bg-[var(--color-surface-container-low)] focus:outline-none focus-visible:bg-[var(--color-surface-container)] group"
     >
       <span className="font-sans font-semibold text-xl text-[var(--color-primary)] leading-none tabular-nums">
         {value}

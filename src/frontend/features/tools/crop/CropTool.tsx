@@ -90,7 +90,7 @@ export default function CropTool() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Handoff entrante (?handoff=1): carga la imagen pasada por otra herramienta.

@@ -46,7 +46,7 @@ export default function ResultOrb({
           style={{ background: resultHex }}
         />
         <div
-          className="relative w-[240px] h-[240px] rounded-full shadow-[inset_0_4px_24px_rgba(255,255,255,0.2),inset_0_-12px_40px_rgba(0,0,0,0.4),0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/10 transition-all duration-300"
+          className="relative size-[240px] rounded-full shadow-[inset_0_4px_24px_rgba(255,255,255,0.2),inset_0_-12px_40px_rgba(0,0,0,0.4),0_20px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/10 transition-all duration-300"
           style={{
             background: `radial-gradient(circle at 35% 30%, ${lighten(resultHex, 20)}, ${resultHex} 55%, ${darken(resultHex, 25)})`,
           }}
