@@ -90,7 +90,7 @@ export async function getProjectById(id: string) {
       (order.get((b.workspace?.view as CarnavalPlano) ?? "frontal") ?? 99),
   );
 
-  return { ...project, boards } as Record<string, unknown> & { owner: string };
+  return { ...project, boards } as unknown as Record<string, unknown> & { owner: string };
 }
 
 /** Aplica un parche al proyecto si el usuario es propietario. POJO o `null`. */
