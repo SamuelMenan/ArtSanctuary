@@ -12,6 +12,8 @@ import MeasureLabel from './overlays/MeasureLabel'
 import DimensionLabel from './overlays/DimensionLabel'
 import TextEditor from './overlays/TextEditor'
 import LayersPanel from './components/LayersPanel'
+import ContextMenu, { type ContextMenuItem } from './components/ContextMenu'
+import ShortcutsHelp from './components/ShortcutsHelp'
 import DimensionsFooter from './toolbars/DimensionsFooter'
 import TopBar from './toolbars/TopBar'
 import ToolIsland from './toolbars/ToolIsland'
@@ -20,7 +22,7 @@ import ZoomIsland from './toolbars/ZoomIsland'
 import { useHistory } from './hooks/useHistory'
 import { useClipboard } from './hooks/useClipboard'
 import { useShortcuts } from './hooks/useShortcuts'
-import { usePanZoom } from './hooks/usePanZoom'
+import { usePanZoom, clampScale } from './hooks/usePanZoom'
 import { useBoardData } from './hooks/useBoardData'
 import { useStagePointer } from './hooks/useStagePointer'
 import { useObjectCreation } from './hooks/useObjectCreation'
@@ -67,6 +69,14 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const dragLayer = useRef<string | null>(null)
   const [tool, setTool] = useState<'select' | 'hand' | 'measure'>('select')
   const [spaceHeld, setSpaceHeld] = useState(false)
+  // Proyecto Carnaval dueño del board (define la ruta de salida). null = board libre.
+  const [projectId, setProjectId] = useState<string | null>(null)
+  // Paneo por arrastre (botón central) en curso: feedback de cursor "grabbing".
+  const [dragPanning, setDragPanning] = useState(false)
+  // Overlay de ayuda de atajos (tecla ?).
+  const [helpOpen, setHelpOpen] = useState(false)
+  // Menú contextual (clic derecho) en coordenadas de pantalla del contenedor.
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null)
   const [selRect, setSelRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   // Medición (regla): puntos A→B en coordenadas de mundo.
   const [measure, setMeasure] = useState<{ ax: number; ay: number; bx: number; by: number } | null>(null)
@@ -99,7 +109,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
     const pad = 80
     const sx = (stageSize.w - pad * 2) / fitTarget.w
     const sy = (stageSize.h - pad * 2) / fitTarget.h
-    const next = Math.min(5, Math.max(0.02, Math.min(sx, sy)))
+    const next = clampScale(Math.min(sx, sy))
     setScale(next)
     setPos({
       x: stageSize.w / 2 - (fitTarget.x + fitTarget.w / 2) * next,
@@ -111,8 +121,11 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   /* ── Carga inicial + autosave ── */
   const { loaded, notFound, readOnly, saveState } = useBoardData(boardId, stageRef, trRef, {
     objects, background, name, pos, scale,
-    setObjects, setBackground, setName, setPos, setScale, setFitTarget, setWorkspace,
+    setObjects, setBackground, setName, setPos, setScale, setFitTarget, setWorkspace, setProjectId,
   })
+
+  // Ruta de salida: al workspace si es un plano de proyecto Carnaval; si no, lista de tableros.
+  const backHref = projectId ? `/dashboard/workspaces/${projectId}` : '/dashboard/tools/boards'
 
   /* ── Extensión de lienzo del workspace (Carnaval u otro tipo) ── */
   const extension = getBoardExtension(workspace.kind)
@@ -127,7 +140,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
   /* ── Mutadores de objetos y selección (snap, z-order, capas, escala) ── */
   const {
-    snapVal, setSquareCm, updateObject, selectObject, deleteSelected,
+    snapVal, setSquareCm, updateObject, selectObject, nudgeSelected, deleteSelected,
     toggleLock, bringToFront, sendToBack, patchSelected, patchObject,
     toggleLayerVisible, toggleLayerLock, moveLayer,
   } = useObjectActions(objects, selectedIds, setSelectedIds, background, snap, stageSize, pos, scale, mutate, setBackground)
@@ -154,8 +167,15 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       onSelectTool: () => { setTool('select'); setMeasure(null) },
       onMeasureTool: () => setTool('measure'),
       onEscape: () => { setMeasure(null); setSelectedIds([]) },
+      onZoomIn: () => zoomBy(1.2),
+      onZoomOut: () => zoomBy(1 / 1.2),
+      onZoomReset: () => resetView(),
+      onZoomToFit: () => zoomToFit(),
+      onZoomToSelection: () => zoomToSelection(),
+      onNudge: (dx, dy) => nudgeSelected(dx, dy),
+      onHelp: () => setHelpOpen((v) => !v),
     },
-    [selectedIds, readOnly, objects, snap, background],
+    [selectedIds, readOnly, objects, snap, background, scale, pos, stageSize],
   )
 
   /* ── Creación de objetos (centro de la vista) ── */
@@ -188,10 +208,38 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   /* ── Pan + zoom ── */
   const { onWheel, resetView, zoomBy } = usePanZoom(scale, pos, stageSize, stageRef, setScale, setPos)
 
+  /* ── Encuadre (zoom-to-fit / a la selección, estilo Figma). Reutiliza el
+     efecto de `fitTarget` que aplica pos/scale con margen. ── */
+  const fitToIds = (ids: string[]) => {
+    const list = objects.filter((o) => ids.includes(o.id))
+    if (list.length === 0) return
+    const stage = stageRef.current
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    for (const o of list) {
+      const node = stage?.findOne(`.${o.id}`)
+      const r = node?.getClientRect({ relativeTo: stage ?? undefined })
+      const b = r ?? { x: o.x, y: o.y, width: o.w ?? 0, height: o.h ?? 0 }
+      minX = Math.min(minX, b.x)
+      minY = Math.min(minY, b.y)
+      maxX = Math.max(maxX, b.x + b.width)
+      maxY = Math.max(maxY, b.y + b.height)
+    }
+    if (!Number.isFinite(minX)) return
+    setFitTarget({ x: minX, y: minY, w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY) })
+  }
+  const zoomToFit = () => {
+    if (objects.length === 0) return resetView()
+    fitToIds(objects.map((o) => o.id))
+  }
+  const zoomToSelection = () => {
+    if (selectedIds.length === 0) return zoomToFit()
+    fitToIds(selectedIds)
+  }
+
   /* ── Punteros del escenario: regla + paneo + selección por recuadro ── */
   const { panMode, onStagePointerDown, onStagePointerMove, onStagePointerUp } = useStagePointer({
     readOnly, tool, spaceHeld, pos, objects, stageRef, toWorld,
-    setMeasure, setPos, setSelectedIds, setSelRect,
+    setMeasure, setPos, setSelectedIds, setSelRect, setDragPanning,
   })
 
 
@@ -220,7 +268,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <span className="material-symbols-outlined text-5xl text-[var(--color-on-surface-variant)]/50">error</span>
         <p className="font-sans text-[var(--color-on-surface-variant)]">{t('boards.notFound')}</p>
-        <Link href="/dashboard/tools/boards" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline">
+        <Link href={backHref} className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline">
           {t('boards.backToBoards')}
         </Link>
       </div>
@@ -238,6 +286,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         onUndo={undo}
         onRedo={redo}
         onDownload={downloadBoard}
+        backHref={backHref}
       />
 
       {/* Panel de formato de texto (texto / nota seleccionados) */}
@@ -251,7 +300,18 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
       )}
 
       {/* Escenario */}
-      <div ref={containerRef} className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${panMode ? 'cursor-grab active:cursor-grabbing' : tool === 'measure' ? 'cursor-crosshair' : ''}`}>
+      <div
+        ref={containerRef}
+        // Botón central: evita el auto-scroll del navegador (icono de rueda) al panear.
+        onMouseDown={(e) => { if (e.button === 1) e.preventDefault() }}
+        onContextMenu={(e) => {
+          if (readOnly) return
+          e.preventDefault()
+          const r = e.currentTarget.getBoundingClientRect()
+          setCtxMenu({ x: e.clientX - r.left, y: e.clientY - r.top })
+        }}
+        className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${dragPanning ? 'cursor-grabbing' : panMode ? 'cursor-grab active:cursor-grabbing' : tool === 'measure' ? 'cursor-crosshair' : ''}`}
+      >
         <BoardExtProvider extension={extension} slot={extSlot}>
         <BoardStage
           stageRef={stageRef}
@@ -322,7 +382,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         </BoardExtProvider>
 
         {/* Isla inferior izquierda: controles de vista */}
-        <ZoomIsland scale={scale} onZoomIn={() => zoomBy(1.2)} onZoomOut={() => zoomBy(1 / 1.2)} onReset={resetView} />
+        <ZoomIsland scale={scale} onZoomIn={() => zoomBy(1.2)} onZoomOut={() => zoomBy(1 / 1.2)} onReset={resetView} onZoomToFit={zoomToFit} />
 
         {/* Panel de capas (isla flotante) */}
         {!readOnly && layersOpen && (
@@ -362,6 +422,30 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {editingObj && (
           <TextEditor o={editingObj} pos={pos} scale={scale} editRef={editTextRef} onChange={commitEditText} onFinish={finishEditing} />
         )}
+
+        {/* Menú contextual (clic derecho) */}
+        {!readOnly && ctxMenu && (
+          <ContextMenu
+            x={ctxMenu.x}
+            y={ctxMenu.y}
+            onClose={() => setCtxMenu(null)}
+            items={(() => {
+              const hasSel = selectedIds.length > 0
+              const items: ContextMenuItem[] = [
+                { label: t('boards.ctxCopy'), icon: 'content_copy', onClick: copySelection, disabled: !hasSel },
+                { label: t('boards.ctxPaste'), icon: 'content_paste', onClick: pasteClipboard },
+                { label: t('boards.duplicateTip'), icon: 'library_add', onClick: duplicateSelection, disabled: !hasSel },
+                { label: t('boards.bringToFrontTip'), icon: 'flip_to_front', onClick: bringToFront, disabled: !hasSel },
+                { label: t('boards.sendToBackTip'), icon: 'flip_to_back', onClick: sendToBack, disabled: !hasSel },
+                { label: t('boards.deleteTip'), icon: 'delete', onClick: deleteSelected, disabled: !hasSel, danger: true },
+              ]
+              return items
+            })()}
+          />
+        )}
+
+        {/* Ayuda de atajos (tecla ?) */}
+        {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
       </div>
 
       {/* Footer: escala + dimensiones exactas del objeto seleccionado */}

@@ -120,17 +120,17 @@ export default function BoardStage({
         })}
         {!readOnly && (
           <Transformer
-            ref={trRef}
+            ref={(node) => {
+              if (trRef) {
+                // @ts-ignore
+                trRef.current = node;
+              }
+            }}
             rotateEnabled
             keepRatio={false}
             rotationSnapTolerance={4}
             rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
             ignoreStroke
-            boundBoxFunc={(oldBox, newBox) =>
-              // Rechaza solo si ambas dimensiones son diminutas (permite
-              // líneas/flechas finas, cuyo alto ≈ grosor).
-              Math.abs(newBox.width) < 5 && Math.abs(newBox.height) < 5 ? oldBox : newBox
-            }
           />
         )}
       </Layer>

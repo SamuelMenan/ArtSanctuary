@@ -19,15 +19,19 @@ export function useTransformerSync(
     const tr = trRef.current
     const stage = stageRef.current
     if (!tr || !stage) return
+
     if (!selectedIds.length || editingId) {
       tr.nodes([])
       tr.getLayer()?.batchDraw()
       return
     }
+
     const nodes = selectedIds
       .map((id) => stage.findOne(`.${id}`))
       .filter((n): n is Konva.Node => !!n && objects.find((o) => o.id === n.name())?.visible !== false)
+    
     tr.nodes(nodes)
+
     // Solo permitir redimensionar si TODOS los nodos seleccionados están desbloqueados.
     tr.resizeEnabled(nodes.every((n) => {
       const obj = objects.find((o) => o.id === n.name())

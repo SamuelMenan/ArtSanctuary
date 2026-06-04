@@ -22,6 +22,8 @@ interface BoardStateBridge {
   setScale: Dispatch<SetStateAction<number>>
   setFitTarget: Dispatch<SetStateAction<FitTarget>>
   setWorkspace: Dispatch<SetStateAction<BoardWorkspace>>
+  /** Proyecto Carnaval al que pertenece el board (para la ruta de salida). */
+  setProjectId: Dispatch<SetStateAction<string | null>>
 }
 
 /**
@@ -90,6 +92,7 @@ export function useBoardData(
         s.setObjects(objs)
         if (bg) s.setBackground(bg)
         if (d.board.workspace) s.setWorkspace(d.board.workspace)
+        s.setProjectId(d.board.projectId ?? null)
         s.setName(d.board.name)
         if (vp) {
           s.setPos({ x: vp.x, y: vp.y })
@@ -125,10 +128,13 @@ export function useBoardData(
         const stage = stageRef.current
         const tr = trRef.current
         if (stage) {
-          tr?.visible(false) // no capturar los manejadores de selección
-          thumbnailUrl = stage.toDataURL({ pixelRatio: 0.25, mimeType: 'image/jpeg', quality: 0.6 })
-          tr?.visible(true)
-          tr?.getLayer()?.batchDraw()
+          try {
+            tr?.visible(false) // no capturar los manejadores de selección
+            thumbnailUrl = stage.toDataURL({ pixelRatio: 0.25, mimeType: 'image/jpeg', quality: 0.6 })
+          } finally {
+            tr?.visible(true)
+            tr?.getLayer()?.batchDraw()
+          }
         }
       } catch {
         thumbnailUrl = undefined
