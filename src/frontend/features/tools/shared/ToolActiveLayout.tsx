@@ -1,16 +1,41 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
+import { allWorkspaceUi } from '@frontend/features/workspaces/shared/workspacePlugin'
+import { planoLabel, type CarnavalPlano } from '@shared/lib/workspaces/carnaval'
 
-export default function ToolActiveLayout({ children }: { children: ReactNode }) {
+type PlanoMeta = {
+  _id: string
+  name: string
+  workspace?: { view?: CarnavalPlano }
+}
+type ProjectMeta = {
+  _id: string
+  name: string
+  boards: PlanoMeta[]
+}
+
+export default function ToolActiveLayout({ children, projectId }: { children: ReactNode; projectId?: string }) {
   const pathname = usePathname()
-  const { locale } = usePreferences()
+  const { locale, t } = usePreferences()
   const { navbarOpen } = useChrome()
   const [navOpen, setNavOpen] = useState(true)
+  const plugins = allWorkspaceUi()
+  const [project, setProject] = useState<ProjectMeta | null>(null)
+
+  useEffect(() => {
+    if (!projectId) return
+    let ignore = false
+    window.fetch(`/api/carnaval-projects/${projectId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!ignore && d?.project) setProject(d.project) })
+      .catch(() => {})
+    return () => { ignore = true }
+  }, [projectId])
 
   const toolLabels = {
     es: {
@@ -54,17 +79,64 @@ export default function ToolActiveLayout({ children }: { children: ReactNode }) 
         }`}
       >
         <div className="w-[260px] flex flex-col h-full overflow-y-auto">
-          <div className="pt-8 pb-4 px-6 flex items-center justify-between">
+          <div className="pt-8 pb-2 px-6 flex items-center justify-between">
             <h2 className="font-mono text-label-sm text-[var(--color-on-surface-variant)] tracking-[0.05em] uppercase">
-              {toolLabels.title}
+              WORKSPACE
             </h2>
             <button
               onClick={() => setNavOpen(false)}
-              aria-label="Ocultar herramientas"
+              aria-label="Ocultar barra"
               className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
+          </div>
+          <nav className="flex flex-col font-mono text-label-sm tracking-[0.05em] mb-4">
+            {plugins.map((plugin) => (
+              <Link 
+                key={plugin.id} 
+                href="/dashboard/workspaces"
+                className={`py-2 transition-colors text-[var(--color-on-surface-variant)] pl-[26px] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)]`}
+              >
+                {t(plugin.meta.labelKey)}
+              </Link>
+            ))}
+          </nav>
+
+          {project && project.boards.length > 0 && (
+            <>
+              <div className="px-6 mb-2 mt-2">
+                <h3 className="font-mono text-[10px] text-[var(--color-outline-variant)] tracking-[0.05em] uppercase">
+                  Vistas ({project.name})
+                </h3>
+              </div>
+              <nav className="flex flex-col font-mono text-label-sm tracking-[0.05em] mb-6">
+                {project.boards.map((b) => {
+                  const href = `/dashboard/workspaces/${project._id}/boards/${b._id}`
+                  const isActive = pathname.startsWith(href)
+                  const label = b.workspace?.view ? planoLabel(b.workspace.view) : b.name
+                  return (
+                    <Link 
+                      key={b._id} 
+                      href={href}
+                      className={`py-2 transition-colors truncate ${
+                        isActive 
+                          ? 'text-[var(--color-primary)] border-l-2 border-[var(--color-primary)] pl-6 bg-[var(--color-surface-container)]/50' 
+                          : 'text-[var(--color-on-surface-variant)] pl-[26px] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)]'
+                      }`}
+                    >
+                      {label}
+                    </Link>
+                  )
+                })}
+              </nav>
+            </>
+          )}
+
+          <div className="pt-4 pb-2 px-6 flex items-center justify-between border-t border-[var(--color-outline-variant)]">
+            <h2 className="font-mono text-label-sm text-[var(--color-on-surface-variant)] tracking-[0.05em] uppercase">
+              {toolLabels.title}
+            </h2>
           </div>
         <nav className="flex-1 flex flex-col font-mono text-label-sm tracking-[0.05em]">
           {tools.map((tool) => {
