@@ -12,13 +12,25 @@ export const POST = withErrorHandler("POST /api/auth/register", async (req: Next
       return apiError("VALIDATION_ERROR", "username, email y password son obligatorios");
     }
 
-    if (password.length < 6) {
-      return apiError("VALIDATION_ERROR", "La contraseña debe tener al menos 6 caracteres");
+    // Política de contraseña reforzada (debe coincidir con la validación del cliente
+    // en src/frontend/features/auth/components/validation.ts).
+    if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      return apiError(
+        "VALIDATION_ERROR",
+        "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número"
+      );
     }
 
     const result = await registerUser({ username, email, password });
     if (result.status === "conflict") {
-      return apiError("CONFLICT", `Ya existe una cuenta con ese ${result.field}`);
+      // El cliente traduce estas claves i18n y resalta el campo correspondiente.
+      const fieldKey =
+        result.field === "email" ? "auth.emailAlreadyUsed" : "auth.usernameAlreadyUsed";
+      return apiError(
+        "CONFLICT",
+        `Ya existe una cuenta con ese ${result.field}`,
+        { [result.field]: fieldKey }
+      );
     }
 
     return NextResponse.json({ user: result.user }, { status: 201 });
