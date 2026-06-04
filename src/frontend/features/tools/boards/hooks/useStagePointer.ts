@@ -24,6 +24,8 @@ interface StagePointerDeps {
   setPos: Dispatch<SetStateAction<Vec>>
   setSelectedIds: Dispatch<SetStateAction<string[]>>
   setSelRect: Dispatch<SetStateAction<SelRect>>
+  /** Paneo activo por arrastre (botón central / espacio / mano): para feedback de cursor. */
+  setDragPanning: Dispatch<SetStateAction<boolean>>
 }
 
 /**
@@ -51,9 +53,11 @@ export function useStagePointer(d: StagePointerDeps) {
       return
     }
     // Paneo: herramienta mano, espacio mantenido o botón central (sobre lo que sea).
+    // El botón central convierte temporalmente la selección en "mover tablero".
     if (panMode || isMiddle) {
       e.evt.preventDefault?.()
       panning.current = { x: p.x, y: p.y, px: d.pos.x, py: d.pos.y }
+      d.setDragPanning(true)
       return
     }
     // Selección por recuadro: solo sobre lienzo vacío.
@@ -89,6 +93,7 @@ export function useStagePointer(d: StagePointerDeps) {
     }
     if (panning.current) {
       panning.current = null
+      d.setDragPanning(false)
       return
     }
     const s = selStart.current

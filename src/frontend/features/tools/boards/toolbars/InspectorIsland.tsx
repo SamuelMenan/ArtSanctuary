@@ -47,42 +47,42 @@ export default function InspectorIsland({
   const allLocked = selectedIds.every((id) => objects.find((o) => o.id === id)?.locked)
   const isGrid = backgroundType === 'grid'
   return (
-    <div className={`${island} right-3 top-3 flex flex-col gap-1 p-1.5 rounded-2xl w-[52px] items-center`}>
+    <div className={`${island} right-3 top-3 flex flex-col gap-1 p-1.5 rounded-2xl w-[52px] items-center`} role="toolbar" aria-label={t('boards.inspectorGroup')}>
       {selectedIds.length ? (
         <>
-          <button onClick={onToggleLock} title={allLocked ? t('boards.unlockTip') : t('boards.lockTip')} className={islandOn(allLocked)}>
-            <span className="material-symbols-outlined text-[20px]">{allLocked ? 'lock' : 'lock_open'}</span>
+          <button onClick={onToggleLock} title={allLocked ? t('boards.unlockTip') : t('boards.lockTip')} aria-label={allLocked ? t('boards.unlockTip') : t('boards.lockTip')} aria-pressed={allLocked} className={islandOn(allLocked)}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>{allLocked ? 'lock' : 'lock_open'}</span>
           </button>
-          <button onClick={onDuplicate} title={t('boards.duplicateTip')} className={islandIdle}>
-            <span className="material-symbols-outlined text-[20px]">content_copy</span>
+          <button onClick={onDuplicate} title={t('boards.duplicateTip')} aria-label={t('boards.duplicateTip')} className={islandIdle}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>content_copy</span>
           </button>
-          <button onClick={onBringToFront} title={t('boards.bringToFrontTip')} className={islandIdle}>
-            <span className="material-symbols-outlined text-[20px]">flip_to_front</span>
+          <button onClick={onBringToFront} title={t('boards.bringToFrontTip')} aria-label={t('boards.bringToFrontTip')} className={islandIdle}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>flip_to_front</span>
           </button>
-          <button onClick={onSendToBack} title={t('boards.sendToBackTip')} className={islandIdle}>
-            <span className="material-symbols-outlined text-[20px]">flip_to_back</span>
+          <button onClick={onSendToBack} title={t('boards.sendToBackTip')} aria-label={t('boards.sendToBackTip')} className={islandIdle}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>flip_to_back</span>
           </button>
           {selectedObj?.type === 'image' && (
             <>
-              <button onClick={() => onEditIn('crop')} title={t('boards.editCropTip')} className={islandIdle}>
-                <span className="material-symbols-outlined text-[20px]">crop</span>
+              <button onClick={() => onEditIn('crop')} title={t('boards.editCropTip')} aria-label={t('boards.editCropTip')} className={islandIdle}>
+                <span className="material-symbols-outlined text-[20px]" aria-hidden>crop</span>
               </button>
-              <button onClick={() => onEditIn('grid')} title={t('boards.measureGridTip')} className={islandIdle}>
-                <span className="material-symbols-outlined text-[20px]">grid_on</span>
+              <button onClick={() => onEditIn('grid')} title={t('boards.measureGridTip')} aria-label={t('boards.measureGridTip')} className={islandIdle}>
+                <span className="material-symbols-outlined text-[20px]" aria-hidden>grid_on</span>
               </button>
             </>
           )}
-          <button onClick={onDelete} title={t('boards.deleteTip')} className={`${islandIdle} hover:!bg-red-500/15 hover:!text-red-500`}>
-            <span className="material-symbols-outlined text-[20px]">delete</span>
+          <button onClick={onDelete} title={t('boards.deleteTip')} aria-label={t('boards.deleteTip')} className={`${islandIdle} hover:!bg-red-500/15 hover:!text-red-500`}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>delete</span>
           </button>
         </>
       ) : (
         <>
-          <button onClick={onToggleBackground} title={isGrid ? t('boards.bgPlainTip') : t('boards.bgGraphTip')} className={islandOn(isGrid)}>
-            <span className="material-symbols-outlined text-[20px]">grid_on</span>
+          <button onClick={onToggleBackground} title={isGrid ? t('boards.bgPlainTip') : t('boards.bgGraphTip')} aria-label={isGrid ? t('boards.bgPlainTip') : t('boards.bgGraphTip')} aria-pressed={isGrid} className={islandOn(isGrid)}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>grid_on</span>
           </button>
-          <button onClick={onToggleSnap} disabled={!isGrid} title={t('boards.snapGridTip')} className={islandOn(snap && isGrid)}>
-            <span className="material-symbols-outlined text-[20px]">polyline</span>
+          <button onClick={onToggleSnap} disabled={!isGrid} title={t('boards.snapGridTip')} aria-label={t('boards.snapGridTip')} aria-pressed={snap && isGrid} className={islandOn(snap && isGrid)}>
+            <span className="material-symbols-outlined text-[20px]" aria-hidden>polyline</span>
           </button>
           {isGrid && (
             <div className="flex items-center gap-1">
@@ -114,8 +114,8 @@ export default function InspectorIsland({
         </>
       )}
       <span className="h-px w-7 bg-[var(--color-outline-variant)]/60 my-0.5" />
-      <button onClick={onToggleLayers} title={t('boards.layersTip')} className={islandOn(layersOpen)}>
-        <span className="material-symbols-outlined text-[20px]">layers</span>
+      <button onClick={onToggleLayers} title={t('boards.layersTip')} aria-label={t('boards.layersTip')} aria-pressed={layersOpen} className={islandOn(layersOpen)}>
+        <span className="material-symbols-outlined text-[20px]" aria-hidden>layers</span>
       </button>
     </div>
   )

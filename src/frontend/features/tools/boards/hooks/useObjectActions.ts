@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { BoardObject, BoardBackground, PX_PER_CM } from '@shared/lib/boards/types'
+import { uid } from '../lib/uid'
 
 type Vec = { x: number; y: number }
 
@@ -63,6 +64,25 @@ export function useObjectActions(
     setSelectedIds((prev) =>
       additive ? (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]) : [id]
     )
+  }
+
+  // Mueve la selección por teclado (flechas). Precisión exacta: ignora snap.
+  const nudgeSelected = (dx: number, dy: number) => {
+    if (!selectedIds.length) return
+    mutate((arr) =>
+      arr.map((o) => (selectedIds.includes(o.id) && !o.locked ? { ...o, x: o.x + dx, y: o.y + dy } : o)),
+    )
+  }
+
+  // Duplica un objeto en su misma posición (Alt+arrastrar): la copia queda
+  // debajo del original mientras éste se arrastra.
+  const cloneInPlace = (id: string) => {
+    const src = objects.find((o) => o.id === id)
+    if (!src || src.locked) return
+    mutate((arr) => {
+      const maxZ = Math.max(0, ...arr.map((o) => o.z))
+      return [...arr, { ...src, id: uid(), z: maxZ + 1 }]
+    })
   }
 
   const deleteSelected = () => {
@@ -129,6 +149,8 @@ export function useObjectActions(
     setSquareCm,
     updateObject,
     selectObject,
+    nudgeSelected,
+    cloneInPlace,
     deleteSelected,
     toggleLock,
     bringToFront,

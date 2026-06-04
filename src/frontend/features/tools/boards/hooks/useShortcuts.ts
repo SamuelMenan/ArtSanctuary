@@ -15,6 +15,15 @@ export interface ShortcutHandlers {
   onSelectTool: () => void
   onMeasureTool: () => void
   onEscape: () => void
+  onZoomIn: () => void
+  onZoomOut: () => void
+  onZoomReset: () => void
+  onZoomToFit: () => void
+  onZoomToSelection: () => void
+  /** Mueve la selección (flechas). `big` = paso grande (Shift). */
+  onNudge: (dx: number, dy: number) => void
+  /** Abre/cierra la ayuda de atajos (tecla ?). */
+  onHelp: () => void
 }
 
 /**
@@ -52,6 +61,30 @@ export function useShortcuts(h: ShortcutHandlers, deps: unknown[]) {
       } else if (mod && k === 'a') {
         e.preventDefault()
         h.onSelectAll()
+      } else if (mod && (k === '=' || k === '+')) {
+        e.preventDefault()
+        h.onZoomIn()
+      } else if (mod && (k === '-' || k === '_')) {
+        e.preventDefault()
+        h.onZoomOut()
+      } else if (mod && k === '0') {
+        e.preventDefault()
+        h.onZoomReset()
+      } else if (e.shiftKey && e.code === 'Digit1') {
+        e.preventDefault()
+        h.onZoomToFit()
+      } else if (e.shiftKey && e.code === 'Digit2') {
+        e.preventDefault()
+        h.onZoomToSelection()
+      } else if (k === '?' || (e.shiftKey && k === '/')) {
+        e.preventDefault()
+        h.onHelp()
+      } else if (e.key.startsWith('Arrow')) {
+        e.preventDefault()
+        const step = e.shiftKey ? 10 : 1
+        const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0
+        const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0
+        h.onNudge(dx, dy)
       } else if (!mod && k === 'h') {
         h.onHandTool()
       } else if (!mod && k === 'v') {
