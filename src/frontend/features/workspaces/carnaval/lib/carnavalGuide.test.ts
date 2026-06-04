@@ -46,6 +46,20 @@ describe('buildCarnavalGuide', () => {
     expect(base.h).toBe(110) // base.largo (huella, no espesor)
   })
 
+  it('superior: zonas concéntricas centradas en el origen (vista en planta)', () => {
+    const g = buildCarnavalGuide(getCarnavalRule('carroza'), 'superior')
+    const max = g.rects.find((r) => r.kind === 'max')!
+    const base = g.rects.find((r) => r.kind === 'base')!
+    // Centradas: y = -h/2 (no apoyadas en y=0 como en un alzado).
+    expect(max.x).toBe(-max.w / 2)
+    expect(max.y).toBe(-max.h / 2)
+    expect(base.x).toBe(-base.w / 2)
+    expect(base.y).toBe(-base.h / 2)
+    // Bounds centrados en el origen.
+    expect(g.bounds.x).toBe(-g.bounds.w / 2)
+    expect(g.bounds.y).toBe(-g.bounds.h / 2)
+  })
+
   it('frontal comparsa: sin envolvente mínima cuando falta ancho.min', () => {
     const g = buildCarnavalGuide(getCarnavalRule('comparsa'), 'frontal')
     expect(g.rects.some((r) => r.kind === 'min')).toBe(false)

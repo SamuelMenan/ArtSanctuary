@@ -25,6 +25,15 @@ export const VIEW_AXES: Record<
   superior: { width: 'ancho', height: 'largo', label: 'Superior' },
 }
 
+/**
+ * Vista en planta (desde arriba): su eje vertical NO es el alto, sino una
+ * dimensión horizontal (largo). Hoy solo `superior`. En planta las zonas de
+ * restricción se dibujan concéntricas (cuadro), no apiladas como en un alzado.
+ */
+export function isPlanView(view: CarnavalView): boolean {
+  return VIEW_AXES[view].height !== 'alto'
+}
+
 /** Dimensión de la base a lo largo de un eje dado. */
 export function baseAlong(base: CarnavalBase, axis: CarnavalAxis): number {
   if (axis === 'alto') return base.espesor
