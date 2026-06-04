@@ -11,7 +11,7 @@ import path from "path";
  * El FS serverless de Vercel es de solo lectura salvo /tmp, por eso en prod
  * SIEMPRE debe existir el token. En local evita tener que configurar Blob.
  */
-const hasBlob = () => !!process.env.BLOB_READ_WRITE_TOKEN;
+const hasBlob = () => process.env.NODE_ENV === 'production' && !!process.env.BLOB_READ_WRITE_TOKEN;
 
 /**
  * Guarda un buffer y devuelve su URL pública.
@@ -23,12 +23,16 @@ export async function saveImage(
   contentType: string
 ): Promise<string> {
   if (hasBlob()) {
-    const blob = await put(key, buffer, { access: "public", contentType });
+    const blob = await put(key, buffer, { 
+      access: "public", 
+      contentType,
+      token: process.env.BLOB_READ_WRITE_TOKEN 
+    });
     return blob.url;
   }
 
-  // Fallback local: storage/<key>
-  const abs = path.join(process.cwd(), "storage", key);
+  // Fallback local: public/<key>
+  const abs = path.join(process.cwd(), "public", key);
   await mkdir(path.dirname(abs), { recursive: true });
   await writeFile(abs, buffer);
   return `/${key}`;
@@ -43,11 +47,13 @@ export async function deleteImage(url: string): Promise<void> {
   try {
     if (url.startsWith("http")) {
       // URL de Blob (o externa): solo Blob sabe borrarla.
-      if (hasBlob()) await del(url);
+      if (hasBlob()) {
+        await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      }
       return;
     }
     // Ruta local /uploads/...
-    const abs = path.join(process.cwd(), "storage", url.replace(/^\//, ""));
+    const abs = path.join(process.cwd(), "public", url.replace(/^\//, ""));
     await unlink(abs);
   } catch {
     // ya no existe o no se puede borrar — ignorar
