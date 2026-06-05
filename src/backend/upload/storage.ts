@@ -23,15 +23,25 @@ export async function saveImage(
   contentType: string
 ): Promise<string> {
   if (hasBlob()) {
-    const blob = await put(key, buffer, { 
-      access: "public", 
+    const blob = await put(key, buffer, {
+      access: "public",
       contentType,
-      token: process.env.BLOB_READ_WRITE_TOKEN 
+      token: process.env.BLOB_READ_WRITE_TOKEN
     });
     return blob.url;
   }
 
-  // Fallback local: public/<key>
+  // En producción NUNCA debe usarse el fallback local: el FS serverless es de
+  // solo lectura (salvo /tmp, que no se sirve), así que escribir devolvería una
+  // URL relativa muerta que se persiste en DB y luego da 404. Fallar claro aquí
+  // evita corromper datos y señala que falta BLOB_READ_WRITE_TOKEN en Vercel.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Almacenamiento de imágenes no configurado: falta BLOB_READ_WRITE_TOKEN en el entorno de producción.",
+    );
+  }
+
+  // Fallback local (solo desarrollo): public/<key>
   const abs = path.join(process.cwd(), "public", key);
   await mkdir(path.dirname(abs), { recursive: true });
   await writeFile(abs, buffer);

@@ -5,6 +5,11 @@
 import "server-only";
 import { connectDB } from "@backend/db/mongoose";
 import Notification from "@backend/models/Notification";
+// Registro de schemas referenciados por populate(): en una lambda serverless
+// fría que toca esta ruta primero, Mongoose no conoce "User"/"Artwork" y
+// populate lanza MissingSchemaError (500). Importarlos los registra.
+import "@backend/models/User";
+import "@backend/models/Artwork";
 
 /** Últimas 20 notificaciones del usuario + nº sin leer. */
 export async function getUserNotifications(userId: string) {
