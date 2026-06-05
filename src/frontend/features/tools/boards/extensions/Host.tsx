@@ -42,3 +42,15 @@ export function BoardExtOverlays({
   const Overlays = extension?.Overlays
   return Overlays ? <Overlays {...slot} /> : null
 }
+
+/** Acciones de workspace de la extensión (sección del rail derecho). */
+export function BoardExtWorkspaceActions({
+  extension,
+  slot,
+}: {
+  extension?: BoardExtension
+  slot: BoardExtSlotProps
+}) {
+  const Actions = extension?.WorkspaceActions
+  return Actions ? <Actions {...slot} /> : null
+}

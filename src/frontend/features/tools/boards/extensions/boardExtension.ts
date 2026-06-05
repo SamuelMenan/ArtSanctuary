@@ -26,6 +26,12 @@ export interface BoardExtSlotProps {
   readOnly: boolean
   /** Zoom actual del escenario (para grosores/cotas independientes del zoom). */
   scale: number
+  /** Desplazamiento del viewport (px de pantalla) — para grids que cubren el lienzo. */
+  pos: { x: number; y: number }
+  /** Tamaño del escenario (px) — para acotar grids al viewport. */
+  stageSize: { w: number; h: number }
+  /** cm por cuadro mayor de la grilla (para alinear elementos a la cuadrícula). */
+  squareCm: number
   /** Inserta un objeto ya construido por la extensión (el motor pone id/z). */
   addObject: (obj: NewBoardObject) => void
 }
@@ -46,4 +52,26 @@ export interface BoardExtension {
   Layers?: ComponentType<BoardExtSlotProps>
   /** Overlays HTML sobre el lienzo (alertas, inspector, selector de vista). */
   Overlays?: ComponentType<BoardExtSlotProps>
+  /**
+   * Acciones de workspace para la sección inferior del rail derecho (p. ej. el
+   * botón de Acreditación). Vive dentro del Provider, así comparte su estado UI.
+   */
+  WorkspaceActions?: ComponentType<BoardExtSlotProps>
+  /**
+   * Líneas-imán adicionales (en px de MUNDO) que el motor suma al snap de la
+   * grilla al redimensionar (p. ej. los bordes de la guía reglamentaria de
+   * Carnaval). `x` = verticales, `y` = horizontales.
+   */
+  snapLines?: (slot: BoardExtSlotProps) => { x: number[]; y: number[] }
+  /**
+   * cm/cuadro que el workspace impone a la cuadrícula del board (p. ej. Carnaval
+   * lo deriva de las medidas para que las referencias calcen). El motor lo aplica
+   * al fondo. `0`/ausente = sin imposición (lo controla el usuario).
+   */
+  gridSquareCm?: (slot: BoardExtSlotProps) => number
+  /**
+   * `true` si el workspace dibuja su propio grid (capa `Layers`) y el motor NO
+   * debe pintar el grid uniforme (p. ej. el grid híbrido de Carnaval).
+   */
+  suppressBaseGrid?: (slot: BoardExtSlotProps) => boolean
 }

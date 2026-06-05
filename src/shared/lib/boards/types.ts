@@ -40,6 +40,9 @@ export type BoardObject = {
   stroke?: string
   strokeWidth?: number
   points?: number[]
+  /** Imagen: tamaño de celda (cm) de la cuadrícula superpuesta (método de
+   *  cuadrícula para ampliar). `undefined`/0 = sin cuadrícula. */
+  gridCm?: number
 }
 
 /** Available fonts (web-safe system fonts: Konva renders them on canvas). */

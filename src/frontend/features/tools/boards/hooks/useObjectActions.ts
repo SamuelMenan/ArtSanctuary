@@ -23,10 +23,19 @@ export function useObjectActions(
   setBackground: Dispatch<SetStateAction<BoardBackground>>,
 ) {
   /* ── Snap a cuadrícula ── */
-  const gridGap = Math.max(8, background.squareCm * PX_PER_CM)
+  const majorGap = Math.max(8, background.squareCm * PX_PER_CM)
+  const minorGap = majorGap / 2
+  // Usar siempre majorGap para el imán garantiza que las imágenes cuadriculadas
+  // siempre coincidan perfectamente con el fondo mayor (evita desfasarse medio cuadro).
+  const gridGap = majorGap
   const snapVal = (v: number) => Math.round(v / gridGap) * gridGap
+  const snapDrag = (v: number, span: number) => {
+    const dLeft = snapVal(v) - v
+    const dRight = snapVal(v + span) - (v + span)
+    return v + (Math.abs(dLeft) <= Math.abs(dRight) ? dLeft : dRight)
+  }
   const applySnap = (o: BoardObject): BoardObject =>
-    snap && background.type === 'grid' ? { ...o, x: snapVal(o.x), y: snapVal(o.y) } : o
+    snap && background.type === 'grid' ? { ...o, x: snapDrag(o.x, o.w || 0), y: snapDrag(o.y, o.h || 0) } : o
 
   // Cambiar cm/cuadro: reescala alrededor del centro visible para conservar el
   // tamaño relativo a la cuadrícula (si no, al pasar de 50→2 la imagen explota).
@@ -146,6 +155,8 @@ export function useObjectActions(
 
   return {
     snapVal,
+    snapDrag,
+    gridGap,
     setSquareCm,
     updateObject,
     selectObject,

@@ -32,7 +32,10 @@ export interface GridParams {
  */
 export function buildGridLines({ type, squareCm, stageW, stageH, pos, scale }: GridParams): GridLines {
   if (type !== 'grid' || stageW === 0) return { minor: [], major: [] }
-  const major = Math.max(8, squareCm * PX_PER_CM)
+  // Espaciado REAL del cuadro (sin piso): así el fondo calza con medidas finas
+  // (p. ej. cuadro 0.1 cm de Carnaval). La densidad se controla colapsando las
+  // líneas cuando quedan demasiado juntas en pantalla (abajo).
+  const major = squareCm * PX_PER_CM
   const minor = major / 2
   const left = -pos.x / scale
   const top = -pos.y / scale
@@ -46,6 +49,10 @@ export function buildGridLines({ type, squareCm, stageW, stageH, pos, scale }: G
     for (let y = sy; y <= bottom; y += gap) out.push({ points: [left, y, right, y], key: `h${y}` })
     return out
   }
-  // Oculta las menores cuando quedan demasiado juntas en pantalla.
-  return { minor: minor * scale > 6 ? build(minor) : [], major: build(major) }
+  // Oculta menores (<6px) y mayores (<3px) cuando quedan demasiado juntas en
+  // pantalla → un cuadro muy fino se ve al acercar y desaparece al alejar.
+  return {
+    minor: minor * scale > 6 ? build(minor) : [],
+    major: major * scale > 3 ? build(major) : [],
+  }
 }

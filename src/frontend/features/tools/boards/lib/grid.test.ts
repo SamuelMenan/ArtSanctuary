@@ -31,12 +31,18 @@ describe('buildGridLines', () => {
     expect(major).toHaveLength(6)
   })
 
-  it('aplica suelo de 8 px a cuadros diminutos', () => {
+  it('colapsa cuadros diminutos (espaciado real, sin piso)', () => {
+    // squareCm=0.01 → 0.378 px; al ser < 3 px las mayores se ocultan.
     const { major } = buildGridLines({ ...base, squareCm: 0.01 })
+    expect(major).toEqual([])
+  })
+
+  it('cuadro fino se dibuja al espaciado real cuando hay zoom', () => {
+    // squareCm=0.1 → 3.78 px (>3) ⇒ se dibuja al espaciado real, no pisado a 8.
+    const { major } = buildGridLines({ ...base, squareCm: 0.1 })
+    const gap = 0.1 * PX_PER_CM
     const verticals = major.filter((l) => l.key.startsWith('v'))
-    // gap=8 ⇒ 0,8,16,...,96 = 13 verticales
-    expect(verticals).toHaveLength(13)
-    expect(verticals[1].points[0]).toBe(8)
+    expect(verticals[1].points[0]).toBeCloseTo(gap, 3)
   })
 
   it('oculta las menores cuando quedan < 6 px en pantalla', () => {

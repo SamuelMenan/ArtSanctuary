@@ -15,6 +15,7 @@ export default function TextNode({
   onChange,
   snap,
   snapVal,
+  snapDrag,
   draggable,
 }: BaseNodeProps & { editing: boolean; onEdit: () => void }) {
   const ref = useRef<Konva.Text>(null)
@@ -42,8 +43,8 @@ export default function TextNode({
       onDblTap={onEdit}
       onDragMove={(e) => {
         if (snap) {
-          e.target.x(snapVal(e.target.x()))
-          e.target.y(snapVal(e.target.y()))
+          e.target.x(snapDrag(e.target.x(), obj.w ?? 0))
+          e.target.y(snapDrag(e.target.y(), obj.h ?? 0))
         }
       }}
       onDragEnd={(e) => onChange({ ...obj, x: e.target.x(), y: e.target.y() })}

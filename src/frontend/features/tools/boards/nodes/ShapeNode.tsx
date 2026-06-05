@@ -6,7 +6,7 @@ import type Konva from 'konva'
 import type { BaseNodeProps } from './types'
 
 /** Figura geométrica (rect / elipse / línea / flecha). */
-export default function ShapeNode({ obj, onSelect, onChange, snap, snapVal, draggable }: BaseNodeProps) {
+export default function ShapeNode({ obj, onSelect, onChange, snap, snapVal, snapDrag, draggable }: BaseNodeProps) {
   const ref = useRef<Konva.Group>(null)
   // 'transparent' (no undefined) mantiene el interior clicable aunque esté vacío.
   const fill = obj.fill ?? 'transparent'
@@ -32,8 +32,8 @@ export default function ShapeNode({ obj, onSelect, onChange, snap, snapVal, drag
       onTap={(e) => onSelect(e.evt.shiftKey)}
       onDragMove={(e) => {
         if (snap) {
-          e.target.x(snapVal(e.target.x() - cx) + cx)
-          e.target.y(snapVal(e.target.y() - cy) + cy)
+          e.target.x(snapDrag(e.target.x() - cx, obj.w) + cx)
+          e.target.y(snapDrag(e.target.y() - cy, obj.h) + cy)
         }
       }}
       onDragEnd={(e) => onChange({ ...obj, x: e.target.x() - cx, y: e.target.y() - cy })}
