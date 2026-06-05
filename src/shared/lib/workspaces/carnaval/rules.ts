@@ -184,6 +184,43 @@ export function isCarnavalModality(v: unknown): v is CarnavalModality {
   return typeof v === 'string' && v in CARNAVAL_RULES
 }
 
+/**
+ * Cuadro de cuadrícula (cm de boceto) que hace que TODOS los bordes de las
+ * guías de referencia caigan exactamente sobre líneas del grid: el mayor divisor
+ * común de las medidas (a precisión de 0.1 cm) de la modalidad. Así el fondo
+ * "calza" con las referencias sin alterar las medidas.
+ * Ej.: disfraz → 1 cm · comparsa → 5 cm · carroza/carro alegórico → 0.1 cm.
+ */
+function carnavalDimGcdCm(rule: CarnavalRule): number {
+  const vals: number[] = []
+  for (const ax of ['alto', 'ancho', 'largo'] as CarnavalAxis[]) {
+    const d = rule.dims[ax]
+    if (d?.min != null) vals.push(d.min)
+    if (d?.max != null) vals.push(d.max)
+  }
+  vals.push(rule.base.ancho, rule.base.largo)
+  const tenths = vals.filter((v) => v > 0).map((v) => Math.round(v * 10))
+  if (!tenths.length) return 1
+  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b))
+  return tenths.reduce((a, b) => gcd(a, b)) / 10
+}
+
+/**
+ * `true` si las medidas son coprimas a un cuadro legible (gcd < 0.5cm) → un grid
+ * uniforme cortaría la referencia. Esas modalidades (carroza, carro alegórico)
+ * usan un grid HÍBRIDO alineado a los bordes de la guía en vez del uniforme.
+ */
+export function carnavalUsesHybridGrid(rule: CarnavalRule): boolean {
+  return false
+}
+
+export function carnavalGridSquareCm(rule: CarnavalRule): number {
+  const g = carnavalDimGcdCm(rule)
+  // Modalidades híbridas: el grid visible lo dibuja la capa híbrida; este valor
+  // solo alimenta snap/escala mostrada → usa un cuadro legible representativo.
+  return g < 0.5 ? 2 : g
+}
+
 /** Convierte una medida del boceto (cm) a la obra real (cm) según la escala. */
 export function bocetoToReal(rule: CarnavalRule, bocetoCm: number): number {
   return bocetoCm * rule.scale

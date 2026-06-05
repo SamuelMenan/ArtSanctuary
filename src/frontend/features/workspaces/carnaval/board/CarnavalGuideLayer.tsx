@@ -1,7 +1,7 @@
-import { Layer, Rect, Line, Text } from 'react-konva'
+import { Layer, Group, Rect, Line, Text } from 'react-konva'
 import { pxOf } from '@shared/lib/measure'
 import type { CarnavalRule, CarnavalView } from '@shared/lib/workspaces/carnaval'
-import { buildCarnavalGuide } from '../lib/carnavalGuide'
+import { buildCarnavalGuide, type CarnavalGuide } from '../lib/carnavalGuide'
 
 const COLOR = {
   max: '#16a34a', // verde: zona segura (límite máximo)
@@ -10,26 +10,13 @@ const COLOR = {
   human: '#e11d48', // rosa: figura humana de referencia
 }
 
-/**
- * Guía reglamentaria de la vista frontal (Fase 6). Capa no interactiva anclada
- * al origen del mundo. Verde = envolvente máxima (zona segura), ámbar punteado =
- * mínimo, gris = base obligatoria, rosa = figura humana.
- */
-export default function CarnavalGuideLayer({
-  rule,
-  view,
-  scale,
-}: {
-  rule: CarnavalRule
-  view: CarnavalView
-  scale: number
-}) {
-  const g = buildCarnavalGuide(rule, view)
+/** Contenido de una guía (rects/líneas/etiquetas) en un Group desplazable. */
+function GuideGroup({ g, scale, offset }: { g: CarnavalGuide; scale: number; offset: { x: number; y: number } }) {
   const sw = (n: number) => n / scale // grosor de línea independiente del zoom
   const labelSize = 11 / scale
 
   return (
-    <Layer listening={false}>
+    <Group x={pxOf(offset.x)} y={pxOf(offset.y)}>
       {g.rects.map((r, i) => {
         const x = pxOf(r.x)
         const y = pxOf(r.y)
@@ -37,17 +24,7 @@ export default function CarnavalGuideLayer({
         const h = pxOf(r.h)
         if (r.kind === 'base') {
           return (
-            <Rect
-              key={`b${i}`}
-              x={x}
-              y={y}
-              width={w}
-              height={h}
-              fill={COLOR.base}
-              opacity={0.85}
-              stroke={COLOR.base}
-              strokeWidth={sw(1)}
-            />
+            <Rect key={`b${i}`} x={x} y={y} width={w} height={h} fill={COLOR.base} opacity={0.85} stroke={COLOR.base} strokeWidth={sw(1)} />
           )
         }
         const color = r.kind === 'max' ? COLOR.max : COLOR.min
@@ -102,6 +79,36 @@ export default function CarnavalGuideLayer({
           fontFamily="monospace"
           fill={COLOR.human}
         />
+      ))}
+    </Group>
+  )
+}
+
+/**
+ * Guía reglamentaria de la vista (Fase 6). Capa no interactiva anclada al origen
+ * del mundo. Verde = envolvente máxima (zona segura), ámbar punteado = mínimo,
+ * gris = base obligatoria, rosa = figura humana. `offsets` (cm) coloca copias
+ * IDÉNTICAS desplazadas a la derecha para explorar diseños alternativos.
+ */
+export default function CarnavalGuideLayer({
+  rule,
+  view,
+  scale,
+  baseOffset = { x: 0, y: 0 },
+  offsets = [],
+}: {
+  rule: CarnavalRule
+  view: CarnavalView
+  scale: number
+  baseOffset?: { x: number; y: number }
+  offsets?: { x: number; y: number }[]
+}) {
+  const g = buildCarnavalGuide(rule, view)
+  return (
+    <Layer listening={false}>
+      <GuideGroup g={g} scale={scale} offset={baseOffset} />
+      {offsets.map((o, i) => (
+        <GuideGroup key={`g${i}`} g={g} scale={scale} offset={o} />
       ))}
     </Layer>
   )

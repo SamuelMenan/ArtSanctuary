@@ -5,7 +5,9 @@
 // pistas de planos especiales e Inspector de Acreditación. Se renderiza vía el
 // slot `Overlays` de la extensión.
 
+import { AnimatePresence, motion } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { transition } from '@frontend/shared/motion/tokens'
 import {
   getCarnavalRule,
   CARNAVAL_VIEWS,
@@ -58,26 +60,35 @@ export default function CarnavalOverlays({ workspace, objects, readOnly, addObje
       {/* Selector de vista reglamentaria (solo en boards Carnaval sueltos;
           en planos de proyecto la vista viene fijada). */}
       {!planoFixed && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-0.5 rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow">
-          {CARNAVAL_VIEWS.map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`px-3 h-7 rounded-full font-mono text-[10px] uppercase tracking-wide transition-colors ${
-                view === v
-                  ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
-                  : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
-              }`}
-            >
-              {VIEW_AXES[v].label}
-            </button>
-          ))}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-0.5 p-0.5 rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow">
+          {CARNAVAL_VIEWS.map((v) => {
+            const on = view === v
+            return (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                aria-pressed={on}
+                className={`relative px-3 h-7 rounded-full font-mono text-[10px] uppercase tracking-wide transition-colors ${
+                  on ? 'text-[var(--color-on-primary)]' : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)]'
+                }`}
+              >
+                {on && (
+                  <motion.span
+                    layoutId="carnavalViewPill"
+                    className="absolute inset-0 rounded-full bg-[var(--color-primary)]"
+                    transition={transition.base}
+                  />
+                )}
+                <span className="relative z-10">{VIEW_AXES[v].label}</span>
+              </button>
+            )
+          })}
         </div>
       )}
 
       {/* Etiqueta del plano fijo (proyecto) */}
       {planoFixed && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 px-3 h-7 flex items-center rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow font-mono text-[10px] uppercase tracking-widest text-[var(--color-primary)]">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3 h-7 flex items-center rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow font-mono text-[10px] uppercase tracking-widest text-[var(--color-primary)]">
           {planoLabel(view)}
         </div>
       )}
@@ -86,7 +97,7 @@ export default function CarnavalOverlays({ workspace, objects, readOnly, addObje
       {canAddHuman && rule.humanRefCm != null && (
         <button
           onClick={() => addHuman(rule.humanRefCm as number)}
-          className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 h-9 px-3 rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow text-[var(--color-on-surface)] hover:border-[var(--color-primary)] transition-colors"
+          className="absolute top-4 left-4 z-20 flex items-center gap-1.5 h-9 px-3 rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow text-[var(--color-on-surface)] hover:border-[var(--color-primary)] transition-colors"
           title={t('boards.addHuman')}
         >
           <span className="material-symbols-outlined text-[18px] text-[var(--color-primary)]">accessibility_new</span>
@@ -106,26 +117,21 @@ export default function CarnavalOverlays({ workspace, objects, readOnly, addObje
         </div>
       )}
 
-      {/* Inspector de Acreditación (Fase 7): botón + panel lateral */}
-      {!inspectorOpen && (
-        <button
-          onClick={() => setInspectorOpen(true)}
-          className="absolute top-3 right-3 z-20 flex items-center gap-1.5 h-9 px-3 rounded-full bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow text-[var(--color-on-surface)] hover:border-[var(--color-primary)] transition-colors"
-          title={t('boards.inspectorTitle')}
-        >
-          <span className="material-symbols-outlined text-[18px] text-[var(--color-primary)]">fact_check</span>
-          <span className="font-mono text-[10px] uppercase tracking-widest">{t('boards.inspectorTitle')}</span>
-        </button>
-      )}
-      {inspectorOpen && (
-        <CarnavalInspector
-          rule={rule}
-          view={view}
-          objects={objects}
-          onClose={() => setInspectorOpen(false)}
-          onSelectView={setView}
-        />
-      )}
+      {/* Inspector de Acreditación (Fase 7): el disparador vive ahora en la
+          sección "Workspace" del rail derecho (CarnavalWorkspaceActions); aquí
+          solo se renderiza el panel lateral. Fin de la colisión con la isla. */}
+      <AnimatePresence>
+        {inspectorOpen && (
+          <CarnavalInspector
+            key="carnaval-inspector"
+            rule={rule}
+            view={view}
+            objects={objects}
+            onClose={() => setInspectorOpen(false)}
+            onSelectView={setView}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }

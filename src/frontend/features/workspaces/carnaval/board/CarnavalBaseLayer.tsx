@@ -1,29 +1,17 @@
-import { Layer, Rect, Text } from 'react-konva'
+import { Layer, Group, Rect, Text } from 'react-konva'
 import { pxOf } from '@shared/lib/measure'
 import type { CarnavalRule } from '@shared/lib/workspaces/carnaval'
-import { buildBaseFootprint } from '../lib/carnavalGuide'
+import { buildBaseFootprint, type GuideRect } from '../lib/carnavalGuide'
 
-/**
- * Guía de planos especiales (bastidores/jugadores, Fase 5): solo la huella de
- * la base vista desde arriba, sin envolventes ni validación de ejes. El
- * artesano organiza soportes o zonas de jugadores dentro de ella.
- */
-export default function CarnavalBaseLayer({
-  rule,
-  scale,
-}: {
-  rule: CarnavalRule
-  scale: number
-}) {
-  const r = buildBaseFootprint(rule)
+/** Huella de base en un Group desplazable (para guías colocables). */
+function BaseGroup({ r, scale, offset }: { r: GuideRect; scale: number; offset: { x: number; y: number } }) {
   const x = pxOf(r.x)
   const y = pxOf(r.y)
   const w = pxOf(r.w)
   const h = pxOf(r.h)
   const labelSize = 11 / scale
-
   return (
-    <Layer listening={false}>
+    <Group x={pxOf(offset.x)} y={pxOf(offset.y)}>
       <Rect
         x={x}
         y={y}
@@ -35,14 +23,34 @@ export default function CarnavalBaseLayer({
         fill="#1f2937"
         opacity={0.05}
       />
-      <Text
-        x={x}
-        y={y - labelSize * 1.4}
-        text={`Base ${r.w}×${r.h} cm`}
-        fontSize={labelSize}
-        fontFamily="monospace"
-        fill="#1f2937"
-      />
+      <Text x={x} y={y - labelSize * 1.4} text={`Base ${r.w}×${r.h} cm`} fontSize={labelSize} fontFamily="monospace" fill="#1f2937" />
+    </Group>
+  )
+}
+
+/**
+ * Guía de planos especiales (bastidores/jugadores, Fase 5): solo la huella de
+ * la base vista desde arriba. `offsets` (cm) coloca copias idénticas a la
+ * derecha para explorar alternativas.
+ */
+export default function CarnavalBaseLayer({
+  rule,
+  scale,
+  baseOffset = { x: 0, y: 0 },
+  offsets = [],
+}: {
+  rule: CarnavalRule
+  scale: number
+  baseOffset?: { x: number; y: number }
+  offsets?: { x: number; y: number }[]
+}) {
+  const r = buildBaseFootprint(rule)
+  return (
+    <Layer listening={false}>
+      <BaseGroup r={r} scale={scale} offset={baseOffset} />
+      {offsets.map((o, i) => (
+        <BaseGroup key={`b${i}`} r={r} scale={scale} offset={o} />
+      ))}
     </Layer>
   )
 }

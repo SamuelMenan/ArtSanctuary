@@ -1,5 +1,7 @@
+import { AnimatePresence, motion } from 'motion/react'
 import type { BoardObject } from '@shared/lib/boards/types'
 import { type CarnavalRule, type CarnavalView, validateBoceto } from '@shared/lib/workspaces/carnaval'
+import { fadeSlide } from '@frontend/shared/motion/tokens'
 import { objectsBBoxCm, bboxToMeasures } from '../lib/carnavalInspect'
 
 /**
@@ -25,34 +27,54 @@ export default function CarnavalAlerts({
   )
   const warns = report.results.filter((r) => r.status === 'warn')
 
-  if (problems.length === 0 && warns.length === 0) {
-    return (
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-        <span className="px-3 py-1 rounded-full bg-green-600/90 text-white font-mono text-[10px] uppercase tracking-widest shadow">
-          ✓ {rule.label} · {report.compliancePct}% reglamento
-        </span>
-      </div>
-    )
-  }
+  const clean = problems.length === 0 && warns.length === 0
 
   return (
     <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center gap-1.5 max-w-[90%]">
-      {problems.map((r) => (
-        <span
-          key={`p-${r.axis}`}
-          className="px-3 py-1 rounded-md bg-red-600/90 text-white font-mono text-[10px] uppercase tracking-wide shadow whitespace-nowrap"
-        >
-          ⚠ {r.message}
-        </span>
-      ))}
-      {warns.map((r) => (
-        <span
-          key={`w-${r.axis}`}
-          className="px-3 py-1 rounded-md bg-amber-500/90 text-white font-mono text-[10px] uppercase tracking-wide shadow whitespace-nowrap"
-        >
-          ⚠ {r.message}
-        </span>
-      ))}
+      <AnimatePresence mode="popLayout">
+        {clean ? (
+          <motion.span
+            key="ok"
+            layout
+            variants={fadeSlide}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="px-3 py-1 rounded-full bg-green-600/90 text-white font-mono text-[10px] uppercase tracking-widest shadow"
+          >
+            ✓ {rule.label} · {report.compliancePct}% reglamento
+          </motion.span>
+        ) : (
+          <>
+            {problems.map((r) => (
+              <motion.span
+                key={`p-${r.axis}`}
+                layout
+                variants={fadeSlide}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="px-3 py-1 rounded-md bg-red-600/90 text-white font-mono text-[10px] uppercase tracking-wide shadow whitespace-nowrap"
+              >
+                ⚠ {r.message}
+              </motion.span>
+            ))}
+            {warns.map((r) => (
+              <motion.span
+                key={`w-${r.axis}`}
+                layout
+                variants={fadeSlide}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="px-3 py-1 rounded-md bg-amber-500/90 text-white font-mono text-[10px] uppercase tracking-wide shadow whitespace-nowrap"
+              >
+                ⚠ {r.message}
+              </motion.span>
+            ))}
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

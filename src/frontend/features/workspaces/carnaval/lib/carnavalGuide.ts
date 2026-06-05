@@ -5,7 +5,14 @@
 // La capa visual (CarnavalGuideLayer) convierte cm→px con PX_PER_CM.
 
 import type { CarnavalRule } from '@shared/lib/workspaces/carnaval'
-import { VIEW_AXES, baseAlong, isPlanView, type CarnavalView } from '@shared/lib/workspaces/carnaval'
+import {
+  VIEW_AXES,
+  baseAlong,
+  isPlanView,
+  isGeometricView,
+  type CarnavalView,
+  type CarnavalPlano,
+} from '@shared/lib/workspaces/carnaval'
 
 export type GuideRect = {
   kind: 'max' | 'min' | 'base'
@@ -105,6 +112,75 @@ export function buildCarnavalGuide(
     lines,
     bounds: { x: -width / 2, y: top, w: width, h: bottom - top },
   }
+}
+
+/**
+ * Rectángulo de referencia (cm) de la guía de una vista: envolvente máxima en
+ * vistas geométricas, huella de base en planos especiales. Su esquina superior-
+ * izquierda es la que se alinea a la cuadrícula.
+ */
+export function carnavalGuideRef(rule: CarnavalRule, view: CarnavalPlano): { x: number; y: number; w: number } {
+  if (isGeometricView(view)) {
+    const g = buildCarnavalGuide(rule, view as CarnavalView)
+    const r = g.rects.find((x) => x.kind === 'max') ?? g.rects.find((x) => x.kind === 'base')
+    if (r) return { x: r.x, y: r.y, w: r.w }
+  }
+  const b = buildBaseFootprint(rule)
+  return { x: b.x, y: b.y, w: b.w }
+}
+
+/** Desplazamiento (cm) que alinea una esquina a la esquina del cuadro mayor. */
+export function gridAlignedOffsetCm(ref: { x: number; y: number }, squareCm: number): { x: number; y: number } {
+  const step = squareCm > 0 ? squareCm : 1
+  const snap = (v: number) => Math.round(v / step) * step
+  return { x: snap(ref.x) - ref.x, y: snap(ref.y) - ref.y }
+}
+
+const round3 = (v: number) => Math.round(v * 1000) / 1000
+
+/** Subdivide cada banda entre bordes consecutivos en celdas ~`target` cm iguales. */
+function subdivide(edges: number[], target: number): number[] {
+  const uniq = [...new Set(edges.map(round3))].sort((a, b) => a - b)
+  const out: number[] = []
+  for (let i = 0; i < uniq.length; i++) {
+    out.push(uniq[i])
+    if (i < uniq.length - 1) {
+      const gap = uniq[i + 1] - uniq[i]
+      const n = Math.max(1, Math.round(gap / target))
+      for (let k = 1; k < n; k++) out.push(uniq[i] + (gap * k) / n)
+    }
+  }
+  return [...new Set(out.map(round3))].sort((a, b) => a - b)
+}
+
+/**
+ * Grid HÍBRIDO (cm) alineado a la referencia: líneas EXACTAS en cada borde de la
+ * guía (máx/mín/base/figura) + subdivisiones ~`target` cm iguales por banda. Las
+ * referencias siempre caen en línea (nunca se cortan) y los cuadros son legibles
+ * aunque varíen un poco de banda a banda. Para vistas con medidas coprimas.
+ */
+export function buildHybridGrid(
+  rule: CarnavalRule,
+  view: CarnavalPlano,
+  target = 2,
+): { x: number[]; y: number[] } {
+  const xs: number[] = []
+  const ys: number[] = []
+  if (isGeometricView(view)) {
+    const g = buildCarnavalGuide(rule, view as CarnavalView)
+    for (const r of g.rects) {
+      xs.push(r.x, r.x + r.w)
+      ys.push(r.y, r.y + r.h)
+    }
+    for (const l of g.lines) ys.push(l.y)
+    xs.push(g.bounds.x, g.bounds.x + g.bounds.w)
+    ys.push(g.bounds.y, g.bounds.y + g.bounds.h)
+  } else {
+    const b = buildBaseFootprint(rule)
+    xs.push(b.x, b.x + b.w)
+    ys.push(b.y, b.y + b.h)
+  }
+  return { x: subdivide(xs, target), y: subdivide(ys, target) }
 }
 
 /**

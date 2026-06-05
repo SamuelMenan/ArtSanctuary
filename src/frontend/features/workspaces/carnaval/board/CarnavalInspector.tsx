@@ -1,4 +1,6 @@
+import { motion } from 'motion/react'
 import type { BoardObject } from '@shared/lib/boards/types'
+import { transition } from '@frontend/shared/motion/tokens'
 import {
   type CarnavalRule,
   type CarnavalPlano,
@@ -9,7 +11,7 @@ import {
   planosForModality,
   validateBoceto,
 } from '@shared/lib/workspaces/carnaval'
-import { objectsBBoxCm, bboxToMeasures } from '../lib/carnavalInspect'
+import { objectsBBoxCm, bboxToMeasures, axisDualMessage } from '../lib/carnavalInspect'
 
 /** Icono Material + color por estado de cumplimiento. */
 const STATUS_UI: Record<ComplianceStatus, { icon: string; cls: string }> = {
@@ -68,7 +70,13 @@ export default function CarnavalInspector({
     pct >= 100 ? 'text-green-600' : pct >= 70 ? 'text-amber-500' : 'text-red-600'
 
   return (
-    <div className="absolute top-0 right-0 h-full w-72 z-30 bg-[var(--color-surface-container)] border-l border-[var(--color-outline-variant)] shadow-xl flex flex-col">
+    <motion.div
+      className="absolute top-0 right-0 h-full w-72 z-30 bg-[var(--color-surface-container)] border-l border-[var(--color-outline-variant)] shadow-xl flex flex-col"
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 16 }}
+      transition={transition.base}
+    >
       {/* Cabecera */}
       <div className="px-4 py-3 border-b border-[var(--color-outline-variant)] flex items-center justify-between">
         <div>
@@ -114,7 +122,9 @@ export default function CarnavalInspector({
               {'Sin ejes que validar en este plano.'}
             </p>
           ) : (
-            report?.results.map((r) => <Row key={r.axis} status={r.status} text={r.message} />)
+            report?.results.map((r) => (
+              <Row key={r.axis} status={r.status} text={axisDualMessage(r, rule.scale)} />
+            ))
           )}
         </Section>
 
@@ -160,13 +170,18 @@ export default function CarnavalInspector({
         </Section>
 
         {/* Observaciones técnicas */}
-        {report && report.observations.length > 0 && (
-          <Section label="Observaciones técnicas">
-            {report.observations.map((o, i) => (
-              <Row key={i} status="over" text={o} />
-            ))}
-          </Section>
-        )}
+        {report && (() => {
+          const failing = report.results.filter(
+            (r) => r.status === 'over' || r.status === 'under' || r.status === 'mismatch',
+          )
+          return failing.length > 0 ? (
+            <Section label="Observaciones técnicas">
+              {failing.map((r) => (
+                <Row key={r.axis} status={r.status} text={axisDualMessage(r, rule.scale)} />
+              ))}
+            </Section>
+          ) : null
+        })()}
 
         {/* Notas oficiales */}
         <Section label="Notas Corpocarnaval">
@@ -177,6 +192,6 @@ export default function CarnavalInspector({
           ))}
         </Section>
       </div>
-    </div>
+    </motion.div>
   )
 }
