@@ -29,6 +29,14 @@ export const fadeSlide: Variants = {
   exit: { opacity: 0, y: -4, transition: transition.fast },
 }
 
+/** Apertura de popovers/menús contextuales: surge desde su ancla (origen
+ *  vía `transformOrigin` en el elemento). Suave pero casi instantáneo. */
+export const scaleIn: Variants = {
+  initial: { opacity: 0, scale: 0.96, y: -4 },
+  animate: { opacity: 1, scale: 1, y: 0, transition: transition.fast },
+  exit: { opacity: 0, scale: 0.96, y: -4, transition: transition.fast },
+}
+
 /** Confirmación de campo válido. */
 export const popIn: Variants = {
   initial: { opacity: 0, scale: 0.8 },

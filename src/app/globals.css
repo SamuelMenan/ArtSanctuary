@@ -64,6 +64,9 @@
   --spacing-container-padding: 40px;
   --spacing-stack-sm: 8px;
   --spacing-stack-md: 16px;
+  /* Altura única de las barras superiores (navbar global + top bars de tools). */
+  --spacing-appbar-height: 56px;
+  --spacing-appbar-secondary-height: 42px;
 
   /* Radius overrides */
   --radius-sm: 0.125rem;
