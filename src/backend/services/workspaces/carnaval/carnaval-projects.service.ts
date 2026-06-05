@@ -9,6 +9,7 @@ import Board from "@backend/models/Board";
 import CarnivalProject from "@backend/models/workspaces/carnaval/CarnivalProject";
 import {
   getCarnavalRule,
+  carnavalGridSquareCm,
   isCarnavalModality,
   planoLabel,
   planosForModality,
@@ -64,7 +65,7 @@ export async function createCarnivalProject(
       owner: userId,
       projectId: project._id,
       workspace: { kind: "carnaval", modality, view },
-      background: { type: "grid", squareCm: rule.gridSquareCm },
+      background: { type: "grid", squareCm: carnavalGridSquareCm(rule) },
     })),
   );
 

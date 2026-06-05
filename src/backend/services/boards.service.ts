@@ -8,6 +8,7 @@ import { connectDB } from "@backend/db/mongoose";
 import Board from "@backend/models/Board";
 import {
   getCarnavalRule,
+  carnavalGridSquareCm,
   isCarnavalModality,
   type CarnavalModality,
 } from "@shared/lib/workspaces/carnaval";
@@ -59,7 +60,7 @@ export async function createBoard(
     const modality = data.workspace.modality;
     workspace = { kind: "carnaval", modality };
     // Cuadrícula sugerida por la modalidad (cm/cuadro sobre el boceto).
-    background = { type: "grid", squareCm: getCarnavalRule(modality).gridSquareCm };
+    background = { type: "grid", squareCm: carnavalGridSquareCm(getCarnavalRule(modality)) };
   }
 
   const board = await Board.create({
