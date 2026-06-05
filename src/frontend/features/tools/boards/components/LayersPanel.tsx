@@ -1,5 +1,9 @@
+'use client'
+
+import { motion } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import type { MutableRefObject } from 'react'
+import { transition } from '@frontend/shared/motion/tokens'
 import { BoardObject } from '@shared/lib/boards/types'
 
 const getLayerName = (type: string, t: (k: string) => string) => {
@@ -47,7 +51,14 @@ export default function LayersPanel({
 }) {
   const { t } = usePreferences()
   return (
-    <div className="absolute bottom-4 right-4 w-64 max-h-[60%] bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-xl shadow-2xl flex flex-col z-30 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+    <motion.div
+      className="absolute bottom-4 right-4 w-64 max-h-[60%] bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-xl shadow-2xl flex flex-col z-30 overflow-hidden"
+      style={{ transformOrigin: 'bottom right' }}
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+      transition={transition.base}
+    >
       <div className="flex items-center justify-between px-3 h-10 border-b border-[var(--color-outline-variant)] shrink-0">
         <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">{t('boards.layers')}</span>
         <button type="button" onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
@@ -107,6 +118,6 @@ export default function LayersPanel({
           <span className="font-mono text-[10px] text-[var(--color-primary)] w-9 text-right">{selectedObj.opacity ?? 100}%</span>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

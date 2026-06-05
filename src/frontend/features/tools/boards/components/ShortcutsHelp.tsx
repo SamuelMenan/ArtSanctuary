@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
+import { motion } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { scaleIn, transition } from '@frontend/shared/motion/tokens'
 
 /** Filas de atajos: [combinación, clave i18n de descripción]. */
 const ROWS: [string, string][] = [
@@ -38,14 +40,24 @@ export default function ShortcutsHelp({ onClose }: { onClose: () => void }) {
   }, [onClose])
 
   return (
-    <div
+    <motion.div
       className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="sc-help-title"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={transition.fast}
     >
-      <div className="w-full max-w-md max-h-[80%] overflow-auto rounded-2xl bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow-2xl p-5">
+      <motion.div
+        className="w-full max-w-md max-h-[80%] overflow-auto rounded-2xl bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow-2xl p-5"
+        variants={scaleIn}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 id="sc-help-title" className="font-sans font-semibold text-[var(--color-primary)] uppercase tracking-wide text-sm">
             {t('boards.shortcutsTitle')}
@@ -68,7 +80,7 @@ export default function ShortcutsHelp({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </dl>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

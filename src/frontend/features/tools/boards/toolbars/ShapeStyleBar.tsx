@@ -1,4 +1,8 @@
+'use client'
+
+import { motion } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import { fadeSlide } from '@frontend/shared/motion/tokens'
 import { BoardObject } from '@shared/lib/boards/types'
 
 /** Barra de estilo para figuras: relleno, borde y grosor. */
@@ -17,7 +21,13 @@ export default function ShapeStyleBar({
   const tog =
     'flex items-center justify-center w-9 h-9 rounded-md border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0'
   return (
-    <div className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap animate-in fade-in slide-in-from-top-2 duration-200">
+    <motion.div
+      variants={fadeSlide}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap"
+    >
       {hasFill && (
         <div className="flex items-center gap-2 shrink-0">
           <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--color-on-surface-variant)]">{t('boards.fill')}</span>
@@ -69,6 +79,6 @@ export default function ShapeStyleBar({
           <span className="material-symbols-outlined text-[18px]">add</span>
         </button>
       </div>
-    </div>
+    </motion.div>
   )
 }

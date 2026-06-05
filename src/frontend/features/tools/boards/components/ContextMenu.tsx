@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { motion } from 'motion/react'
+import { scaleIn } from '@frontend/shared/motion/tokens'
 
 export interface ContextMenuItem {
   label: string
@@ -44,11 +46,15 @@ export default function ContextMenu({
   }, [onClose])
 
   return (
-    <div
+    <motion.div
       ref={ref}
       role="menu"
-      style={{ left: x, top: y }}
+      style={{ left: x, top: y, transformOrigin: 'top left' }}
       className="absolute z-40 min-w-[180px] py-1 rounded-xl bg-[var(--color-surface-container)]/95 backdrop-blur-md border border-[var(--color-outline-variant)] shadow-xl"
+      variants={scaleIn}
+      initial="initial"
+      animate="animate"
+      exit="exit"
     >
       {items.map((item) => (
         <button
@@ -71,6 +77,6 @@ export default function ContextMenu({
           {item.label}
         </button>
       ))}
-    </div>
+    </motion.div>
   )
 }

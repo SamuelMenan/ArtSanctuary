@@ -29,7 +29,7 @@ export default function DimensionsFooter({
       <input
         type="number"
         step={0.1}
-        value={round1(value)}
+        value={Number.isNaN(value) ? 0 : round1(value)}
         onChange={(e) => set(Number(e.target.value) || 0)}
         className={dim}
       />

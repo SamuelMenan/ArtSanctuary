@@ -25,15 +25,20 @@ export default function DimensionLabel({
 }) {
   const { t } = usePreferences()
   const isLin = o.type === 'line' || o.type === 'arrow'
-  const wCm = round1(cmOf(o.w))
-  const hCm = round1(cmOf(o.h))
-  const diagCm = round1(cmOf(Math.hypot(o.w, o.h)))
+  const safeW = Number.isNaN(o.w) ? 0 : o.w
+  const safeH = Number.isNaN(o.h) ? 0 : o.h
+  const safeX = Number.isNaN(o.x) ? 0 : o.x
+  const safeY = Number.isNaN(o.y) ? 0 : o.y
+
+  const wCm = round1(cmOf(safeW))
+  const hCm = round1(cmOf(safeH))
+  const diagCm = round1(cmOf(Math.hypot(safeW, safeH)))
 
   const dimStr = (a: number, b: number) => `${a} cm${fmtM(a)} × ${b} cm${fmtM(b)}`
   const label = isLin ? `${diagCm} cm${fmtM(diagCm)}` : dimStr(wCm, hCm)
 
-  const left = pos.x + (o.x + o.w / 2) * scale
-  const top = pos.y + (o.y + o.h) * scale + 8
+  const left = pos.x + (safeX + safeW / 2) * scale
+  const top = pos.y + (safeY + safeH) * scale + 8
 
   // Cota doble (Referencia + Final): ambas escalas SIEMPRE visibles en cuadrícula.
   if (isGrid) {

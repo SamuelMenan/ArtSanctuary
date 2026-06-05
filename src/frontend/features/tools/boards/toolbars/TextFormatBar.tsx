@@ -1,4 +1,8 @@
+'use client'
+
+import { motion } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import { fadeSlide } from '@frontend/shared/motion/tokens'
 import { BoardObject, BOARD_FONTS, DEFAULT_FONT } from '@shared/lib/boards/types'
 
 /** Barra de formato para texto y notas: fuente, tamaño, estilo, alineación y color. */
@@ -22,7 +26,13 @@ export default function TextFormatBar({
   const swatch =
     'w-9 h-9 rounded-md border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors relative overflow-hidden shrink-0'
   return (
-    <div className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap animate-in fade-in slide-in-from-top-2 duration-200">
+    <motion.div
+      variants={fadeSlide}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-2 overflow-x-auto whitespace-nowrap"
+    >
       {/* Fuente */}
       <select
         value={o.fontFamily || DEFAULT_FONT}
@@ -96,6 +106,6 @@ export default function TextFormatBar({
           <input type="color" value={o.color || '#FDE68A'} onChange={(e) => patch({ color: e.target.value })} className="absolute inset-[-8px] w-16 h-16 cursor-pointer opacity-0" />
         </label>
       )}
-    </div>
+    </motion.div>
   )
 }

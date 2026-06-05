@@ -1,8 +1,13 @@
-import Link from 'next/link'
-import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+'use client'
 
-const iconBtn =
-  'flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-outline-variant)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors shrink-0 disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]'
+import { motion } from 'motion/react'
+import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { transition } from '@frontend/shared/motion/tokens'
+import AppBarButton from '@frontend/shared/layouts/appbar/AppBarButton'
+import { appBarShellSecondary, appBarBg, appBarLabel } from '@frontend/shared/layouts/appbar/appBarStyles'
+
+/** Divisor vertical hairline entre grupos de la barra superior. */
+const vsep = 'w-px h-6 bg-[var(--color-outline-variant)] mx-1 shrink-0'
 
 /** Barra superior del board: volver, nombre editable, estado de guardado, undo/redo y descarga. */
 export default function TopBar({
@@ -27,10 +32,14 @@ export default function TopBar({
 }) {
   const { t } = usePreferences()
   return (
-    <div className="bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 py-2 flex items-center gap-3">
-      <Link href={backHref} className={iconBtn} title={t('boards.backTip')} aria-label={t('boards.backTip')}>
-        <span className="material-symbols-outlined text-[20px]" aria-hidden>arrow_back</span>
-      </Link>
+    <motion.div
+      // Barra de tool sobre lienzo → superficie sólida (más contraste); el resto
+      className={`${appBarShellSecondary} ${appBarBg.solid} gap-3`}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={transition.slow}
+    >
+      <AppBarButton icon="arrow_back" label={t('boards.backTip')} href={backHref} />
       <input
         value={name}
         onChange={(e) => onName(e.target.value)}
@@ -39,22 +48,20 @@ export default function TopBar({
         className="bg-transparent font-sans font-semibold text-[var(--color-primary)] border-b border-transparent hover:border-[var(--color-outline-variant)] focus:border-[var(--color-primary)] outline-none px-1 py-0.5 min-w-[120px] max-w-[320px]"
       />
       <div className="flex-1" />
-      <span role="status" aria-live="polite" className="font-mono text-[10px] text-[var(--color-on-surface-variant)] shrink-0">
+      <span role="status" aria-live="polite" className={`${appBarLabel} shrink-0`}>
         {readOnly ? t('boards.readOnly') : saveState === 'saving' ? t('boards.saving') : saveState === 'saved' ? t('boards.saved') : ''}
       </span>
-      {!readOnly && (
-        <>
-          <button onClick={onUndo} className={iconBtn} title={t('boards.undoTip')} aria-label={t('boards.undoTip')}>
-            <span className="material-symbols-outlined text-[20px]" aria-hidden>undo</span>
-          </button>
-          <button onClick={onRedo} className={iconBtn} title={t('boards.redoTip')} aria-label={t('boards.redoTip')}>
-            <span className="material-symbols-outlined text-[20px]" aria-hidden>redo</span>
-          </button>
-        </>
-      )}
-      <button onClick={onDownload} className={iconBtn} title={t('boards.downloadTip')} aria-label={t('boards.downloadTip')}>
-        <span className="material-symbols-outlined text-[20px]" aria-hidden>download</span>
-      </button>
-    </div>
+      <span className={vsep} />
+      <div className="flex items-center gap-1">
+        {!readOnly && (
+          <>
+            <AppBarButton icon="undo" label={t('boards.undoTip')} onClick={onUndo} />
+            <AppBarButton icon="redo" label={t('boards.redoTip')} onClick={onRedo} />
+            <span className={vsep} />
+          </>
+        )}
+        <AppBarButton icon="download" label={t('boards.downloadTip')} onClick={onDownload} />
+      </div>
+    </motion.div>
   )
 }
