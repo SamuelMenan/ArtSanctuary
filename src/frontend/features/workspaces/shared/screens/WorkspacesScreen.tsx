@@ -91,7 +91,7 @@ export default function WorkspacesScreen() {
 
             {loading ? (
               <div className="flex justify-center p-16">
-                <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-3xl">refresh</span>
+                <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-3xl">hourglass_top</span>
               </div>
             ) : projects.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">

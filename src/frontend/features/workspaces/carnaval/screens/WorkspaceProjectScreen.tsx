@@ -104,7 +104,7 @@ export default function WorkspaceProjectScreen({ projectId }: { projectId: strin
     return (
       <AppShell><ToolActiveLayout projectId={projectId}>
         <div className="flex-1 flex justify-center p-16">
-          <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-3xl">refresh</span>
+          <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-3xl">hourglass_top</span>
         </div>
       </ToolActiveLayout></AppShell>
     )
