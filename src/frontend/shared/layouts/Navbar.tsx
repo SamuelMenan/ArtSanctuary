@@ -1,15 +1,18 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
+import { motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from './ChromeProvider'
+import { transition } from '@frontend/shared/motion/tokens'
 import { type Locale, type ThemeMode } from '@shared/i18n'
 import NotificationsMenu from './navbar/NotificationsMenu'
 import ProfileMenu from './navbar/ProfileMenu'
 import MobileMenu from './navbar/MobileMenu'
+import AppBarButton from './appbar/AppBarButton'
+import { appBarShell, appBarBg, appBarTitle } from './appbar/appBarStyles'
 
 export default function Navbar() {
   const { status } = useSession()
@@ -49,33 +52,22 @@ export default function Navbar() {
   return (
     <>
       {/* Desktop TopAppBar — se esconde/muestra con su propio toggle */}
-      <header className={`hidden md:flex bg-[var(--color-surface)]/60 backdrop-blur-md text-[var(--color-primary)] fixed top-0 right-0 h-16 border-b border-[var(--color-outline-variant)] justify-between items-center px-[var(--spacing-grid-gutter)] z-40 transition-all duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'} ${navbarOpen ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
+      <motion.header
+        className={`hidden md:flex ${appBarShell} ${appBarBg.glass} fixed top-0 right-0 justify-between z-40 transition-[left] duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'}`}
+        animate={{ y: navbarOpen ? 0 : '-100%' }}
+        transition={transition.base}
+      >
+        <div className="flex items-center gap-1">
+          <AppBarButton
+            icon={sidebarOpen ? 'chevron_left' : 'chevron_right'}
+            label={sidebarOpen ? t('common.hideSidebar') : t('common.showSidebar')}
             onClick={toggleSidebar}
-            aria-label={sidebarOpen ? 'Ocultar menú lateral' : 'Mostrar menú lateral'}
-            className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200"
-          >
-            <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: sidebarOpen ? 'none' : 'rotate(180deg)' }}>
-              chevron_left
-            </span>
-          </button>
-          <div className="font-display font-bold text-xl text-[var(--color-primary)]">ArtSanctuary</div>
-          <button
-            type="button"
-            onClick={toggleNavbar}
-            aria-label="Ocultar barra superior"
-            title="Ocultar barra superior"
-            className="ml-1 text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200"
-          >
-            <span className="material-symbols-outlined">expand_less</span>
-          </button>
+          />
+          <div className={`${appBarTitle} px-1`}>ArtSanctuary</div>
+          <AppBarButton icon="expand_less" label={t('common.hideTopBar')} onClick={toggleNavbar} />
         </div>
-        <div className="flex items-center gap-[var(--spacing-stack-md)]">
-          <Link href="/explore" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200">
-            <span className="material-symbols-outlined">search</span>
-          </Link>
+        <div className="flex items-center gap-1">
+          <AppBarButton icon="search" label={t('common.search')} href="/explore" />
 
           <NotificationsMenu
             isOpen={isNotifOpen}
@@ -96,7 +88,7 @@ export default function Navbar() {
             t={t}
           />
         </div>
-      </header>
+      </motion.header>
 
       <MobileMenu
         isOpen={isOpen}

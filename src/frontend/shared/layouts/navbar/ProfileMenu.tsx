@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { type Locale, type ThemeMode } from '@shared/i18n'
+import { appBarIconBtnIdle } from '../appbar/appBarStyles'
 
 interface ProfileMenuProps {
   isOpen: boolean
@@ -32,9 +33,11 @@ export default function ProfileMenu({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200 focus:outline-none"
+        aria-label={t('nav.profile')}
+        aria-expanded={isOpen}
+        className={appBarIconBtnIdle}
       >
-        <span className="material-symbols-outlined">account_circle</span>
+        <span className="material-symbols-outlined text-[20px]" aria-hidden>account_circle</span>
       </button>
 
       {/* Profile Dropdown Menu */}

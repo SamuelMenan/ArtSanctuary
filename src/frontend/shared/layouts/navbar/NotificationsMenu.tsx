@@ -1,6 +1,7 @@
 'use client'
 
 import { useNotifications } from './useNotifications'
+import { appBarIconBtnIdle } from '../appbar/appBarStyles'
 
 interface NotificationsMenuProps {
   isOpen: boolean
@@ -17,9 +18,11 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] flex items-center justify-center p-2 rounded-full hover:bg-[var(--color-surface-container-low)] transition-all duration-200 focus:outline-none relative"
+        aria-label={t('menu.notifications')}
+        aria-expanded={isOpen}
+        className={`relative ${appBarIconBtnIdle}`}
       >
-        <span className="material-symbols-outlined">notifications</span>
+        <span className="material-symbols-outlined text-[20px]" aria-hidden>notifications</span>
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 size-2 bg-[var(--color-primary)] rounded-full animate-pulse"></span>
         )}

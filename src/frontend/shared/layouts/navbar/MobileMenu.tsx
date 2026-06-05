@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { type Locale, type ThemeMode } from '@shared/i18n'
+import { appBarIconBtnIdle, appBarTitle } from '../appbar/appBarStyles'
 
 interface MobileMenuProps {
   isOpen: boolean
@@ -32,16 +33,16 @@ export default function MobileMenu({
       {/* Mobile TopAppBar */}
       <nav className="md:hidden flex items-center justify-between px-6 py-4 bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] sticky top-0 z-50">
         <div>
-          <h1 className="text-xl font-display-lg tracking-[-0.02em] text-[var(--color-primary)] font-bold">
-            ArtSanctuary
-          </h1>
+          <h1 className={appBarTitle}>ArtSanctuary</h1>
         </div>
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="text-[var(--color-primary)] p-2 focus:outline-none"
+          aria-label={t('common.menu')}
+          aria-expanded={isOpen}
+          className={appBarIconBtnIdle}
         >
-          <span className="material-symbols-outlined">{isOpen ? 'close' : 'menu'}</span>
+          <span className="material-symbols-outlined text-[20px]" aria-hidden>{isOpen ? 'close' : 'menu'}</span>
         </button>
       </nav>
 
