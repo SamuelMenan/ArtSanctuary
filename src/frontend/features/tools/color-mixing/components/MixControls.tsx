@@ -23,7 +23,7 @@ export default function MixControls({
   clearAll,
 }: MixControlsProps) {
   return (
-    <div className="h-16 bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-4 z-40 shrink-0 overflow-x-auto gap-4">
+    <div className="h-[var(--spacing-appbar-height)] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-[var(--spacing-grid-gutter)] z-40 shrink-0 overflow-x-auto gap-4">
       <span className="font-mono text-label-sm text-[var(--color-secondary)] uppercase tracking-widest whitespace-nowrap">
         {L.medium}
       </span>

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
+import { scaleIn, transition } from '@frontend/shared/motion/tokens';
 
 type Props = {
   onClose: () => void;
@@ -21,6 +23,17 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
   const [tab, setTab] = useState<'upload' | 'collections'>('upload');
   const { t } = usePreferences();
   const [mounted, setMounted] = useState(false);
+  // Salida auto-contenida: `visible` controla el ciclo de AnimatePresence; al
+  // terminar la animación de salida se ejecuta la acción real (cerrar o elegir).
+  const [visible, setVisible] = useState(true);
+  const pendingSelect = useRef<string | null>(null);
+  const requestClose = useCallback(() => { pendingSelect.current = null; setVisible(false); }, []);
+  const requestSelect = useCallback((src: string) => { pendingSelect.current = src; setVisible(false); }, []);
+  const onExitComplete = () => {
+    const src = pendingSelect.current;
+    pendingSelect.current = null;
+    if (src != null) onSelect(src); else onClose();
+  };
 
   // Subida
   const [uploading, setUploading] = useState(false);
@@ -33,6 +46,13 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  // Cerrar con Escape.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [requestClose]);
 
   const openDetail = async (c: Collection) => {
     setOpenCollection(c);
@@ -57,7 +77,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
     setUploading(false);
     if (res.ok) {
       const data = await res.json();
-      onSelect(data.imageUrl);
+      requestSelect(data.imageUrl);
     } else {
       const data = await res.json().catch(() => ({}));
       setUploadError(data?.error?.message ?? t('imageModal.uploadError'));
@@ -74,12 +94,29 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
     }`;
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-[var(--color-surface-container-lowest)] w-full max-w-lg rounded-sm shadow-2xl overflow-hidden ring-1 ring-[var(--color-outline-variant)] flex flex-col max-h-[80vh]">
+    <AnimatePresence onExitComplete={onExitComplete}>
+      {visible && (
+        <motion.div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) requestClose(); }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={transition.fast}
+        >
+          <motion.div
+            className="bg-[var(--color-surface-container-lowest)] w-full max-w-lg rounded-sm shadow-2xl overflow-hidden ring-1 ring-[var(--color-outline-variant)] flex flex-col max-h-[80vh]"
+            role="dialog"
+            aria-modal="true"
+            variants={scaleIn}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+          >
         {/* Header */}
         <div className="p-4 border-b border-[var(--color-outline-variant)] flex items-center justify-between shrink-0">
           <h3 className="font-sans font-bold text-[var(--color-primary)]">{t('imageModal.title')}</h3>
-          <button onClick={onClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
+          <button onClick={requestClose} className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -138,7 +175,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
                       {imgs.map((src, i) => (
                         <button
                           key={`${src}-${i}`}
-                          onClick={() => onSelect(src)}
+                          onClick={() => requestSelect(src)}
                           className="aspect-square overflow-hidden rounded-sm border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] transition-colors group"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -171,8 +208,10 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
             </div>
           )}
         </div>
-      </div>
-    </div>,
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 }

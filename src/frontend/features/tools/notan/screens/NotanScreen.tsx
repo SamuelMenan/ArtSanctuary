@@ -13,11 +13,11 @@ export default function NotanPage() {
     <AppShell>
       <ToolActiveLayout>
         {/* Top Control Bar */}
-        <div className="h-16 bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-[var(--spacing-grid-gutter)] justify-between shrink-0 z-10 overflow-x-auto">
+        <div className="h-[var(--spacing-appbar-height)] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-[var(--spacing-grid-gutter)] justify-between shrink-0 z-10 overflow-x-auto">
           {/* Left Actions */}
           <div className="flex items-center">
             <button className="flex items-center gap-[var(--spacing-stack-sm)] px-4 py-2 border border-[var(--color-outline)] rounded-[var(--radius-sm)] text-[var(--color-on-background)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-colors duration-200 font-mono text-label-sm group whitespace-nowrap">
-              <span className="material-symbols-outlined text-[18px] group-hover:text-[var(--color-primary)]">image</span>
+              <span className="material-symbols-outlined text-[20px] group-hover:text-[var(--color-primary)]">image</span>
               SELECCIONAR IMAGEN
             </button>
           </div>

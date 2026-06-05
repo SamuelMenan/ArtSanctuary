@@ -33,7 +33,7 @@ export default function GesturePage() {
     <AppShell>
       <ToolActiveLayout>
         {/* Top Control Bar */}
-        <div className="h-16 border-b border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] flex items-center p-4 gap-6 shrink-0 overflow-x-auto">
+        <div className="h-[var(--spacing-appbar-height)] border-b border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] flex items-center px-[var(--spacing-grid-gutter)] gap-6 shrink-0 overflow-x-auto">
           <div className="flex items-center gap-4 flex-1 min-w-[300px]">
             <span className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest">{copy.duration}</span>
             <div className="flex-1 max-w-xs flex items-center gap-3">

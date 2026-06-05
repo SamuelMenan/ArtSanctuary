@@ -17,7 +17,7 @@ export default function CanonPage() {
     <AppShell>
       <ToolActiveLayout>
         {/* Top Control Bar */}
-        <div className="h-16 bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex flex-wrap items-center justify-between px-6 shrink-0 overflow-x-auto gap-4">
+        <div className="min-h-[var(--spacing-appbar-height)] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex flex-wrap items-center justify-between px-[var(--spacing-grid-gutter)] py-2 shrink-0 overflow-x-auto gap-4">
           <div className="flex items-center gap-6">
             {/* Height Input */}
             <div className="flex items-center gap-2">
@@ -54,7 +54,7 @@ export default function CanonPage() {
           
           {/* Export Button */}
           <button className="px-4 py-2 border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] font-mono text-label-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all uppercase tracking-wider bg-transparent flex items-center gap-2 whitespace-nowrap">
-            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span className="material-symbols-outlined text-[20px]">download</span>
             {t('canon.exportPng')}
           </button>
         </div>
