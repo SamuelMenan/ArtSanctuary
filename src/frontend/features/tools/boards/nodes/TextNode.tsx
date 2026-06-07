@@ -1,23 +1,23 @@
 'use client'
 
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Text as KonvaText } from 'react-konva'
 import type Konva from 'konva'
 import { DEFAULT_FONT, konvaFontStyle } from '@shared/lib/boards/types'
 import type { BaseNodeProps } from './types'
 
 /** Nodo de texto libre. */
-export default function TextNode({
+function TextNode({
   obj,
   editing,
   onSelect,
   onEdit,
   onChange,
+  readOnly,
   snap,
-  snapVal,
   snapDrag,
   draggable,
-}: BaseNodeProps & { editing: boolean; onEdit: () => void }) {
+}: BaseNodeProps & { editing: boolean; onEdit: (id: string) => void }) {
   const ref = useRef<Konva.Text>(null)
   return (
     <KonvaText
@@ -37,10 +37,10 @@ export default function TextNode({
       fill={obj.color || '#e8e8e8'}
       align={obj.align || 'left'}
       draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
-      onDblClick={onEdit}
-      onDblTap={onEdit}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onDblClick={() => !readOnly && !obj.locked && onEdit(obj.id)}
+      onDblTap={() => !readOnly && !obj.locked && onEdit(obj.id)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x(), obj.w ?? 0))
@@ -59,3 +59,5 @@ export default function TextNode({
     />
   )
 }
+
+export default memo(TextNode)

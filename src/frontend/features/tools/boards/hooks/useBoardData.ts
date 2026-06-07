@@ -57,7 +57,8 @@ export function useBoardData(
         // Handoff: imagen entrante de otra herramienta (?handoff=1).
         const params = new URLSearchParams(window.location.search)
         if (d.isOwner && params.get('handoff') === '1') {
-          window.history.replaceState(null, '', `/dashboard/tools/boards/${boardId}`)
+          // Limpia el ?handoff=1 conservando la ruta real (global o de workspace).
+          window.history.replaceState(null, '', window.location.pathname)
           const p = takeHandoff()
           if (p) {
             const w = pxOf(p.widthCm)
@@ -111,51 +112,83 @@ export function useBoardData(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boardId])
 
-  /* ── Autosave (debounce) ── */
-  const firstSave = useRef(true)
+  /* ── Autosave de CONTENIDO (objetos/fondo/nombre) + miniatura ──
+     Separado del viewport: solo el contenido genera miniatura, y se hace en
+     `requestIdleCallback` para que `toDataURL` (lectura síncrona del canvas)
+     nunca congele un gesto en curso. El paneo/zoom NO entra aquí. */
+  const firstContent = useRef(true)
   useEffect(() => {
     if (!loaded || readOnly) return
-    if (firstSave.current) {
-      firstSave.current = false
+    if (firstContent.current) {
+      firstContent.current = false
       return
     }
     setSaveState('saving')
     const t = setTimeout(() => {
-      // Miniatura del lienzo (best-effort; falla en silencio si el canvas está
-      // "tainted" por imágenes sin CORS).
-      let thumbnailUrl: string | undefined
-      try {
-        const stage = stageRef.current
-        const tr = trRef.current
-        if (stage) {
-          try {
-            tr?.visible(false) // no capturar los manejadores de selección
-            thumbnailUrl = stage.toDataURL({ pixelRatio: 0.25, mimeType: 'image/jpeg', quality: 0.6 })
-          } finally {
-            tr?.visible(true)
-            tr?.getLayer()?.batchDraw()
-          }
-        }
-      } catch {
-        thumbnailUrl = undefined
+      const send = (thumbnailUrl?: string) => {
+        window.fetch(`/api/boards/${boardId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            objects: s.objects,
+            background: s.background,
+            name: s.name,
+            ...(thumbnailUrl ? { thumbnailUrl } : {}),
+          }),
+        })
+          .then(() => setSaveState('saved'))
+          .catch(() => setSaveState('idle'))
       }
-      window.fetch(`/api/boards/${boardId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          objects: s.objects,
-          background: s.background,
-          name: s.name,
-          viewport: { x: s.pos.x, y: s.pos.y, zoom: s.scale },
-          ...(thumbnailUrl ? { thumbnailUrl } : {}),
-        }),
-      })
-        .then(() => setSaveState('saved'))
-        .catch(() => setSaveState('idle'))
+      // Miniatura del lienzo (best-effort; falla en silencio si el canvas está
+      // "tainted" por imágenes sin CORS). En idle → fuera del hilo del gesto.
+      const genThumb = () => {
+        let thumbnailUrl: string | undefined
+        try {
+          const stage = stageRef.current
+          const tr = trRef.current
+          if (stage) {
+            try {
+              tr?.visible(false) // no capturar los manejadores de selección
+              thumbnailUrl = stage.toDataURL({ pixelRatio: 0.25, mimeType: 'image/jpeg', quality: 0.6 })
+            } finally {
+              tr?.visible(true)
+              tr?.getLayer()?.batchDraw()
+            }
+          }
+        } catch {
+          thumbnailUrl = undefined
+        }
+        send(thumbnailUrl)
+      }
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(genThumb, { timeout: 1500 })
+      } else {
+        genThumb()
+      }
     }, 800)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.objects, s.background, s.name, s.pos, s.scale, loaded, readOnly, boardId])
+  }, [s.objects, s.background, s.name, loaded, readOnly, boardId])
+
+  /* ── Autosave de VIEWPORT (pan/zoom) ──
+     Ligero: solo persiste el encuadre, sin miniatura ni indicador de guardado.
+     Debounce mayor porque es puramente cosmético (recuperar la vista al abrir). */
+  const firstVp = useRef(true)
+  useEffect(() => {
+    if (!loaded || readOnly) return
+    if (firstVp.current) {
+      firstVp.current = false
+      return
+    }
+    const t = setTimeout(() => {
+      window.fetch(`/api/boards/${boardId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ viewport: { x: s.pos.x, y: s.pos.y, zoom: s.scale } }),
+      }).catch(() => {})
+    }, 1000)
+    return () => clearTimeout(t)
+  }, [s.pos, s.scale, loaded, readOnly, boardId])
 
   return { loaded, notFound, readOnly, saveState }
 }

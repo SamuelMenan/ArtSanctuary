@@ -1,12 +1,12 @@
 'use client'
 
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Group, Rect, Ellipse, Line, Arrow } from 'react-konva'
 import type Konva from 'konva'
 import type { BaseNodeProps } from './types'
 
 /** Figura geométrica (rect / elipse / línea / flecha). */
-export default function ShapeNode({ obj, onSelect, onChange, snap, snapVal, snapDrag, draggable }: BaseNodeProps) {
+function ShapeNode({ obj, onSelect, onChange, readOnly, snap, snapDrag, draggable }: BaseNodeProps) {
   const ref = useRef<Konva.Group>(null)
   // 'transparent' (no undefined) mantiene el interior clicable aunque esté vacío.
   const fill = obj.fill ?? 'transparent'
@@ -28,8 +28,8 @@ export default function ShapeNode({ obj, onSelect, onChange, snap, snapVal, snap
       opacity={(obj.opacity ?? 100) / 100}
       visible={obj.visible !== false}
       draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x() - cx, obj.w) + cx)
@@ -71,3 +71,5 @@ export default function ShapeNode({ obj, onSelect, onChange, snap, snapVal, snap
     </Group>
   )
 }
+
+export default memo(ShapeNode)

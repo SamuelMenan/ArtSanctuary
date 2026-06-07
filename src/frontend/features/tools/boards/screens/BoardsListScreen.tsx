@@ -1,12 +1,11 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { peekHandoff } from '@shared/lib/tools/handoff'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import Spinner from '@frontend/shared/ui/Spinner'
 
 type BoardMeta = {
   _id: string
@@ -64,8 +63,7 @@ export default function BoardsListPage() {
     new Date(iso).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
+    <>
        <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className="pt-8 pb-12 px-[var(--spacing-grid-gutter)] w-full max-w-[1400px] mx-auto z-10 relative">
         <header className="mb-12 flex items-end justify-between gap-4 flex-wrap">
@@ -111,7 +109,7 @@ export default function BoardsListPage() {
 
         {loading ? (
           <div className="flex justify-center p-16">
-            <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-3xl">refresh</span>
+            <Spinner className="size-8 text-[var(--color-primary)]" />
           </div>
         ) : boards.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
@@ -160,7 +158,6 @@ export default function BoardsListPage() {
         )}
         </div>
        </div>
-      </ToolActiveLayout>
-    </AppShell>
+    </>
   )
 }

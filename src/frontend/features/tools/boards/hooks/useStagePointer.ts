@@ -36,6 +36,8 @@ interface StagePointerDeps {
 export function useStagePointer(d: StagePointerDeps) {
   const measuring = useRef(false)
   const panning = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+  // Última posición del Stage durante un paneo imperativo (se confirma al soltar).
+  const lastPan = useRef<Vec | null>(null)
   const selStart = useRef<{ x: number; y: number; additive: boolean } | null>(null)
 
   const panMode = d.spaceHeld || d.tool === 'hand'
@@ -77,8 +79,20 @@ export function useStagePointer(d: StagePointerDeps) {
       return
     }
     if (panning.current) {
+      // Paneo IMPERATIVO: mueve el Stage por ref + `batchDraw`, SIN setState. Así
+      // no hay re-render por frame (React no es la fuente durante el gesto) → las
+      // grillas auto-dirigidas y los nodos siguen al transform sin reconcile. La
+      // posición final se confirma a React al soltar (`onStagePointerUp`).
       const pn = panning.current
-      d.setPos({ x: pn.px + (p.x - pn.x), y: pn.py + (p.y - pn.y) })
+      const nx = pn.px + (p.x - pn.x)
+      const ny = pn.py + (p.y - pn.y)
+      const stage = d.stageRef.current
+      if (stage) {
+        stage.x(nx)
+        stage.y(ny)
+        stage.batchDraw()
+        lastPan.current = { x: nx, y: ny }
+      }
       return
     }
     const s = selStart.current
@@ -94,6 +108,11 @@ export function useStagePointer(d: StagePointerDeps) {
     if (panning.current) {
       panning.current = null
       d.setDragPanning(false)
+      // Confirma a React la posición final del paneo imperativo (un solo render).
+      if (lastPan.current) {
+        d.setPos(lastPan.current)
+        lastPan.current = null
+      }
       return
     }
     const s = selStart.current

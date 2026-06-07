@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { BoardObject, BoardBackground, PX_PER_CM } from '@shared/lib/boards/types'
 import { uid } from '../lib/uid'
@@ -22,20 +23,36 @@ export function useObjectActions(
   mutate: (updater: (prev: BoardObject[]) => BoardObject[]) => void,
   setBackground: Dispatch<SetStateAction<BoardBackground>>,
 ) {
-  /* ── Snap a cuadrícula ── */
-  const majorGap = Math.max(8, background.squareCm * PX_PER_CM)
-  const minorGap = majorGap / 2
+  /* ── Snap a cuadrícula ──
+     snapVal/snapDrag tienen identidad ESTABLE (useCallback dep squareCm): solo
+     cambian al cambiar la escala de cuadro, no en cada pan/zoom. Así los nodos
+     memoizados que los reciben no se re-renderizan al panear. */
   // Usar siempre majorGap para el imán garantiza que las imágenes cuadriculadas
   // siempre coincidan perfectamente con el fondo mayor (evita desfasarse medio cuadro).
-  const gridGap = majorGap
-  const snapVal = (v: number) => Math.round(v / gridGap) * gridGap
-  const snapDrag = (v: number, span: number) => {
-    const dLeft = snapVal(v) - v
-    const dRight = snapVal(v + span) - (v + span)
-    return v + (Math.abs(dLeft) <= Math.abs(dRight) ? dLeft : dRight)
-  }
-  const applySnap = (o: BoardObject): BoardObject =>
-    snap && background.type === 'grid' ? { ...o, x: snapDrag(o.x, o.w || 0), y: snapDrag(o.y, o.h || 0) } : o
+  const gridGap = Math.max(8, background.squareCm * PX_PER_CM)
+  const snapVal = useCallback((v: number) => Math.round(v / gridGap) * gridGap, [gridGap])
+  // Banda del imán: fracción de la celda dentro de la cual el borde se pega a la
+  // línea. Fuera de la banda (centro de la celda) la colocación es LIBRE → se
+  // puede soltar en el punto exacto, no salta siempre a la cuadrícula. ~0.22 deja
+  // ~56% de la celda libre y un 22% magnético junto a cada línea (estilo Figma).
+  const SNAP_BAND = 0.22
+  const snapDrag = useCallback(
+    (v: number, span: number) => {
+      const dLeft = snapVal(v) - v
+      const dRight = snapVal(v + span) - (v + span)
+      // Imanta por el borde cuyo desplazamiento a la línea sea menor.
+      const d = Math.abs(dLeft) <= Math.abs(dRight) ? dLeft : dRight
+      // Solo se pega si ese borde está dentro de la banda; si no, queda libre.
+      return Math.abs(d) <= gridGap * SNAP_BAND ? v + d : v
+    },
+    [snapVal, gridGap],
+  )
+  const bgType = background.type
+  const applySnap = useCallback(
+    (o: BoardObject): BoardObject =>
+      snap && bgType === 'grid' ? { ...o, x: snapDrag(o.x, o.w || 0), y: snapDrag(o.y, o.h || 0) } : o,
+    [snap, bgType, snapDrag],
+  )
 
   // Cambiar cm/cuadro: reescala alrededor del centro visible para conservar el
   // tamaño relativo a la cuadrícula (si no, al pasar de 50→2 la imagen explota).
@@ -62,18 +79,24 @@ export function useObjectActions(
     setBackground((b) => ({ ...b, squareCm: next }))
   }
 
-  /* ── Mutadores de objetos ── */
-  const updateObject = (o: BoardObject) => {
-    const snapped = applySnap(o)
-    mutate((arr) => arr.map((x) => (x.id === snapped.id ? snapped : x)))
-  }
+  /* ── Mutadores de objetos ── (identidad estable: no re-renderiza nodos memo) */
+  const updateObject = useCallback(
+    (o: BoardObject) => {
+      const snapped = applySnap(o)
+      mutate((arr) => arr.map((x) => (x.id === snapped.id ? snapped : x)))
+    },
+    [applySnap, mutate],
+  )
 
   /* ── Selección múltiple ── */
-  const selectObject = (id: string, additive: boolean) => {
-    setSelectedIds((prev) =>
-      additive ? (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]) : [id]
-    )
-  }
+  const selectObject = useCallback(
+    (id: string, additive: boolean) => {
+      setSelectedIds((prev) =>
+        additive ? (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]) : [id],
+      )
+    },
+    [setSelectedIds],
+  )
 
   // Mueve la selección por teclado (flechas). Precisión exacta: ignora snap.
   const nudgeSelected = (dx: number, dy: number) => {

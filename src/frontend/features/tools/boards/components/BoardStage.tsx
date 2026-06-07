@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import type { RefObject, Dispatch, SetStateAction } from 'react'
 import { Stage, Layer, Transformer } from 'react-konva'
 import type Konva from 'konva'
@@ -8,7 +9,6 @@ import StickyNode from '../nodes/StickyNode'
 import ShapeNode from '../nodes/ShapeNode'
 import GridLayer from '../layers/GridLayer'
 import MeasureLayer from '../layers/MeasureLayer'
-import type { GridLines } from '../lib/grid'
 import { BoardExtLayers } from '../extensions/Host'
 import type { BoardExtension, BoardExtSlotProps } from '../extensions/boardExtension'
 
@@ -33,7 +33,7 @@ export default function BoardStage({
   onPointerDown,
   onPointerMove,
   onPointerUp,
-  gridLines,
+  suppressBaseGrid,
   gridColor,
   background,
   extension,
@@ -63,7 +63,8 @@ export default function BoardStage({
   onPointerDown: (e: StageEvt) => void
   onPointerMove: () => void
   onPointerUp: () => void
-  gridLines: GridLines
+  /** El workspace dibuja su propio grid → el motor no pinta el uniforme. */
+  suppressBaseGrid: boolean
   gridColor: string
   background: BoardBackground
   extension?: BoardExtension
@@ -86,7 +87,19 @@ export default function BoardStage({
   setEditingId: Dispatch<SetStateAction<string | null>>
   onUpdateObject: (o: BoardObject) => void
 }) {
-  if (stageSize.w === 0) return null
+  // Handler de edición con identidad ESTABLE (setters de React son estables) →
+  // no rompe la memoización de los nodos al panear/zoom.
+  const onEditObject = useCallback(
+    (id: string) => {
+      setSelectedIds([id])
+      setEditingId(id)
+    },
+    [setSelectedIds, setEditingId],
+  )
+
+  // No montar el Stage sin tamaño real: Konva compone las capas con
+  // drawImage(layerCanvas) y un canvas 0×0 lanza InvalidStateError.
+  if (stageSize.w <= 0 || stageSize.h <= 0) return null
   return (
     <Stage
       ref={stageRef}
@@ -104,26 +117,29 @@ export default function BoardStage({
       onMouseUp={onPointerUp}
       onTouchEnd={onPointerUp}
     >
-      {/* Capa de fondo (grid milimetrado: menores 1cm + mayores 2cm) */}
-      <GridLayer lines={gridLines} color={gridColor} scale={scale} opacity={background.opacity} />
+      {/* Capa de fondo (grid milimetrado: menores 1cm + mayores 2cm).
+          Auto-dirigida: lee el transform vivo del Stage. `suppressBaseGrid` (el
+          workspace dibuja su propio grid) → tipo 'plain' = no dibuja nada. */}
+      <GridLayer type={suppressBaseGrid ? 'plain' : background.type} squareCm={background.squareCm} color={gridColor} opacity={background.opacity} />
 
       {/* Capa de la extensión del workspace (guías/huellas), si la hay. */}
       <BoardExtLayers extension={extension} slot={extSlot} />
 
-      {/* Capa de objetos */}
+      {/* Capa de objetos.
+          Los nodos están memoizados y reciben SOLO props estables/primitivas
+          (handlers de identidad fija, booleanos derivados) → al panear/zoom no
+          se re-renderizan salvo que cambien sus propios datos. */}
       <Layer>
         {sorted.map((obj) => {
-          const onSelect = (additive: boolean) => !readOnly && onSelectObject(obj.id, additive)
-          const onEdit = () => !readOnly && !obj.locked && (setSelectedIds([obj.id]), setEditingId(obj.id))
           const draggable = tool === 'select' && !obj.locked && !readOnly
           if (obj.type === 'image')
-            return <ImageNode key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelect} onChange={onUpdateObject} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} scale={scale} />
+            return <ImageNode key={obj.id} obj={obj} isSelected={selectedIds.includes(obj.id)} onSelect={onSelectObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} scale={scale} />
           if (obj.type === 'text')
-            return <TextNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={onUpdateObject} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
+            return <TextNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelectObject} onEdit={onEditObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
           if (obj.type === 'sticky')
-            return <StickyNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelect} onEdit={onEdit} onChange={onUpdateObject} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
+            return <StickyNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelectObject} onEdit={onEditObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
           if (isShape(obj.type))
-            return <ShapeNode key={obj.id} obj={obj} onSelect={onSelect} onChange={onUpdateObject} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
+            return <ShapeNode key={obj.id} obj={obj} onSelect={onSelectObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
           return null
         })}
         {!readOnly && (

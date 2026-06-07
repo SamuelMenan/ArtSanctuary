@@ -1,23 +1,23 @@
 'use client'
 
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Group, Rect, Text as KonvaText } from 'react-konva'
 import type Konva from 'konva'
 import { DEFAULT_FONT, konvaFontStyle } from '@shared/lib/boards/types'
 import type { BaseNodeProps } from './types'
 
 /** Nota adhesiva (rect + texto). */
-export default function StickyNode({
+function StickyNode({
   obj,
   editing,
   onSelect,
   onEdit,
   onChange,
+  readOnly,
   snap,
-  snapVal,
   snapDrag,
   draggable,
-}: BaseNodeProps & { editing: boolean; onEdit: () => void }) {
+}: BaseNodeProps & { editing: boolean; onEdit: (id: string) => void }) {
   const groupRef = useRef<Konva.Group>(null)
 
   return (
@@ -30,10 +30,10 @@ export default function StickyNode({
       opacity={(obj.opacity ?? 100) / 100}
       visible={obj.visible !== false && !editing}
       draggable={draggable && !editing}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
-      onDblClick={onEdit}
-      onDblTap={onEdit}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onDblClick={() => !readOnly && !obj.locked && onEdit(obj.id)}
+      onDblTap={() => !readOnly && !obj.locked && onEdit(obj.id)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x(), obj.w ?? 0))
@@ -76,3 +76,5 @@ export default function StickyNode({
     </Group>
   )
 }
+
+export default memo(StickyNode)

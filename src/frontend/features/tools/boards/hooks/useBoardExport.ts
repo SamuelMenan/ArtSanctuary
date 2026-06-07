@@ -8,6 +8,8 @@ import { setHandoff } from '@shared/lib/tools/handoff'
 
 interface BoardExportArgs {
   boardId: string
+  /** Workspace dueño del board (si aplica): el round-trip vuelve a su ruta. */
+  workspaceId?: string
   name: string
   objects: BoardObject[]
   selectedId: string | null
@@ -24,6 +26,7 @@ interface BoardExportArgs {
  */
 export function useBoardExport({
   boardId,
+  workspaceId,
   name,
   objects,
   selectedId,
@@ -51,8 +54,15 @@ export function useBoardExport({
       source: 'boards',
       boardId,
       objectId: o.id,
+      workspaceId,
     })
-    router.push(`/dashboard/tools/${tool}?handoff=1`)
+    // Si el board vive en un workspace, abre la herramienta scoped al workspace
+    // (conserva contexto y el round-trip vuelve al plano correcto).
+    router.push(
+      workspaceId
+        ? `/dashboard/workspaces/${workspaceId}/tools/${tool}?handoff=1`
+        : `/dashboard/tools/${tool}?handoff=1`,
+    )
   }
 
   const downloadBoard = () => {

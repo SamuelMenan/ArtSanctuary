@@ -32,7 +32,6 @@ import { useTransformerSync } from './hooks/useTransformerSync'
 import { useSpacePan } from './hooks/useSpacePan'
 import { useTextEditing } from './hooks/useTextEditing'
 import { useBoardExport } from './hooks/useBoardExport'
-import { buildGridLines } from './lib/grid'
 import { getBoardExtension } from './extensions/registry'
 import { BoardExtProvider, BoardExtOverlays, BoardExtWorkspaceActions } from './extensions/Host'
 import type { BoardExtSlotProps } from './extensions/boardExtension'
@@ -47,7 +46,7 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
 import { exportImageGridPdf } from './lib/imageGridPdf'
 
-export default function BoardEditor({ boardId }: { boardId: string }) {
+export default function BoardEditor({ boardId, workspaceId }: { boardId: string; workspaceId?: string }) {
   const { t } = usePreferences()
   // El revelado por proximidad lo gestiona ToolActiveLayout (sección); aquí solo
   // leemos `edgeReveal` para reubicar las islas pegadas al borde izquierdo.
@@ -132,7 +131,10 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   })
 
   // Ruta de salida: al workspace si es un plano de proyecto Carnaval; si no, lista de tableros.
-  const backHref = projectId ? `/dashboard/workspaces/${projectId}` : '/dashboard/tools/boards'
+  // Volver: si el board vive en un workspace (prop de la ruta o `projectId` del
+  // documento), regresa al proyecto; si no, a la lista de tableros.
+  const ws = workspaceId ?? projectId
+  const backHref = ws ? `/dashboard/workspaces/${ws}` : '/dashboard/tools/boards'
 
   /* ── Extensión de lienzo del workspace (Carnaval u otro tipo) ── */
   const extension = getBoardExtension(workspace.kind)
@@ -217,7 +219,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
 
   /* ── Salidas del board: exportar PNG + enviar a otra herramienta ── */
   const { editIn, downloadBoard } = useBoardExport({
-    boardId, name, objects, selectedId, selectedIds,
+    boardId, workspaceId: ws ?? undefined, name, objects, selectedId, selectedIds,
     squareCm: background.squareCm, stageRef, trRef,
   })
 
@@ -272,20 +274,9 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
   const gridColor =
     !background.color || background.color.toLowerCase() === '#ffffff' ? '#94a3b8' : background.color
 
-  const gridLines = useMemo(
-    () =>
-      buildGridLines({
-        type: background.type,
-        squareCm: background.squareCm,
-        stageW: stageSize.w,
-        stageH: stageSize.h,
-        pos,
-        scale,
-      }),
-    [background.type, background.squareCm, stageSize, pos, scale],
-  )
-  // Si el workspace dibuja su propio grid, no pintamos el uniforme del motor.
-  const effGridLines = suppressBaseGrid ? { minor: [], major: [] } : gridLines
+  // El grid base lo dibuja `GridLayer` auto-dirigido (lee el transform vivo del
+  // Stage) → ya no se calculan líneas aquí ni se pasan por props. Solo decidimos
+  // si el motor lo suprime (el workspace pinta el suyo) vía `suppressBaseGrid`.
 
   const sorted = useMemo(() => [...objects].sort((a, b) => a.z - b.z), [objects])
 
@@ -358,7 +349,7 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
           onPointerDown={onStagePointerDown}
           onPointerMove={onStagePointerMove}
           onPointerUp={onStagePointerUp}
-          gridLines={effGridLines}
+          suppressBaseGrid={suppressBaseGrid}
           gridColor={gridColor}
           background={background}
           extension={extension}
@@ -457,8 +448,11 @@ export default function BoardEditor({ boardId }: { boardId: string }) {
         {/* Etiqueta de distancia de la regla */}
         {measure && <MeasureLabel measure={measure} pos={pos} scale={scale} isGrid={background.type === 'grid'} scaler={scaler} />}
 
-        {/* Cota de tamaño real del objeto seleccionado */}
-        {selectedObj && !editingId && (
+        {/* Cota de tamaño real del objeto seleccionado.
+            Se oculta durante el paneo imperativo: como vive en coords de pantalla
+            (pos/scale de React, que no se actualizan en el gesto) se quedaría
+            "pegada" y saltaría al soltar. Reaparece al confirmar la posición. */}
+        {selectedObj && !editingId && !dragPanning && (
           <DimensionLabel o={selectedObj} pos={pos} scale={scale} isGrid={background.type === 'grid'} scaler={scaler} />
         )}
 

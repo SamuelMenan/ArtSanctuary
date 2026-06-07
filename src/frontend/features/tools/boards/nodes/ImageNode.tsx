@@ -1,34 +1,108 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Image as KonvaImage, Group, Line, Text } from 'react-konva'
 import type Konva from 'konva'
 import { cmOf, PX_PER_CM } from '@shared/lib/measure'
 import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
 import type { BaseNodeProps } from './types'
 
+/**
+ * Mip (textura reducida) potencia-de-dos, cacheada. Se construye a la mitad del
+ * nivel anterior (downscale 2x escalonado = máxima calidad, sin aliasing). Nivel
+ * 1 = imagen original (no se cachea aquí). Cada imagen mantiene su cadena de
+ * niveles en un Map hasta que cambia su `src`.
+ */
+function getMip(
+  full: HTMLImageElement,
+  cache: Map<number, HTMLCanvasElement>,
+  level: number,
+): HTMLCanvasElement {
+  const existing = cache.get(level)
+  if (existing) return existing
+  const src: HTMLImageElement | HTMLCanvasElement =
+    level === 2 ? full : getMip(full, cache, level / 2)
+  const sw = src instanceof HTMLCanvasElement ? src.width : src.naturalWidth
+  const sh = src instanceof HTMLCanvasElement ? src.height : src.naturalHeight
+  const cw = Math.max(1, Math.round(sw / 2))
+  const ch = Math.max(1, Math.round(sh / 2))
+  const cv = document.createElement('canvas')
+  cv.width = cw
+  cv.height = ch
+  const c = cv.getContext('2d')
+  if (c) {
+    c.imageSmoothingEnabled = true
+    c.imageSmoothingQuality = 'high'
+    c.drawImage(src, 0, 0, cw, ch)
+  }
+  cache.set(level, cv)
+  return cv
+}
+
 /** Nodo imagen: gestiona su propio HTMLImageElement. Opcionalmente superpone una
  *  cuadrícula (método de cuadrícula) de celdas exactas en cm para ampliar. */
-export default function ImageNode({
+function ImageNode({
   obj,
   isSelected,
   onSelect,
   onChange,
+  readOnly,
   snap,
   snapDrag,
   draggable,
   scale = 1,
 }: BaseNodeProps & { isSelected: boolean }) {
-  const [img, setImg] = useState<HTMLImageElement | null>(null)
+  const [img, setImg] = useState<CanvasImageSource | null>(null)
   const ref = useRef<Konva.Group>(null)
+  // Imagen original full-res + cadena de mips cacheados por nivel.
+  const fullRef = useRef<HTMLImageElement | null>(null)
+  const mipsRef = useRef<Map<number, HTMLCanvasElement>>(new Map())
+  // Cambia al cargar una nueva fuente: dispara el cálculo de LOD inicial.
+  const [gen, setGen] = useState(0)
 
+  // Carga full-res (una vez por src). NO se downscalea la fuente: `obj.src` y la
+  // imagen original quedan intactas para el zoom extremo y para export/handoff.
+  // El reseteo de textura y la elección de nivel los hace el efecto de LOD.
   useEffect(() => {
+    fullRef.current = null
+    mipsRef.current = new Map()
     if (!obj.src) return
+    let cancelled = false
     const image = new window.Image()
     image.crossOrigin = 'anonymous'
+    image.onload = () => {
+      if (cancelled) return
+      fullRef.current = image
+      setGen((g) => g + 1)
+    }
     image.src = obj.src
-    image.onload = () => setImg(image)
+    return () => {
+      cancelled = true
+    }
   }, [obj.src])
+
+  // LOD (mipmaps) por zoom: elige la resolución de textura según cuántos píxeles
+  // ocupa la imagen EN PANTALLA (mundo·zoom·dpr). Si se ve grande (zoom adentro)
+  // usa la original → nitidez total en zoom extremo. Si se ve pequeña usa una mip
+  // menor → mucho menos costo al panear/alejar, sin diferencia visible (la
+  // textura nunca es menor que el tamaño mostrado, así que no hay borrosidad).
+  // También resetea la textura (a null) cuando aún no hay imagen cargada.
+  useEffect(() => {
+    const full = fullRef.current
+    const natural = full ? Math.max(full.naturalWidth, full.naturalHeight) : 0
+    if (!full || natural === 0) {
+      setImg(full)
+      return
+    }
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
+    const onScreen = Math.max(obj.w, obj.h) * scale * dpr
+    // Nivel = factor de reducción (potencia de dos). Se baja mientras la mitad
+    // siguiente siga cubriendo el tamaño en pantalla y no quede absurdamente
+    // chica (≥256 px de lado mayor).
+    let level = 1
+    while (natural / (level * 2) >= onScreen && natural / (level * 2) >= 256) level *= 2
+    setImg(level === 1 ? full : getMip(full, mipsRef.current, level))
+  }, [scale, obj.w, obj.h, gen, obj.src])
 
   // Cuadrícula (método de cuadrícula) EXACTA: usa cuadrados perfectos de `gridCm`.
   // La última columna/fila puede ser un corte parcial, como ocurre en la vida real.
@@ -57,8 +131,8 @@ export default function ImageNode({
       rotation={obj.rotation}
       visible={obj.visible !== false}
       draggable={draggable}
-      onClick={(e) => onSelect(e.evt.shiftKey)}
-      onTap={(e) => onSelect(e.evt.shiftKey)}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x(), obj.w ?? 0))
@@ -90,9 +164,14 @@ export default function ImageNode({
         width={obj.w}
         height={obj.h}
         opacity={(obj.opacity ?? 100) / 100}
-        shadowColor={isSelected ? '#000' : undefined}
-        shadowBlur={isSelected ? 8 : 0}
-        shadowOpacity={0.3}
+        perfectDrawEnabled={false}
+        // Énfasis de selección con borde fino (barato) en vez de shadowBlur, que
+        // era caro al panear con una imagen grande seleccionada. El Transformer
+        // (manijas) ya marca la selección; esto solo refuerza el contorno.
+        stroke={isSelected ? '#3b82f6' : undefined}
+        strokeWidth={isSelected ? 2 / scale : 0}
+        strokeEnabled={isSelected}
+        strokeScaleEnabled={false}
       />
       {grid && (
         <>
@@ -132,3 +211,5 @@ export default function ImageNode({
     </Group>
   )
 }
+
+export default memo(ImageNode)
