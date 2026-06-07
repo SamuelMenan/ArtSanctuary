@@ -1,11 +1,11 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { peekHandoff } from '@shared/lib/tools/handoff'
+import Spinner from '@frontend/shared/ui/Spinner'
 import {
   getCarnavalRule,
   planoLabel,
@@ -45,6 +45,16 @@ export default function WorkspaceProjectScreen({ projectId }: { projectId: strin
   const [notFound, setNotFound] = useState(false)
   const [versions, setVersions] = useState<VersionMeta[]>([])
   const [savingVersion, setSavingVersion] = useState(false)
+  // Si una herramienta dejó una imagen pendiente (handoff), los planos se abren con
+  // `?handoff=1` para insertarla al entrar.
+  const [pendingHandoff, setPendingHandoff] = useState(false)
+  useEffect(() => {
+    let active = true
+    Promise.resolve().then(() => active && setPendingHandoff(!!peekHandoff()))
+    return () => {
+      active = false
+    }
+  }, [])
 
   const loadVersions = () =>
     window.fetch(`/api/carnaval-projects/${projectId}/versions`)
@@ -102,17 +112,17 @@ export default function WorkspaceProjectScreen({ projectId }: { projectId: strin
 
   if (loading) {
     return (
-      <AppShell><ToolActiveLayout projectId={projectId}>
+      <>
         <div className="flex-1 flex justify-center p-16">
-          <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-3xl">hourglass_top</span>
+          <Spinner className="size-8 text-[var(--color-primary)]" />
         </div>
-      </ToolActiveLayout></AppShell>
+      </>
     )
   }
 
   if (notFound || !project) {
     return (
-      <AppShell><ToolActiveLayout projectId={projectId}>
+      <>
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <span className="material-symbols-outlined text-5xl text-[var(--color-on-surface-variant)]/50">error</span>
           <p className="font-sans text-[var(--color-on-surface-variant)]">{t('carnaval.notFound')}</p>
@@ -120,15 +130,14 @@ export default function WorkspaceProjectScreen({ projectId }: { projectId: strin
             {t('carnaval.backToProjects')}
           </Link>
         </div>
-      </ToolActiveLayout></AppShell>
+      </>
     )
   }
 
   const rule = getCarnavalRule(project.modality)
 
   return (
-    <AppShell>
-      <ToolActiveLayout projectId={projectId}>
+    <>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="pt-8 pb-12 px-[var(--spacing-grid-gutter)] w-full max-w-[1400px] mx-auto">
             <Link href="/dashboard/workspaces" className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)]">
@@ -191,7 +200,7 @@ export default function WorkspaceProjectScreen({ projectId }: { projectId: strin
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-[var(--spacing-grid-gutter)]">
               {project.boards.map((b) => (
-                <Link href={`/dashboard/workspaces/${projectId}/boards/${b._id}`} key={b._id} className="block group">
+                <Link href={`/dashboard/workspaces/${projectId}/boards/${b._id}${pendingHandoff ? '?handoff=1' : ''}`} key={b._id} className="block group">
                   <div className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-[var(--radius-lg)] overflow-hidden transition-all group-hover:border-[var(--color-primary)] group-hover:-translate-y-1">
                     <div className="aspect-square bg-[var(--color-surface-container-lowest)] border-b border-[var(--color-outline-variant)] flex items-center justify-center overflow-hidden">
                       {b.thumbnailUrl ? (
@@ -262,7 +271,6 @@ export default function WorkspaceProjectScreen({ projectId }: { projectId: strin
             )}
           </div>
         </div>
-      </ToolActiveLayout>
-    </AppShell>
+    </>
   )
 }

@@ -8,6 +8,7 @@ import ArtworkGrid from '@frontend/shared/ui/ArtworkGrid';
 import ArtworkModal from '@frontend/shared/ui/ArtworkModal';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { getCategoryLabel } from '@shared/i18n';
+import Spinner from '@frontend/shared/ui/Spinner';
 import type { Artwork } from '@shared/lib/types';
 
 function ExploreContent() {
@@ -192,7 +193,7 @@ function ExploreContent() {
         <div>
           {loading ? (
             <div className="flex justify-center py-20">
-              <span className="material-symbols-outlined animate-spin text-4xl text-[var(--color-primary)]">refresh</span>
+              <Spinner className="size-10 text-[var(--color-primary)]" />
             </div>
           ) : results.length > 0 ? (
             <ArtworkGrid artworks={results} locale={locale} />
@@ -214,7 +215,7 @@ function ExploreContent() {
         <div className="animate-in fade-in duration-500">
           {!trendingData ? (
              <div className="flex justify-center py-20">
-               <span className="material-symbols-outlined animate-spin text-4xl text-[var(--color-primary)]">refresh</span>
+               <Spinner className="size-10 text-[var(--color-primary)]" />
              </div>
           ) : (
             <div className="space-y-16">

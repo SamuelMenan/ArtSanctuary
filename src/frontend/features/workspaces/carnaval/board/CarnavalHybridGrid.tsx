@@ -1,4 +1,5 @@
-import { Layer, Line } from 'react-konva'
+import { Layer, Shape } from 'react-konva'
+import type Konva from 'konva'
 import { pxOf, cmOf } from '@shared/lib/measure'
 import type { CarnavalRule, CarnavalPlano } from '@shared/lib/workspaces/carnaval'
 import { buildHybridGrid } from '../lib/carnavalGuide'
@@ -23,53 +24,76 @@ function extendLines(lines: number[], step: number, lo: number, hi: number): num
  * Grid híbrido alineado a la referencia (carroza / carro alegórico) que cubre
  * TODO el tablero: bandas exactas en los bordes de la guía + continuación
  * uniforme (~target cm) hacia afuera hasta el viewport.
+ *
+ * AUTO-DIRIGIDA: el `sceneFunc` lee el transform VIVO del Stage (posición, zoom,
+ * tamaño) y calcula el viewport en el momento de dibujar. Así sigue al paneo
+ * imperativo (mover Stage + `batchDraw`, sin re-render) y cubre exactamente lo
+ * visible sin importar cuánto se panee. Un solo `Shape` (todas las líneas en un
+ * path) en vez de cientos de `<Line>`.
  */
 export default function CarnavalHybridGrid({
   rule,
   view,
-  scale,
-  pos,
-  stageSize,
   baseOffset,
   target = 2,
 }: {
   rule: CarnavalRule
   view: CarnavalPlano
-  scale: number
-  pos: { x: number; y: number }
-  stageSize: { w: number; h: number }
   baseOffset: Offset
   target?: number
 }) {
-  if (pxOf(target) * scale < 4 || stageSize.w === 0) return null
-
+  // Independiente del viewport (depende de regla/vista/target): se calcula fuera.
   const ref = buildHybridGrid(rule, view, target)
-
-  // Viewport en cm de mundo, llevado al espacio local del grupo (resta offset).
-  const leftCm = cmOf(-pos.x / scale) - baseOffset.x
-  const rightCm = cmOf((stageSize.w - pos.x) / scale) - baseOffset.x
-  const topCm = cmOf(-pos.y / scale) - baseOffset.y
-  const bottomCm = cmOf((stageSize.h - pos.y) / scale) - baseOffset.y
-
-  const xs = extendLines(ref.x, target, leftCm, rightCm)
-  const ys = extendLines(ref.y, target, topCm, bottomCm)
-
   const ox = pxOf(baseOffset.x)
   const oy = pxOf(baseOffset.y)
-  const sw = 0.6 / scale
-  const yTop = pxOf(topCm) + oy
-  const yBot = pxOf(bottomCm) + oy
-  const xL = pxOf(leftCm) + ox
-  const xR = pxOf(rightCm) + ox
+
+  const draw = (ctx: Konva.Context, shape: Konva.Shape) => {
+    const stage = shape.getStage()
+    if (!stage) return
+    const scale = stage.scaleX()
+    // Culling por densidad: si el paso se ve < 4 px, no dibujar (igual que antes).
+    if (pxOf(target) * scale < 4) return
+    const px = stage.x()
+    const py = stage.y()
+    const sw = stage.width()
+    const sh = stage.height()
+    if (sw === 0) return
+
+    // Viewport en cm de mundo, llevado al espacio local del grupo (resta offset).
+    const leftCm = cmOf(-px / scale) - baseOffset.x
+    const rightCm = cmOf((sw - px) / scale) - baseOffset.x
+    const topCm = cmOf(-py / scale) - baseOffset.y
+    const bottomCm = cmOf((sh - py) / scale) - baseOffset.y
+
+    const xs = extendLines(ref.x, target, leftCm, rightCm)
+    const ys = extendLines(ref.y, target, topCm, bottomCm)
+
+    const yTop = pxOf(topCm) + oy
+    const yBot = pxOf(bottomCm) + oy
+    const xL = pxOf(leftCm) + ox
+    const xR = pxOf(rightCm) + ox
+
+    ctx.beginPath()
+    for (const vx of xs) {
+      const x = pxOf(vx) + ox
+      ctx.moveTo(x, yTop)
+      ctx.lineTo(x, yBot)
+    }
+    for (const vy of ys) {
+      const y = pxOf(vy) + oy
+      ctx.moveTo(xL, y)
+      ctx.lineTo(xR, y)
+    }
+    ctx.strokeStyle = '#94a3b8'
+    ctx.lineWidth = 0.6 / scale
+    ctx.globalAlpha = 0.3
+    ctx.stroke()
+    ctx.globalAlpha = 1
+  }
 
   return (
     <Layer listening={false}>
-      {xs.map((vx, i) => (
-        <Line key={`v${i}`} points={[pxOf(vx) + ox, yTop, pxOf(vx) + ox, yBot]} stroke="#94a3b8" strokeWidth={sw} opacity={0.3} listening={false} />
-      ))}
-      {ys.map((vy, i) => (
-        <Line key={`h${i}`} points={[xL, pxOf(vy) + oy, xR, pxOf(vy) + oy]} stroke="#94a3b8" strokeWidth={sw} opacity={0.3} listening={false} />
-      ))}
+      <Shape sceneFunc={draw} listening={false} perfectDrawEnabled={false} />
     </Layer>
   )
 }

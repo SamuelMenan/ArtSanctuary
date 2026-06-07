@@ -13,7 +13,7 @@ import CarnavalBaseLayer from './CarnavalBaseLayer'
 import CarnavalHybridGrid from './CarnavalHybridGrid'
 import CarnavalMeasuredBBox from './CarnavalMeasuredBBox'
 
-export default function CarnavalLayers({ workspace, objects, scale, pos, stageSize, squareCm }: BoardExtSlotProps) {
+export default function CarnavalLayers({ workspace, objects, scale, squareCm }: BoardExtSlotProps) {
   const { view, guideOffsets, inspectorOpen } = useCarnavalBoard()
   const rule = workspace.modality ? getCarnavalRule(workspace.modality) : null
   if (!rule) return null
@@ -27,7 +27,7 @@ export default function CarnavalLayers({ workspace, objects, scale, pos, stageSi
       {/* Grid híbrido (reemplaza al uniforme del motor en modalidades coprimas).
           Cubre todo el tablero: bandas exactas en la referencia + continuación. */}
       {hybrid && (
-        <CarnavalHybridGrid rule={rule} view={view} scale={scale} pos={pos} stageSize={stageSize} baseOffset={baseOffset} />
+        <CarnavalHybridGrid rule={rule} view={view} baseOffset={baseOffset} />
       )}
       {isGeometricView(view) ? (
         <CarnavalGuideLayer rule={rule} view={view} scale={scale} baseOffset={baseOffset} offsets={guideOffsets} />

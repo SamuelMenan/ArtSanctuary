@@ -1,7 +1,5 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import Link from 'next/link'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
@@ -69,9 +67,7 @@ export default function RecursosCulturalesScreen({ projectId }: { projectId: str
   const { t } = usePreferences()
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+    <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="pt-8 pb-12 px-[var(--spacing-grid-gutter)] w-full max-w-[1400px] mx-auto">
             <Link 
               href={`/dashboard/workspaces/${projectId}`} 
@@ -139,7 +135,5 @@ export default function RecursosCulturalesScreen({ projectId }: { projectId: str
 
           </div>
         </div>
-      </ToolActiveLayout>
-    </AppShell>
   )
 }
