@@ -1,9 +1,9 @@
 'use client'
 
-import { ReactNode, useState, useEffect, type PointerEvent as ReactPointerEvent } from 'react'
+import { ReactNode, useState, useEffect, useRef, useCallback, type PointerEvent as ReactPointerEvent } from 'react'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
 import { useCanHover } from '@frontend/shared/hooks/useCanHover'
@@ -28,6 +28,9 @@ const navLinkIdle =
 // Distancia (px) al borde de la sección que activa el revelado por proximidad.
 const EDGE_REVEAL_PX = 96
 
+// Icono que indica más herramientas debajo (en el fade inferior del rail).
+const SCROLL_MORE_ICON = 'keyboard_arrow_down'
+
 // Entrada escalonada de los elementos del sidebar (cabeceras y enlaces) al abrir
 // o navegar — evita que aparezcan "de la nada". Sirve para ambos layouts
 // (herramientas y workspace), que comparten estos contenedores.
@@ -51,6 +54,18 @@ type ProjectMeta = {
 
 export default function ToolActiveLayout({ children, projectId }: { children: ReactNode; projectId?: string }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  // Contexto de workspace para los 2 espacios + HANDOFF. Se deduce de la URL para
+  // que el layout no tenga que pasar `projectId`:
+  //  1) ruta de workspace `/dashboard/workspaces/<id>/…`
+  //  2) query `?ws=<id>` (tool abierta como handoff desde un workspace)
+  //  3) prop `projectId` (legacy / compat)
+  const wsFromPath = pathname.match(/^\/dashboard\/workspaces\/([^/]+)/)?.[1]
+  const wsId = wsFromPath ?? searchParams.get('ws') ?? projectId ?? undefined
+
+  // El rail solo tiene sentido DENTRO de una herramienta o de un workspace; no en
+  // las páginas índice (lista de herramientas / lista de workspaces).
+  const showRail = pathname !== '/dashboard/tools' && pathname !== '/dashboard/workspaces'
   const { locale, t } = usePreferences()
   const { navbarOpen, toolNavOpen, setToolNavOpen, edgeReveal, setEdgeReveal, isBoards } = useChrome()
   const canHover = useCanHover()
@@ -77,14 +92,19 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
   const onSectionPointerLeave = () => { if (isBoards) setEdgeReveal({ left: false, top: false }) }
 
   useEffect(() => {
-    if (!projectId) return
+    // Instancia persistente (vive en el layout): al salir del workspace hay que
+    // LIMPIAR el proyecto, si no las VISTAS quedan pegadas en otras herramientas.
+    if (!wsId) {
+      setProject(null)
+      return
+    }
     let ignore = false
-    window.fetch(`/api/carnaval-projects/${projectId}`)
+    window.fetch(`/api/carnaval-projects/${wsId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (!ignore && d?.project) setProject(d.project) })
       .catch(() => {})
     return () => { ignore = true }
-  }, [projectId])
+  }, [wsId])
 
   const toolLabels = {
     es: {
@@ -122,11 +142,32 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
   const [isHovered, setIsHovered] = useState(false)
   const isExpanded = toolNavOpen || isHovered
 
+  // Scroll del rail sin scrollbar: fades superior/inferior que indican contenido
+  // oculto. Se recalculan al hacer scroll, al cambiar de tamaño y al cambiar el
+  // contenido (expandir/colapsar, cargar las vistas del proyecto).
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [fade, setFade] = useState({ top: false, bottom: false })
+  const updateFades = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const top = el.scrollTop > 4
+    const bottom = el.scrollTop + el.clientHeight < el.scrollHeight - 4
+    setFade((prev) => (prev.top === top && prev.bottom === bottom ? prev : { top, bottom }))
+  }, [])
+  useEffect(() => {
+    updateFades()
+    window.addEventListener('resize', updateFades)
+    return () => window.removeEventListener('resize', updateFades)
+    // Recalcula cuando cambia el alto del contenido o el ancho del rail.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateFades, isExpanded, project, plugins.length])
+
   return (
     <div className={`flex-1 flex overflow-hidden -m-[var(--spacing-container-padding)] ${navbarOpen ? 'h-[calc(100vh-var(--spacing-appbar-height))]' : 'h-screen'}`}>
-      {/* Left Mini-Sidebar (Tool Navigation) */}
+      {/* Mini-sidebar de herramientas — solo dentro de una herramienta/workspace */}
+      {showRail && (
       <motion.aside
-        className={`hidden lg:flex relative bg-[var(--color-surface-container-lowest)] border-[var(--color-outline-variant)] flex-col overflow-visible z-30 shrink-0 border-r`}
+        className={`hidden lg:flex print:hidden relative bg-[var(--color-surface-container-lowest)] border-[var(--color-outline-variant)] flex-col overflow-visible z-30 shrink-0 border-r`}
         animate={{ width: isExpanded ? 260 : 64 }}
         transition={transition.base}
         onMouseEnter={() => setIsHovered(true)}
@@ -143,10 +184,30 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
           </span>
         </button>
 
-        <motion.div
-          className="w-full flex flex-col h-full overflow-y-auto overflow-x-hidden custom-scrollbar"
+        {/* Fades indicadores de scroll (sin scrollbar). No interceptan el ratón. */}
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 top-0 h-10 z-40 bg-gradient-to-b from-[var(--color-surface-container-lowest)] to-transparent transition-opacity duration-200 ${fade.top ? 'opacity-100' : 'opacity-0'}`}
+        />
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-16 z-40 flex items-end justify-center pb-1 bg-gradient-to-t from-[var(--color-surface-container-lowest)] from-40% via-[var(--color-surface-container-lowest)]/85 to-transparent transition-opacity duration-200 ${fade.bottom ? 'opacity-100' : 'opacity-0'}`}
         >
-          {projectId && (
+          <motion.span
+            className="material-symbols-outlined text-[22px] text-[var(--color-primary)]"
+            animate={{ y: [0, 4, 0] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            {SCROLL_MORE_ICON}
+          </motion.span>
+        </div>
+
+        <motion.div
+          ref={scrollRef}
+          onScroll={updateFades}
+          className="w-full flex flex-col h-full overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {wsId && (
             <>
               <div className={`flex items-center bg-[var(--color-surface-container-high)] shrink-0 border-b border-[var(--color-outline-variant)] overflow-hidden ${isExpanded ? 'px-6 h-[42px]' : 'hidden'}`}>
                 <h2 className={`${sectionTitleText} whitespace-nowrap`}>
@@ -201,18 +262,34 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
             </>
           )}
 
-          <div className={`flex items-center bg-[var(--color-surface-container-high)] shrink-0 border-b border-[var(--color-outline-variant)] overflow-hidden ${isExpanded ? 'px-6 h-[42px] mt-4' : 'hidden'}`}>
+          <div className={`flex items-center bg-[var(--color-surface-container-high)] shrink-0 border-b border-[var(--color-outline-variant)] overflow-hidden ${isExpanded ? (wsId ? 'px-6 h-[42px] mt-4' : 'px-6 h-[42px]') : 'hidden'}`}>
             <h2 className={`${sectionTitleText} whitespace-nowrap`}>
               {toolLabels.title}
             </h2>
           </div>
-          <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 pb-6 ${isExpanded ? '' : 'gap-2 mt-2 mb-4 border-t border-[var(--color-outline-variant)] pt-4'}`}>
+          <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 pb-6 ${isExpanded ? '' : wsId ? 'gap-2 mt-2 mb-4 border-t border-[var(--color-outline-variant)] pt-4' : 'gap-2 mb-4 pt-2'}`}>
             {tools.map((tool) => {
-              const isActive = pathname.startsWith(tool.href)
+              const slug = tool.href.split('/').pop()!
+              // Dentro de un workspace: "Tableros" vuelve al PROYECTO; las demás
+              // herramientas se abren scoped al workspace (`/workspaces/<id>/tools/
+              // <slug>`) para conservar contexto y handoff. Fuera, ruta global.
+              const isBoardsItem = tool.href === '/dashboard/tools/boards'
+              const href = !wsId
+                ? tool.href
+                : isBoardsItem
+                  ? `/dashboard/workspaces/${wsId}`
+                  : `/dashboard/workspaces/${wsId}/tools/${slug}`
+              // Activo SIN colisión: Tableros (→ proyecto) marca solo en el proyecto
+              // o sus boards, no en las sub-rutas /tools/*; las demás, match exacto.
+              const isActive = isBoardsItem
+                ? wsId
+                  ? pathname === href || pathname.startsWith(`${href}/boards`)
+                  : pathname.startsWith('/dashboard/tools/boards')
+                : pathname === href
               return (
                 <Link
                   key={tool.title}
-                  href={tool.href}
+                  href={href}
                   className={`flex items-center shrink-0 transition-colors truncate first-letter:uppercase ${isExpanded ? `h-[42px] gap-4 ${isActive ? navLinkActive : navLinkIdle}` : `w-10 h-10 mx-auto justify-center rounded-lg ${isActive ? 'bg-[var(--color-surface-container-high)] text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-container-high)]'}`}`}
                   title={!isExpanded ? tool.title : undefined}
                 >
@@ -226,6 +303,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
           </nav>
         </motion.div>
       </motion.aside>
+      )}
 
       {/* Main Tool Canvas */}
       <section

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
@@ -43,10 +43,12 @@ export default function CropTool() {
   const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
+  const cropPathname = usePathname()
+  const cropWsId = cropPathname?.match(/^\/dashboard\/workspaces\/([^/]+)/)?.[1]
   const stageRef = useRef<HTMLDivElement>(null)
   const [stage, setStage] = useState({ w: 0, h: 0 })
   const drag = useRef<{ mode: DragMode; sx: number; sy: number; crop: Bounds } | null>(null)
-  const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
+  const back = useRef<{ boardId?: string; objectId?: string; workspaceId?: string } | null>(null)
 
   // Historial del recorte (paridad con las otras herramientas). Snapshot del
   // `crop` antes de cada cambio; undo/redo restauran. `cropRef` da el valor
@@ -98,10 +100,10 @@ export default function CropTool() {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('handoff') !== '1') return
-    window.history.replaceState(null, '', '/dashboard/tools/crop')
+    window.history.replaceState(null, '', window.location.pathname)
     const p = takeHandoff()
     if (!p) return
-    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId }
+    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId, workspaceId: p.workspaceId }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setImageUrl(p.imageUrl)
   }, [])
@@ -244,15 +246,20 @@ export default function CropTool() {
       const heightCm = cmOf(crop.h)
       const widthScaledCm = applyScale(widthCm)
       const heightScaledCm = applyScale(heightCm)
+      const ws = back.current?.workspaceId ?? cropWsId
       if (dest === 'back' && back.current?.boardId) {
-        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
-        router.push(`/dashboard/tools/boards/${back.current.boardId}?handoff=1`)
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId, workspaceId: ws })
+        router.push(
+          ws
+            ? `/dashboard/workspaces/${ws}/boards/${back.current.boardId}?handoff=1`
+            : `/dashboard/tools/boards/${back.current.boardId}?handoff=1`,
+        )
       } else if (dest === 'grid') {
-        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
-        router.push('/dashboard/tools/grid?handoff=1')
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', workspaceId: ws })
+        router.push(ws ? `/dashboard/workspaces/${ws}/tools/grid?handoff=1` : '/dashboard/tools/grid?handoff=1')
       } else {
-        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
-        router.push('/dashboard/tools/boards')
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', workspaceId: ws })
+        router.push(ws ? `/dashboard/workspaces/${ws}` : '/dashboard/tools/boards')
       }
     } catch {
       setError(t('crop.errSend'))

@@ -1,7 +1,5 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useState } from 'react'
 import CropTool from '@frontend/features/tools/crop/CropTool'
@@ -19,8 +17,7 @@ export default function CropScreen() {
     }`
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
+    <>
         <div className="flex-1 flex flex-col overflow-hidden min-h-0">
           {/* Pestañas */}
           <div className="bg-[var(--color-surface-container-low)] border-b border-[var(--color-outline-variant)] shrink-0 px-4 flex items-center gap-2">
@@ -36,7 +33,6 @@ export default function CropScreen() {
 
           {tab === 'crop' ? <CropTool /> : <CutoutTool />}
         </div>
-      </ToolActiveLayout>
-    </AppShell>
+    </>
   )
 }

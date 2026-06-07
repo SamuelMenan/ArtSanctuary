@@ -1,7 +1,5 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { getMixLabels } from '../colorMixHelpers'
 import { useColorMixer } from '../useColorMixer'
@@ -40,8 +38,7 @@ export default function ColorMixScreen() {
   } = useColorMixer()
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
+    <>
         {/* Top Control Bar */}
         <MixControls
           L={L}
@@ -94,7 +91,6 @@ export default function ColorMixScreen() {
             addPigment={addPigment}
           />
         </div>
-      </ToolActiveLayout>
-    </AppShell>
+    </>
   )
 }

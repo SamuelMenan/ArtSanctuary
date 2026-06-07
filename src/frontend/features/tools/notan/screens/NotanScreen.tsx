@@ -1,8 +1,6 @@
 'use client'
 
 import Image from 'next/image'
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { useState } from 'react'
 
 export default function NotanPage() {
@@ -10,8 +8,7 @@ export default function NotanPage() {
   const [tonoMedio, setTonoMedio] = useState(false)
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
+    <>
         {/* Top Control Bar */}
         <div className="h-[var(--spacing-appbar-height)] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex items-center px-[var(--spacing-grid-gutter)] justify-between shrink-0 z-10 overflow-x-auto">
           {/* Left Actions */}
@@ -104,7 +101,6 @@ export default function NotanPage() {
             </div>
           </div>
         </div>
-      </ToolActiveLayout>
-    </AppShell>
+    </>
   )
 }

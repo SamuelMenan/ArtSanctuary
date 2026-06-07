@@ -1,7 +1,5 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import { useState } from 'react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
@@ -30,8 +28,7 @@ export default function GesturePage() {
       }
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
+    <>
         {/* Top Control Bar */}
         <div className="h-[var(--spacing-appbar-height)] border-b border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] flex items-center px-[var(--spacing-grid-gutter)] gap-6 shrink-0 overflow-x-auto">
           <div className="flex items-center gap-4 flex-1 min-w-[300px]">
@@ -108,7 +105,6 @@ export default function GesturePage() {
             </div>
           </div>
         </div>
-      </ToolActiveLayout>
-    </AppShell>
+    </>
   )
 }

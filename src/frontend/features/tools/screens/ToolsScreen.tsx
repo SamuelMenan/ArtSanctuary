@@ -1,6 +1,5 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
 import Link from 'next/link'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 
@@ -59,7 +58,7 @@ export default function ToolsDashboardPage() {
   ]
 
   return (
-    <AppShell>
+    <div className="flex-1 overflow-y-auto custom-scrollbar px-[var(--spacing-grid-gutter)]">
       <div className="pt-8 pb-12 w-full max-w-[1400px] mx-auto z-10 relative">
         <header className="mb-12">
           <h1 className="font-display-lg text-display-lg text-[var(--color-primary)] font-bold mb-4 tracking-[-0.02em] leading-[1.1] uppercase">
@@ -96,6 +95,6 @@ export default function ToolsDashboardPage() {
           ))}
         </div>
       </div>
-    </AppShell>
+    </div>
   )
 }

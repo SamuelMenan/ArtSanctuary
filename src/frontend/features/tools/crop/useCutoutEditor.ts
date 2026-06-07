@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
 import { computeContentBounds } from '@shared/lib/image/autocrop'
 import { floodErase } from '@shared/lib/image/floodfill'
@@ -26,11 +26,13 @@ export function useCutoutEditor() {
   const [error, setError] = useState<string | null>(null)
 
   const router = useRouter()
+  const cutoutPathname = usePathname()
+  const cutoutWsId = cutoutPathname?.match(/^\/dashboard\/workspaces\/([^/]+)/)?.[1]
   const work = useRef<HTMLCanvasElement | null>(null) // imagen de trabajo (full-res, con alfa)
   const original = useRef<HTMLCanvasElement | null>(null) // copia intacta para restaurar
   const displayRef = useRef<HTMLCanvasElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
-  const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
+  const back = useRef<{ boardId?: string; objectId?: string; workspaceId?: string } | null>(null)
   const [stage, setStage] = useState({ w: 0, h: 0 })
   const [ready, setReady] = useState(false)
 
@@ -105,10 +107,10 @@ export function useCutoutEditor() {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('handoff') !== '1') return
-    window.history.replaceState(null, '', '/dashboard/tools/crop')
+    window.history.replaceState(null, '', window.location.pathname)
     const p = takeHandoff()
     if (!p) return
-    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId }
+    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId, workspaceId: p.workspaceId }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setImageUrl(p.imageUrl)
   }, [])
@@ -326,15 +328,20 @@ export function useCutoutEditor() {
       const heightCm = cmOf(w.height)
       const widthScaledCm = applyScale(widthCm)
       const heightScaledCm = applyScale(heightCm)
+      const ws = back.current?.workspaceId ?? cutoutWsId
       if (dest === 'back' && back.current?.boardId) {
-        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId })
-        router.push(`/dashboard/tools/boards/${back.current.boardId}?handoff=1`)
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', boardId: back.current.boardId, objectId: back.current.objectId, workspaceId: ws })
+        router.push(
+          ws
+            ? `/dashboard/workspaces/${ws}/boards/${back.current.boardId}?handoff=1`
+            : `/dashboard/tools/boards/${back.current.boardId}?handoff=1`,
+        )
       } else if (dest === 'grid') {
-        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
-        router.push('/dashboard/tools/grid?handoff=1')
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', workspaceId: ws })
+        router.push(ws ? `/dashboard/workspaces/${ws}/tools/grid?handoff=1` : '/dashboard/tools/grid?handoff=1')
       } else {
-        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop' })
-        router.push('/dashboard/tools/boards')
+        setHandoff({ imageUrl: url, widthCm, heightCm, widthScaledCm, heightScaledCm, source: 'crop', workspaceId: ws })
+        router.push(ws ? `/dashboard/workspaces/${ws}` : '/dashboard/tools/boards')
       }
     } catch {
       setError(t('crop.errSend'))

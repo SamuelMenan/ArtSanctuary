@@ -1,11 +1,9 @@
 'use client'
 
-import AppShell from '@frontend/shared/layouts/AppShell'
-import ToolActiveLayout from '@frontend/features/tools/shared/ToolActiveLayout'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { applyScale, formatScaled } from '@shared/lib/measure'
 import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
@@ -48,21 +46,25 @@ export default function ReferenceGridScreen() {
   const [exportWarning, setExportWarning] = useState<string | null>(null)
 
   const router = useRouter()
+  // Workspace actual (si la tool se abrió scoped): `/dashboard/workspaces/<id>/tools/...`
+  const pathname = usePathname()
+  const wsId = pathname?.match(/^\/dashboard\/workspaces\/([^/]+)/)?.[1]
   const stageRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const [sending, setSending] = useState(false)
   // Destino de retorno si llegamos desde un board (round-trip).
-  const back = useRef<{ boardId?: string; objectId?: string } | null>(null)
+  const back = useRef<{ boardId?: string; objectId?: string; workspaceId?: string } | null>(null)
 
   // Handoff entrante (?handoff=1): carga imagen + calibración de otra herramienta.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     if (params.get('handoff') !== '1') return
-    window.history.replaceState(null, '', '/dashboard/tools/grid')
+    // Limpia el ?handoff=1 conservando la ruta actual (global o de workspace).
+    window.history.replaceState(null, '', window.location.pathname)
     const p = takeHandoff()
     if (!p) return
-    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId }
+    if (p.source === 'boards') back.current = { boardId: p.boardId, objectId: p.objectId, workspaceId: p.workspaceId }
     /* eslint-disable react-hooks/set-state-in-effect */
     setImageUrl(p.imageUrl)
     if (p.squareCm) setSquareCm(p.squareCm)
@@ -150,12 +152,20 @@ export default function ReferenceGridScreen() {
       const finW = applyScale(refW)
       const finH = applyScale(refH)
       const payload = { imageUrl: newImageUrl, widthCm: refW, heightCm: refH, widthScaledCm: finW, heightScaledCm: finH, squareCm, source: 'grid' as const }
+      // Workspace destino: el board de origen (round-trip) o el del contexto actual.
+      const ws = back.current?.workspaceId ?? wsId
       if (back.current?.boardId) {
-        setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId })
-        router.push(`/dashboard/tools/boards/${back.current.boardId}?handoff=1`)
+        setHandoff({ ...payload, boardId: back.current.boardId, objectId: back.current.objectId, workspaceId: ws })
+        // Vuelve al board en su ruta real (workspace o global).
+        router.push(
+          ws
+            ? `/dashboard/workspaces/${ws}/boards/${back.current.boardId}?handoff=1`
+            : `/dashboard/tools/boards/${back.current.boardId}?handoff=1`,
+        )
       } else {
-        setHandoff(payload)
-        router.push('/dashboard/tools/boards')
+        setHandoff({ ...payload, workspaceId: ws })
+        // Sin board de origen: al proyecto (sus planos) si estamos en workspace.
+        router.push(ws ? `/dashboard/workspaces/${ws}` : '/dashboard/tools/boards')
       }
     } catch {
       setExportWarning(t('grid.errSend'))
@@ -272,24 +282,20 @@ export default function ReferenceGridScreen() {
   )
 
   return (
-    <AppShell>
-      <ToolActiveLayout>
-        <ToolWorkspace
-          panel={panel}
-          stage={stageNode}
-          modal={modalOpen && (
-            <ImageSourceModal
-              onClose={() => setModalOpen(false)}
-              onSelect={(url) => {
-                setImageUrl(url)
-                setModalOpen(false)
-                resetView()
-                setExportWarning(null)
-              }}
-            />
-          )}
+    <ToolWorkspace
+      panel={panel}
+      stage={stageNode}
+      modal={modalOpen && (
+        <ImageSourceModal
+          onClose={() => setModalOpen(false)}
+          onSelect={(url) => {
+            setImageUrl(url)
+            setModalOpen(false)
+            resetView()
+            setExportWarning(null)
+          }}
         />
-      </ToolActiveLayout>
-    </AppShell>
+      )}
+    />
   )
 }

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
 import { scaleIn, transition } from '@frontend/shared/motion/tokens';
+import Spinner from '@frontend/shared/ui/Spinner';
 
 type Props = {
   onClose: () => void;
@@ -158,7 +159,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
               </button>
               {loadingDetail ? (
                 <div className="flex justify-center p-8">
-                  <span className="material-symbols-outlined animate-spin text-[var(--color-primary)]">refresh</span>
+                  <Spinner className="size-6 text-[var(--color-primary)]" />
                 </div>
               ) : (
                 (() => {
@@ -189,7 +190,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
             </div>
           ) : loadingList ? (
             <div className="flex justify-center p-8">
-              <span className="material-symbols-outlined animate-spin text-[var(--color-primary)]">refresh</span>
+              <Spinner className="size-6 text-[var(--color-primary)]" />
             </div>
           ) : collections.length === 0 ? (
             <p className="text-center py-8 font-sans text-sm text-[var(--color-on-surface-variant)]">{t('sidebar.noCollections')}</p>
