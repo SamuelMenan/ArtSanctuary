@@ -13,10 +13,16 @@ export interface RenderGridParams {
   pan: { x: number; y: number }
 }
 
+// Lado largo máximo del export. Con celdas grandes (muchos cuadros) un canvas a
+// 120px/celda llegaba a ~16000px → PNG de decenas de MB que disparaba 413 al
+// subir y podía agotar memoria. Capamos el lado largo y comprimimos a WebP.
+const MAX_EXPORT_DIM = 4096
+
 /**
- * Renderiza la cuadrícula sobre la imagen en un canvas a alta resolución
- * (120 px/celda) y devuelve el PNG como Blob. Reproduce el mismo contain +
- * pan/zoom que en pantalla. Falla si la imagen externa no tiene permiso CORS.
+ * Renderiza la cuadrícula sobre la imagen en un canvas (hasta 120 px/celda, con
+ * el lado largo topado en {@link MAX_EXPORT_DIM}) y devuelve un Blob WebP.
+ * Reproduce el mismo contain + pan/zoom que en pantalla. Falla si la imagen
+ * externa no tiene permiso CORS.
  */
 export function renderGridBlob({
   imageUrl,
@@ -30,7 +36,9 @@ export function renderGridBlob({
   pan,
 }: RenderGridParams): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const cellPx = 120
+    // Celda a 120px salvo que el lado largo exceda el tope: ahí se reduce para
+    // que max(EW, EH) ≤ MAX_EXPORT_DIM (mínimo 16px para no perder legibilidad).
+    const cellPx = Math.max(16, Math.min(120, Math.floor(MAX_EXPORT_DIM / Math.max(cols, rows))))
     const EW = cols * cellPx
     const EH = rows * cellPx
     const k = EW / frameRect.width // factor pantalla → export
@@ -88,10 +96,12 @@ export function renderGridBlob({
       }
 
       try {
+        // WebP q0.82: fondo blanco opaco (sin alpha), conserva nitidez de las
+        // líneas y deja el archivo muy por debajo del límite de subida.
         canvas.toBlob((blob) => {
           if (blob) resolve(blob)
           else reject(new Error('Blob failed'))
-        }, 'image/png')
+        }, 'image/webp', 0.82)
       } catch (e) {
         reject(e)
       }

@@ -8,6 +8,7 @@ import {
   getPresets,
   type ArtworkCategory,
 } from '@shared/lib/useArtworkAutoFill';
+import { uploadBlob } from '@shared/lib/image/canvas';
 
 export type DateType = 'exact' | 'year' | 'monthyear' | 'range' | 'approx';
 
@@ -135,14 +136,8 @@ export function useUploadArtwork() {
         throw new Error(t('upload.noImage'));
       }
 
-      const uploadForm = new FormData();
-      uploadForm.append('file', imageFile);
-      const uploadRes = await fetch('/api/upload', { method: 'POST', body: uploadForm });
-      if (!uploadRes.ok) {
-        const err = await uploadRes.json().catch(() => ({}));
-        throw new Error(err?.error?.message || t('upload.uploadImageError'));
-      }
-      const { imageUrl } = await uploadRes.json();
+      // Comprime (WebP, ≤4096px) antes de subir: evita 413 y reduce storage.
+      const imageUrl = await uploadBlob(imageFile, 'artwork');
 
       const payload = {
         title: formData.title,

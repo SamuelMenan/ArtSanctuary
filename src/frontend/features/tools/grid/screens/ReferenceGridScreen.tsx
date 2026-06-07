@@ -5,6 +5,7 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
+import { uploadCompressedBlob } from '@shared/lib/image/canvas'
 import { applyScale, formatScaled } from '@shared/lib/measure'
 import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
 import { computeGridGeometry, snapToSquare } from '@frontend/features/tools/grid/lib/gridGeometry'
@@ -141,13 +142,10 @@ export default function ReferenceGridScreen() {
     setExportWarning(null)
     try {
       const blob = await generateGridBlob()
-      
-      // Subir la imagen renderizada (con la cuadrícula quemada)
-      const fd = new FormData()
-      fd.append('file', new File([blob], 'grid.png', { type: 'image/png' }))
-      const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
-      if (!uploadRes.ok) throw new Error(t('upload.uploadFailed'))
-      const { imageUrl: newImageUrl } = await uploadRes.json()
+
+      // La imagen renderizada (cuadrícula quemada) ya viene como WebP capado a
+      // ≤4096px desde renderGridBlob, así que se sube tal cual (sin recomprimir).
+      const newImageUrl = await uploadCompressedBlob(blob, 'grid')
       // Exportar al board usando las dimensiones finales
       const finW = applyScale(refW)
       const finH = applyScale(refH)

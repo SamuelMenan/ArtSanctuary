@@ -7,6 +7,8 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
 import { scaleIn, transition } from '@frontend/shared/motion/tokens';
 import Spinner from '@frontend/shared/ui/Spinner';
+import { useImageCompression } from './hooks/useImageCompression';
+import { uploadCompressedBlob } from '@shared/lib/image/canvas';
 
 type Props = {
   onClose: () => void;
@@ -36,9 +38,11 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
     if (src != null) onSelect(src); else onClose();
   };
 
-  // Subida
+  // Compresión + Subida
+  const { compress, compressing } = useImageCompression();
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [compressionInfo, setCompressionInfo] = useState<{ original: number; compressed: number; ratio: number } | null>(null);
 
   // Colecciones (lista desde la caché compartida; detalle bajo demanda).
   const { collections, loading: loadingList } = useCollections();
@@ -70,18 +74,32 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setUploadError(null);
+    setCompressionInfo(null);
+
+    // Comprimir
+    const result = await compress(file);
+    if (!result) {
+      setUploadError(t('imageModal.compressionError') || 'Compression failed');
+      return;
+    }
+
+    setCompressionInfo({
+      original: result.originalSize,
+      compressed: result.compressedSize,
+      ratio: result.ratio,
+    });
+
+    // Subir blob ya comprimido (el server valida tipo/tamaño).
     setUploading(true);
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: fd });
-    setUploading(false);
-    if (res.ok) {
-      const data = await res.json();
-      requestSelect(data.imageUrl);
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setUploadError(data?.error?.message ?? t('imageModal.uploadError'));
+    try {
+      const imageUrl = await uploadCompressedBlob(result.blob, 'upload');
+      requestSelect(imageUrl);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : t('imageModal.uploadError'));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -137,17 +155,35 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
         {/* Body */}
         <div className="p-4 overflow-y-auto custom-scrollbar flex-1">
           {tab === 'upload' ? (
-            <label className="flex flex-col items-center justify-center gap-3 py-12 border-2 border-dashed border-[var(--color-outline-variant)] rounded-sm cursor-pointer hover:border-[var(--color-primary)] transition-colors text-center">
-              <span className="material-symbols-outlined text-[var(--color-on-surface-variant)] text-4xl">
-                {uploading ? 'hourglass_top' : 'upload_file'}
-              </span>
-              <span className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest">
-                {uploading ? t('imageModal.uploading') : t('imageModal.uploadPrompt')}
-              </span>
-              <span className="font-sans text-xs text-[var(--color-on-surface-variant)]/70">{t('imageModal.uploadHint')}</span>
-              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" disabled={uploading} onChange={handleFile} />
-              {uploadError && <span className="text-red-500 font-sans text-xs">{uploadError}</span>}
-            </label>
+            <div className="space-y-4">
+              <label className="flex flex-col items-center justify-center gap-3 py-12 border-2 border-dashed border-[var(--color-outline-variant)] rounded-sm cursor-pointer hover:border-[var(--color-primary)] transition-colors text-center">
+                <span className="material-symbols-outlined text-[var(--color-on-surface-variant)] text-4xl">
+                  {compressing || uploading ? 'hourglass_top' : 'upload_file'}
+                </span>
+                <span className="font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-widest">
+                  {compressing ? t('imageModal.optimizing') || 'Optimizing...' : uploading ? t('imageModal.uploading') : t('imageModal.uploadPrompt')}
+                </span>
+                <span className="font-sans text-xs text-[var(--color-on-surface-variant)]/70">{t('imageModal.uploadHint')}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" disabled={uploading || compressing} onChange={handleFile} />
+                {uploadError && <span className="text-red-500 font-sans text-xs">{uploadError}</span>}
+              </label>
+              {compressionInfo && (
+                <div className="p-3 bg-[var(--color-surface-container)] rounded-sm border border-[var(--color-outline-variant)] space-y-1">
+                  <p className="text-xs font-mono text-[var(--color-on-surface-variant)] uppercase tracking-wider">Optimización</p>
+                  <div className="flex justify-between text-xs text-[var(--color-on-surface-variant)]">
+                    <span>Original: {(compressionInfo.original / 1024 / 1024).toFixed(2)} MB</span>
+                    <span>Optimizada: {(compressionInfo.compressed / 1024 / 1024).toFixed(2)} MB</span>
+                  </div>
+                  <div className="w-full bg-[var(--color-outline-variant)] rounded h-1.5 overflow-hidden">
+                    <div
+                      className="h-full bg-[var(--color-primary)] transition-all"
+                      style={{ width: `${compressionInfo.ratio}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-[var(--color-primary)] font-semibold">{compressionInfo.ratio}% tamaño original</p>
+                </div>
+              )}
+            </div>
           ) : openCollection ? (
             <div>
               <button
