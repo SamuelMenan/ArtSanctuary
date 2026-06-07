@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
 import { useCollections } from '@frontend/shared/providers/CollectionsProvider';
+import Spinner from './Spinner';
 
 export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatusChange }: { artworkId: string; onClose: () => void; onSavedStatusChange?: (saved: boolean) => void }) {
   const { collections: cached, refresh } = useCollections();
@@ -101,7 +102,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
         
         <div className="p-4 max-h-[50vh] overflow-y-auto custom-scrollbar">
           {loading ? (
-             <div className="flex justify-center p-4"><span className="material-symbols-outlined animate-spin text-[var(--color-primary)]">refresh</span></div>
+             <div className="flex justify-center p-4"><Spinner className="size-6 text-[var(--color-primary)]" /></div>
           ) : collections.length === 0 ? (
              <p className="text-sm font-sans text-[var(--color-on-surface-variant)] text-center py-4">{t('sidebar.noCollections')}</p>
           ) : (
@@ -118,7 +119,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
                   >
                     <span className="font-sans text-sm text-[var(--color-primary)]">{c.name}</span>
                     {savingId === c._id ? (
-                      <span className="material-symbols-outlined animate-spin text-[var(--color-primary)] text-sm">refresh</span>
+                      <Spinner className="size-4 text-[var(--color-primary)]" />
                     ) : isSaved ? (
                       <span className="material-symbols-outlined text-[var(--color-primary)] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                     ) : (

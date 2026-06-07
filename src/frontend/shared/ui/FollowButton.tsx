@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider';
+import Spinner from './Spinner';
 
 interface FollowButtonProps {
   targetUserId: string;
@@ -60,7 +61,7 @@ export default function FollowButton({ targetUserId, initialIsFollowing, onFollo
           : 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] hover:bg-[var(--color-primary-container)]'
       }`}
     >
-      {isLoading && <span className="material-symbols-outlined animate-spin text-[12px]">refresh</span>}
+      {isLoading && <Spinner className="size-3" />}
       {isFollowing ? t('common.following') : t('common.follow')}
     </button>
   );

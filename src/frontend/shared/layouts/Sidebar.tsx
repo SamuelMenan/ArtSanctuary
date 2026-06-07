@@ -28,7 +28,7 @@ export default function Sidebar() {
 
   return (
     <motion.nav
-      className="hidden md:flex flex-col h-full bg-[var(--color-surface-container)] fixed left-0 top-0 w-[var(--spacing-sidebar-width)] border-r border-[var(--color-outline-variant)] z-50"
+      className="hidden md:flex print:hidden flex-col h-full bg-[var(--color-surface-container)] fixed left-0 top-0 w-[var(--spacing-sidebar-width)] border-r border-[var(--color-outline-variant)] z-50"
       animate={{ x: sidebarOpen ? 0 : '-100%' }}
       transition={transition.base}
     >

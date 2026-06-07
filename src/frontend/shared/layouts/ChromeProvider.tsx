@@ -36,18 +36,25 @@ export function useChrome() {
 
 export default function ChromeProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? ''
-  const isTools = pathname.startsWith('/dashboard/tools')
+  // Ruta de herramienta (global `/dashboard/tools/<x>` o scoped a workspace
+  // `/dashboard/workspaces/<id>/tools/<x>`). El índice `/dashboard/tools` (sin
+  // `/tools/`) NO es inmersivo → conserva el sidebar global y no muestra el rail.
+  const isTools = pathname.includes('/tools/')
   // Boards (lista + editor) usan el layout de herramientas (tool-sidebar).
   const isBoards = pathname.startsWith('/dashboard/tools/boards') || pathname.includes('/boards')
+  // Detalle de workspace (`/dashboard/workspaces/<id>...`): entra al "layout 2"
+  // (rail del workspace), sin sidebar global. La LISTA `/dashboard/workspaces` no.
+  const isWorkspaceDetail = /^\/dashboard\/workspaces\/[^/]+/.test(pathname)
   // Inmersiva = la página aporta su propia barra superior y ocupa todo el alto.
-  const isImmersive = isTools || isBoards
+  const isImmersive = isTools || isBoards || isWorkspaceDetail
 
   // En inmersivas el sidebar principal arranca oculto (solo la herramienta).
   const [sidebarOpen, setSidebarOpen] = useState(!isImmersive)
   // El navbar arranca visible; el usuario lo esconde/muestra a voluntad.
   const [navbarOpen, setNavbarOpen] = useState(!isBoards)
-  // El mini-sidebar de tools arranca abierto.
-  const [toolNavOpen, setToolNavOpen] = useState(!isBoards)
+  // El mini-sidebar de tools arranca como RIEL de iconos (colapsado) en todas las
+  // herramientas — consistente con boards. Hover o toggle lo expanden.
+  const [toolNavOpen, setToolNavOpen] = useState(false)
   const [edgeReveal, setEdgeRevealState] = useState<EdgeReveal>({ top: false, left: false })
 
   const setEdgeReveal = useCallback((e: Partial<EdgeReveal>) => {
@@ -62,12 +69,14 @@ export default function ChromeProvider({ children }: { children: ReactNode }) {
   // En boards, también esconde todo (navbar y tool nav) para dejar el lienzo limpio.
   useEffect(() => {
     setSidebarOpen(!isImmersive)
+    // En boards se esconde todo para dejar el lienzo limpio (rail colapsado).
+    // En el resto se muestra el navbar; el rail de tools queda como esté (rail por
+    // defecto), respetando si el usuario lo expandió.
     if (isBoards) {
       setNavbarOpen(false)
       setToolNavOpen(false)
     } else {
       setNavbarOpen(true)
-      setToolNavOpen(true)
     }
   }, [isImmersive, isBoards])
 

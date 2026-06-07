@@ -53,7 +53,7 @@ export default function Navbar() {
     <>
       {/* Desktop TopAppBar — se esconde/muestra con su propio toggle */}
       <motion.header
-        className={`hidden md:flex ${appBarShell} ${appBarBg.glass} fixed top-0 right-0 justify-between z-40 transition-[left] duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'}`}
+        className={`hidden md:flex print:hidden ${appBarShell} ${appBarBg.glass} fixed top-0 right-0 justify-between z-40 transition-[left] duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'}`}
         animate={{ y: navbarOpen ? 0 : '-100%' }}
         transition={transition.base}
       >

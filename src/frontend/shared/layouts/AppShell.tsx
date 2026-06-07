@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { MotionConfig, motion } from 'motion/react'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
-import ChromeProvider, { useChrome } from './ChromeProvider'
+import { useChrome } from './ChromeProvider'
 import { ReactNode } from 'react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { transition } from '@frontend/shared/motion/tokens'
@@ -67,11 +67,10 @@ function AppShellInner({ children }: { children: ReactNode }) {
 }
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  // ChromeProvider vive en la raíz (Providers) para persistir entre navegaciones.
   return (
-    <ChromeProvider>
-      <MotionConfig reducedMotion="user">
-        <AppShellInner>{children}</AppShellInner>
-      </MotionConfig>
-    </ChromeProvider>
+    <MotionConfig reducedMotion="user">
+      <AppShellInner>{children}</AppShellInner>
+    </MotionConfig>
   )
 }

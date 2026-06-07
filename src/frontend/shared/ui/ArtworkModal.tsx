@@ -7,6 +7,7 @@ import ArtworkMedia from './artwork-modal/ArtworkMedia';
 import ArtworkMeta from './artwork-modal/ArtworkMeta';
 import ArtworkComments from './artwork-modal/ArtworkComments';
 import ArtworkActions from './artwork-modal/ArtworkActions';
+import Spinner from './Spinner';
 
 interface ArtworkModalProps {
   artworkId: string;
@@ -79,7 +80,7 @@ export default function ArtworkModal({ artworkId, isOpen, onClose, onPrev, onNex
 
         {loading ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-[var(--color-primary)]">
-            <span className="material-symbols-outlined animate-spin text-5xl mb-4">refresh</span>
+            <Spinner className="size-12 mb-4" />
             <p className="font-mono text-sm uppercase tracking-widest">{t('modal.loadTitle')}</p>
           </div>
         ) : error ? (
