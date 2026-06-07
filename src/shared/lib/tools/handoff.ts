@@ -16,6 +16,9 @@ export interface PhysicalImage {
   // round-trip back to Boards:
   boardId?: string
   objectId?: string // object to replace on return
+  // Si el board pertenece a un workspace, el round-trip vuelve a la ruta del
+  // workspace (`/dashboard/workspaces/<workspaceId>/boards/<boardId>`).
+  workspaceId?: string
 }
 
 const KEY = 'tool-handoff'

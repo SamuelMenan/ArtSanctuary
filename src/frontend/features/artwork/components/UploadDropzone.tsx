@@ -1,6 +1,7 @@
 'use client';
 
 import NextImage from 'next/image';
+import Spinner from '@frontend/shared/ui/Spinner';
 import type { useUploadArtwork } from '../hooks/useUploadArtwork';
 
 type UploadArtwork = ReturnType<typeof useUploadArtwork>;
@@ -75,9 +76,11 @@ export default function UploadDropzone({
         {imageFile && (isAnalyzing || suggestions.length > 0) && (
           <div className="mt-4 p-4 border border-[var(--color-primary)] bg-[var(--color-primary)]/5 rounded-sm">
             <h4 className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-primary)] mb-3 flex items-center gap-2">
-              <span className={`material-symbols-outlined text-[14px] ${isAnalyzing ? 'animate-spin' : ''}`}>
-                {isAnalyzing ? 'refresh' : 'auto_awesome'}
-              </span>
+              {isAnalyzing ? (
+                <Spinner className="size-3.5" />
+              ) : (
+                <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+              )}
               {isAnalyzing ? t('upload.analyzing') : t('upload.detectedData')}
             </h4>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { type ArtworkCategory } from '@shared/lib/useArtworkAutoFill';
+import Spinner from '@frontend/shared/ui/Spinner';
 import type { useUploadArtwork, DateType } from '../hooks/useUploadArtwork';
 
 type UploadArtwork = ReturnType<typeof useUploadArtwork>;
@@ -185,7 +186,7 @@ export default function ArtworkForm({
         <button type="submit" disabled={loading} className="w-full md:w-auto bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-xs uppercase tracking-widest px-12 py-4 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
           {loading ? (
             <>
-              <span className="material-symbols-outlined animate-spin">refresh</span>
+              <Spinner className="size-5" />
               {t('common.loading')}
             </>
           ) : (
