@@ -3,7 +3,8 @@
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type { FigureModel } from '@shared/lib/canon/figure'
 import type { Unit } from '@shared/lib/canon/units'
-import ProportionChart, { type ChartLayers } from './ProportionChart'
+import ProportionChart from './ProportionChart'
+import { type ChartLayers } from '../lib/chartLayers'
 import ChartCrossfade from './ChartCrossfade'
 import { VIEWS, type View } from '../lib/figureMeta'
 import type { CanonOption } from './CanonToolbar'
@@ -44,7 +45,7 @@ export default function CanonComparePanel({
         {edit ? (
           <>
             {edit.canons.length > 1 && (
-              <select value={figure.canonId} onChange={(e) => edit.onCanon(e.target.value)} className={`${miniField} cursor-pointer`}>
+              <select aria-label={t('canon.canon')} value={figure.canonId} onChange={(e) => edit.onCanon(e.target.value)} className={`${miniField} cursor-pointer`}>
                 {edit.canons.map((c) => (
                   <option key={c.id} value={c.id}>{t(`canon.names.${c.id}`)}</option>
                 ))}
@@ -52,11 +53,12 @@ export default function CanonComparePanel({
             )}
             <input
               type="number"
+              aria-label={t('canon.alturaTotal')}
               value={figure.heightCm}
               onChange={(e) => edit.onHeight(Number(e.target.value))}
               className={`${miniField} w-16 text-center`}
             />
-            <select value={view} onChange={(e) => edit.onView(e.target.value as View)} className={`${miniField} cursor-pointer`}>
+            <select aria-label={t('canon.view')} value={view} onChange={(e) => edit.onView(e.target.value as View)} className={`${miniField} cursor-pointer`}>
               {VIEWS.map((v) => (
                 <option key={v} value={v}>{t(`canon.views.${v}`)}</option>
               ))}

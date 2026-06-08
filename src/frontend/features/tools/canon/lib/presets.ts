@@ -4,7 +4,7 @@
 
 import type { Unit } from '@shared/lib/canon/units'
 import type { View } from './figureMeta'
-import type { ChartLayers } from '../components/ProportionChart'
+import type { ChartLayers } from './chartLayers'
 
 export interface CanonConfig {
   canonId: string

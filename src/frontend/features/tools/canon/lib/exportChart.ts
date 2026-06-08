@@ -7,7 +7,7 @@ import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
 import { figureSrc, type View } from './figureMeta'
-import { DEFAULT_LAYERS, type ChartLayers } from '../components/ProportionChart'
+import { DEFAULT_LAYERS, type ChartLayers } from './chartLayers'
 
 /** Función de i18n (acepta clave dinámica + vars). */
 type T = (key: string, vars?: Record<string, string | number>) => string

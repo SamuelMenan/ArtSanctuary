@@ -7,6 +7,7 @@ import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
 import ReferenceFigure from './ReferenceFigure'
 import { type View } from '../lib/figureMeta'
+import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
 
 // La figura llena el alto del frame (coronilla ~0, planta ~100). Si una lámina
 // trajera margen, ajustar estos dos consts.
@@ -17,17 +18,6 @@ const FIG_BOT = 100 // % de la planta (frac = 1)
 function mapFrac(frac: number): number {
   return FIG_TOP + frac * (FIG_BOT - FIG_TOP)
 }
-
-/** Capas del sistema dual de referencia. Independientes: se ven por separado o
- *  ambas a la vez. */
-export interface ChartLayers {
-  /** Capa 1 — Canon: divisiones geométricas (1/N), números y altura total. */
-  canon: boolean
-  /** Capa 2 — Anatomía: líneas + etiquetas de landmarks reales (frac medido). */
-  anatomy: boolean
-}
-
-export const DEFAULT_LAYERS: ChartLayers = { canon: true, anatomy: true }
 
 /**
  * Interfaz de proporciones dibujada por código alrededor de la figura limpia:

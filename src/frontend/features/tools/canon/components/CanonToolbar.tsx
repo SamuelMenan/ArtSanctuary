@@ -3,7 +3,7 @@
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { UNITS, type Unit } from '@shared/lib/canon/units'
 import { VIEWS, type View } from '../lib/figureMeta'
-import type { ChartLayers } from './ProportionChart'
+import type { ChartLayers } from '../lib/chartLayers'
 
 const LAYER_KEYS = ['canon', 'anatomy'] as const
 
