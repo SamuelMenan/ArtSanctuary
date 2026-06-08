@@ -801,6 +801,7 @@ export const en = {
     muscles: 'Muscles',
     joints: 'Joints',
     jointNames: {},
+    noPlate: 'no plate',
     sendToBoard: 'Send to board',
     exportPng: 'Export PNG',
     exportPdf: 'Export PDF',

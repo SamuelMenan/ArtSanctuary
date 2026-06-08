@@ -807,6 +807,7 @@ export const es = {
     muscles: 'Músculos',
     joints: 'Articulaciones',
     jointNames: {},
+    noPlate: 'sin lámina',
     sendToBoard: 'Enviar a tablero',
     exportPng: 'Exportar PNG',
     exportPdf: 'Exportar PDF',

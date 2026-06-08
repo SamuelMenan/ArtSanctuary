@@ -8,9 +8,7 @@ import { buildMeasurements } from '@shared/lib/canon/measurements'
 import { CANON_LIST } from '@shared/lib/canon/canons'
 import { type Unit } from '@shared/lib/canon/units'
 import { AVAILABLE_CANON_IDS, figureSrc, type View } from '../lib/figureMeta'
-import { DEFAULT_LAYERS, EXTRA_LAYER_KEYS, type ChartLayers } from '../lib/chartLayers'
-import { canonHasOverlay } from '../lib/overlays'
-import { hasJoints } from '../lib/joints'
+import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
 import { setPendingFigure } from '../lib/boardHandoff'
 import { exportChartPng, exportChartPdf } from '../lib/exportChart'
 import {
@@ -24,6 +22,14 @@ import {
 
 /** Cánones que ya tienen las 3 láminas, ordenados por nº de cabezas. */
 export const AVAILABLE_CANONS = CANON_LIST.filter((c) => AVAILABLE_CANON_IDS.includes(c.id))
+
+/** TODOS los cánones modelados (con o sin lámina) para el selector. Los que no
+ *  tienen lámina se muestran marcados; al elegirlos la figura cae a heroico. */
+export const CANON_OPTIONS = CANON_LIST.map((c) => ({
+  id: c.id,
+  headCount: c.headCount,
+  available: AVAILABLE_CANON_IDS.includes(c.id),
+}))
 
 /** Estado + handlers de la herramienta Canon (saca la lógica del componente). */
 export function useCanonTool() {
@@ -47,16 +53,6 @@ export function useCanonTool() {
   const measurements = useMemo(() => buildMeasurements(figure), [figure])
 
   const toggleLayer = useCallback((k: keyof ChartLayers) => setLayers((p) => ({ ...p, [k]: !p[k] })), [])
-
-  // Capas extra que SÍ tienen asset/data para el canon+vista actual (las demás
-  // se ocultan para no mostrar toggles vacíos).
-  const extraLayers = useMemo(
-    () =>
-      EXTRA_LAYER_KEYS.filter((k) =>
-        k === 'joints' ? hasJoints(canonId, view) : canonHasOverlay(canonId, k),
-      ),
-    [canonId, view],
-  )
 
   // Handoff: deja la lámina actual pendiente y abre Boards (el primer editor que
   // monte la inserta). Ver `boardHandoff.ts`.
@@ -150,7 +146,7 @@ export function useCanonTool() {
 
   return {
     canonId, setCanonId, height, setHeight, view, setView, unit, setUnit,
-    layers, toggleLayer, extraLayers, handleSendToBoard, exporting, handleExport,
+    layers, toggleLayer, handleSendToBoard, exporting, handleExport,
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,

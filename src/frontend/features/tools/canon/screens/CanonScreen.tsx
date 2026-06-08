@@ -7,13 +7,13 @@ import CanonToolbar from '../components/CanonToolbar'
 import CanonPresets from '../components/CanonPresets'
 import CanonComparePanel from '../components/CanonComparePanel'
 import ChartCrossfade from '../components/ChartCrossfade'
-import { useCanonTool, AVAILABLE_CANONS } from '../hooks/useCanonTool'
+import { useCanonTool, AVAILABLE_CANONS, CANON_OPTIONS } from '../hooks/useCanonTool'
 
 export default function CanonPage() {
   const { t } = usePreferences()
   const {
     canonId, setCanonId, height, setHeight, view, setView, unit, setUnit,
-    layers, toggleLayer, extraLayers, handleSendToBoard, exporting, handleExport,
+    layers, toggleLayer, handleSendToBoard, exporting, handleExport,
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,
@@ -24,7 +24,7 @@ export default function CanonPage() {
         <CanonToolbar
           canonId={canonId}
           onCanon={setCanonId}
-          canons={AVAILABLE_CANONS}
+          canons={CANON_OPTIONS}
           height={height}
           onHeight={setHeight}
           view={view}
@@ -33,7 +33,6 @@ export default function CanonPage() {
           onUnit={setUnit}
           layers={layers}
           onToggleLayer={toggleLayer}
-          extraLayers={extraLayers}
           onSendToBoard={handleSendToBoard}
           compare={compare}
           onToggleCompare={toggleCompare}

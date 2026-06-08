@@ -3,9 +3,11 @@
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { UNITS, type Unit } from '@shared/lib/canon/units'
 import { VIEWS, type View } from '../lib/figureMeta'
-import type { ChartLayers } from '../lib/chartLayers'
+import { EXTRA_LAYER_KEYS, type ChartLayers } from '../lib/chartLayers'
 
-const BASE_LAYER_KEYS = ['canon', 'anatomy'] as const
+// canon/anatomy (dibujadas) + las extra (skeleton/muscles/joints). Se muestran
+// TODAS aunque aún no tengan asset/data: el chart simplemente no cambia.
+const LAYER_KEYS = ['canon', 'anatomy', ...EXTRA_LAYER_KEYS] as const
 
 const fieldCls =
   'bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-1 text-[var(--color-primary)] font-mono text-label-sm focus:ring-0 focus:border-[var(--color-primary)] cursor-pointer'
@@ -17,6 +19,8 @@ const exportBtnCls =
 export interface CanonOption {
   id: string
   headCount: number
+  /** Si tiene las 3 láminas. Los sin lámina se muestran marcados igual. */
+  available?: boolean
 }
 
 export interface CanonToolbarProps {
@@ -31,8 +35,6 @@ export interface CanonToolbarProps {
   onUnit: (u: Unit) => void
   layers: ChartLayers
   onToggleLayer: (k: keyof ChartLayers) => void
-  /** Capas extra (skeleton/muscles/joints) que tienen asset/data ahora mismo. */
-  extraLayers: (keyof ChartLayers)[]
   onSendToBoard: () => void
   compare: boolean
   onToggleCompare: () => void
@@ -53,7 +55,6 @@ export default function CanonToolbar({
   onUnit,
   layers,
   onToggleLayer,
-  extraLayers,
   onSendToBoard,
   compare,
   onToggleCompare,
@@ -61,7 +62,6 @@ export default function CanonToolbar({
   onExport,
 }: CanonToolbarProps) {
   const { t } = usePreferences()
-  const layerKeys = [...BASE_LAYER_KEYS, ...extraLayers]
 
   return (
     <div className="min-h-[var(--spacing-appbar-height)] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex flex-wrap items-center justify-between px-[var(--spacing-grid-gutter)] py-2 shrink-0 overflow-x-auto gap-4">
@@ -77,7 +77,9 @@ export default function CanonToolbar({
               className={fieldCls}
             >
               {canons.map((c) => (
-                <option key={c.id} value={c.id}>{t(`canon.names.${c.id}`)}</option>
+                <option key={c.id} value={c.id}>
+                  {t(`canon.names.${c.id}`)}{c.available === false ? ` · ${t('canon.noPlate')}` : ''}
+                </option>
               ))}
             </select>
           </div>
@@ -121,7 +123,7 @@ export default function CanonToolbar({
         <div className="flex items-center gap-2">
           <span className={labelCls}>{t('canon.layers')}</span>
           <div className="flex items-center gap-1">
-            {layerKeys.map((k) => (
+            {LAYER_KEYS.map((k) => (
               <button
                 key={k}
                 type="button"
