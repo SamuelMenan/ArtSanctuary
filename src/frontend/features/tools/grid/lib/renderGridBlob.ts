@@ -96,12 +96,18 @@ export function renderGridBlob({
       }
 
       try {
-        // WebP q0.82: fondo blanco opaco (sin alpha), conserva nitidez de las
-        // líneas y deja el archivo muy por debajo del límite de subida.
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob)
-          else reject(new Error('Blob failed'))
-        }, 'image/webp', 0.82)
+        // Prod: WebP q0.82 (fondo blanco opaco, conserva nitidez de líneas y
+        // deja el archivo muy por debajo del límite). Local: PNG lossless, sin
+        // compresión. Ver docs/features/image-compression.md.
+        const isProd = process.env.NODE_ENV === 'production'
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob)
+            else reject(new Error('Blob failed'))
+          },
+          isProd ? 'image/webp' : 'image/png',
+          isProd ? 0.82 : undefined,
+        )
       } catch (e) {
         reject(e)
       }

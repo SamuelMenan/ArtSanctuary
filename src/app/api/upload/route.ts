@@ -35,7 +35,9 @@ export const POST = withErrorHandler("POST /api/upload", async (request: NextReq
       return apiError("VALIDATION_ERROR", 'Tipo de archivo no soportado');
     }
 
-    if (file.size > MAX_SIZE) {
+    // El límite de tamaño solo aplica en producción. En local (dev) se permite
+    // subir el original sin comprimir (ver docs/features/image-compression.md).
+    if (process.env.NODE_ENV === 'production' && file.size > MAX_SIZE) {
       return apiError("VALIDATION_ERROR", 'Archivo demasiado grande (máx 10MB)');
     }
 

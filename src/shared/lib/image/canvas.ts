@@ -96,6 +96,11 @@ export async function compressImage(input: Blob): Promise<CompressResult> {
   const originalSize = input.size
   const passthrough = { blob: input, originalSize, compressedSize: originalSize }
 
+  // LOCAL (dev): sin compresión ni reescalado — se sube el original íntegro y
+  // sin límite de tamaño. Solo producción comprime. Ver
+  // docs/features/image-compression.md (sección "Comportamiento en local").
+  if (process.env.NODE_ENV !== 'production') return passthrough
+
   if (input.type === 'image/gif' || input.size < COMPRESS_SKIP_BELOW) return passthrough
 
   const url = URL.createObjectURL(input)
