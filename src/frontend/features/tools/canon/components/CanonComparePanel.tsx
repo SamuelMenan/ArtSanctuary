@@ -5,7 +5,7 @@ import type { FigureModel } from '@shared/lib/canon/figure'
 import type { Unit } from '@shared/lib/canon/units'
 import ProportionChart, { type ChartLayers } from './ProportionChart'
 import ChartCrossfade from './ChartCrossfade'
-import { VIEWS, type View } from './ReferenceFigure'
+import { VIEWS, type View } from '../lib/figureMeta'
 import type { CanonOption } from './CanonToolbar'
 
 const miniField =

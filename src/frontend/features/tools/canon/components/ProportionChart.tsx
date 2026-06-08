@@ -5,7 +5,8 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
-import ReferenceFigure, { type View } from './ReferenceFigure'
+import ReferenceFigure from './ReferenceFigure'
+import { type View } from '../lib/figureMeta'
 
 // La figura llena el alto del frame (coronilla ~0, planta ~100). Si una lámina
 // trajera margen, ajustar estos dos consts.

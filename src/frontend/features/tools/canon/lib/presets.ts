@@ -3,7 +3,7 @@
 // Sin backend: es preferencia local del usuario.
 
 import type { Unit } from '@shared/lib/canon/units'
-import type { View } from '../components/ReferenceFigure'
+import type { View } from './figureMeta'
 import type { ChartLayers } from '../components/ProportionChart'
 
 export interface CanonConfig {

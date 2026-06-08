@@ -6,7 +6,7 @@ import { buildFigure } from '@shared/lib/canon/figure'
 import { buildMeasurements } from '@shared/lib/canon/measurements'
 import { CANON_LIST } from '@shared/lib/canon/canons'
 import { type Unit } from '@shared/lib/canon/units'
-import { AVAILABLE_CANON_IDS, type View } from '../components/ReferenceFigure'
+import { AVAILABLE_CANON_IDS, type View } from '../lib/figureMeta'
 import { DEFAULT_LAYERS, type ChartLayers } from '../components/ProportionChart'
 import { exportChartPng, exportChartPdf } from '../lib/exportChart'
 import {

@@ -6,7 +6,7 @@ import { jsPDF } from 'jspdf'
 import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
-import { figureSrc, type View } from '../components/ReferenceFigure'
+import { figureSrc, type View } from './figureMeta'
 import { DEFAULT_LAYERS, type ChartLayers } from '../components/ProportionChart'
 
 /** Función de i18n (acepta clave dinámica + vars). */
