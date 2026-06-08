@@ -31,6 +31,7 @@ function normalizeLayers(l: unknown): ChartLayers {
     canon: o.canon !== false,
     anatomy: o.anatomy !== false,
     widths: o.widths === true,
+    loomis: o.loomis === true,
     skeleton: o.skeleton === true,
     muscles: o.muscles === true,
     joints: o.joints === true,

@@ -8,6 +8,7 @@ import CanonTraceBar from '../components/CanonTraceBar'
 import CanonPresets from '../components/CanonPresets'
 import CanonComparePanel from '../components/CanonComparePanel'
 import ChartCrossfade from '../components/ChartCrossfade'
+import ZoomPanViewport from '../components/ZoomPanViewport'
 import { useCanonTool, AVAILABLE_CANONS, CANON_OPTIONS } from '../hooks/useCanonTool'
 
 export default function CanonPage() {
@@ -18,6 +19,7 @@ export default function CanonPage() {
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,
+    ghostCanonId, setGhostCanonId,
     refUrl, refOpacity, setRefOpacity, handleRefFile, clearRef,
     measureActive, toggleMeasure, measurePoints, addMeasurePoint, clearMeasure,
   } = useCanonTool()
@@ -39,6 +41,9 @@ export default function CanonPage() {
           layers={layers}
           onToggleLayer={toggleLayer}
           onSendToBoard={handleSendToBoard}
+          ghostCanonId={ghostCanonId}
+          onGhost={setGhostCanonId}
+          ghostCanons={AVAILABLE_CANONS}
           compare={compare}
           onToggleCompare={toggleCompare}
           exporting={exporting}
@@ -84,18 +89,23 @@ export default function CanonPage() {
                 <h1 className="font-mono text-label-md text-[var(--color-primary)] uppercase tracking-widest mb-4 text-center shrink-0">
                   {t('canon.chartTitle', { n: figure.headCount })}
                 </h1>
-                <div className="relative h-[72vh] max-h-[880px] shrink-0">
-                  <ChartCrossfade swapKey={`${canonId}-${view}`}>
-                    <ProportionChart
-                      figure={figure}
-                      view={view}
-                      layers={layers}
-                      unit={unit}
-                      refUrl={refUrl}
-                      refOpacity={refOpacity}
-                      measure={measure}
-                    />
-                  </ChartCrossfade>
+                <div className="relative h-[72vh] max-h-[880px] w-full">
+                  <ZoomPanViewport panEnabled={!measureActive}>
+                    <div className="flex h-full items-center justify-center">
+                      <ChartCrossfade swapKey={`${canonId}-${view}`}>
+                        <ProportionChart
+                          figure={figure}
+                          view={view}
+                          layers={layers}
+                          unit={unit}
+                          refUrl={refUrl}
+                          refOpacity={refOpacity}
+                          measure={measure}
+                          ghostCanonId={ghostCanonId}
+                        />
+                      </ChartCrossfade>
+                    </div>
+                  </ZoomPanViewport>
                 </div>
               </div>
 

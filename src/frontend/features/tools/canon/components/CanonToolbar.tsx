@@ -4,17 +4,16 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { UNITS, type Unit } from '@shared/lib/canon/units'
 import { VIEWS, type View } from '../lib/figureMeta'
 import { EXTRA_LAYER_KEYS, type ChartLayers } from '../lib/chartLayers'
+import CanonActions from './CanonActions'
 
 // canon/anatomy (dibujadas) + las extra (skeleton/muscles/joints). Se muestran
 // TODAS aunque aún no tengan asset/data: el chart simplemente no cambia.
-const LAYER_KEYS = ['canon', 'anatomy', 'widths', ...EXTRA_LAYER_KEYS] as const
+const LAYER_KEYS = ['canon', 'anatomy', 'widths', 'loomis', ...EXTRA_LAYER_KEYS] as const
 
 const fieldCls =
   'bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-1 text-[var(--color-primary)] font-mono text-label-sm focus:ring-0 focus:border-[var(--color-primary)] cursor-pointer'
 const labelCls =
   'font-mono text-label-sm text-[var(--color-on-surface-variant)] uppercase tracking-wider whitespace-nowrap'
-const exportBtnCls =
-  'px-4 py-2 border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] font-mono text-label-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all uppercase tracking-wider bg-transparent flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-progress'
 
 export interface CanonOption {
   id: string
@@ -36,10 +35,13 @@ export interface CanonToolbarProps {
   layers: ChartLayers
   onToggleLayer: (k: keyof ChartLayers) => void
   onSendToBoard: () => void
+  ghostCanonId: string | null
+  onGhost: (id: string | null) => void
+  ghostCanons: CanonOption[]
   compare: boolean
   onToggleCompare: () => void
-  exporting: null | 'png' | 'pdf'
-  onExport: (kind: 'png' | 'pdf') => void
+  exporting: null | 'png' | 'pdf' | 'scale'
+  onExport: (kind: 'png' | 'pdf' | 'scale') => void
 }
 
 /** Barra superior de la herramienta Canon: canon, altura, vista, unidad, capas y export. */
@@ -56,6 +58,9 @@ export default function CanonToolbar({
   layers,
   onToggleLayer,
   onSendToBoard,
+  ghostCanonId,
+  onGhost,
+  ghostCanons,
   compare,
   onToggleCompare,
   exporting,
@@ -142,29 +147,16 @@ export default function CanonToolbar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button type="button" onClick={onSendToBoard} className={exportBtnCls}>
-          <span className="material-symbols-outlined text-[20px]">add_to_photos</span>
-          {t('canon.sendToBoard')}
-        </button>
-        <button
-          type="button"
-          onClick={onToggleCompare}
-          aria-pressed={compare}
-          className={`${exportBtnCls} ${compare ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : ''}`}
-        >
-          <span className="material-symbols-outlined text-[20px]">{compare ? 'close_fullscreen' : 'compare'}</span>
-          {t('canon.compare')}
-        </button>
-        <button type="button" onClick={() => onExport('png')} disabled={exporting !== null} className={exportBtnCls}>
-          <span className="material-symbols-outlined text-[20px]">{exporting === 'png' ? 'hourglass_top' : 'image'}</span>
-          {t('canon.exportPng')}
-        </button>
-        <button type="button" onClick={() => onExport('pdf')} disabled={exporting !== null} className={exportBtnCls}>
-          <span className="material-symbols-outlined text-[20px]">{exporting === 'pdf' ? 'hourglass_top' : 'picture_as_pdf'}</span>
-          {t('canon.exportPdf')}
-        </button>
-      </div>
+      <CanonActions
+        ghostCanonId={ghostCanonId}
+        onGhost={onGhost}
+        ghostCanons={ghostCanons}
+        onSendToBoard={onSendToBoard}
+        compare={compare}
+        onToggleCompare={onToggleCompare}
+        exporting={exporting}
+        onExport={onExport}
+      />
     </div>
   )
 }

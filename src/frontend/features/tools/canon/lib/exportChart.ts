@@ -7,6 +7,7 @@ import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
 import { figureSrc, type View } from './figureMeta'
+import { boxWidthCm } from './figureGeom'
 import { DEFAULT_LAYERS, type ChartLayers } from './chartLayers'
 
 /** Función de i18n (acepta clave dinámica + vars). */
@@ -194,4 +195,22 @@ export async function exportChartPdf(args: ExportArgs): Promise<void> {
   const y = (pageH - h) / 2
   pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h)
   pdf.save(`canon-${args.figure.canonId}-${args.view}.pdf`)
+}
+
+/** Exporta la lámina LIMPIA a escala REAL 1:1 (PDF en mm). La página mide
+ *  exactamente el cuerpo (alto = heightCm, ancho = boxWidthCm) + un margen; al
+ *  imprimir al 100% la figura sale a tamaño real. Sin anotaciones (solo la
+ *  figura), para usarla como plantilla. */
+export async function exportChartScalePdf({ figure, view }: Pick<ExportArgs, 'figure' | 'view'>): Promise<void> {
+  const { canonId, heightCm } = figure
+  const widthCm = boxWidthCm(canonId, view, heightCm)
+  const img = await loadImage(figureSrc(canonId, view))
+  const margin = 10 // mm
+  const figW = widthCm * 10 // cm → mm
+  const figH = heightCm * 10
+  const pageW = figW + margin * 2
+  const pageH = figH + margin * 2
+  const pdf = new jsPDF({ orientation: pageH >= pageW ? 'portrait' : 'landscape', unit: 'mm', format: [pageW, pageH] })
+  pdf.addImage(img, 'PNG', margin, margin, figW, figH)
+  pdf.save(`canon-${canonId}-${view}-1a1.pdf`)
 }

@@ -15,6 +15,8 @@ export interface ChartLayers {
   anatomy: boolean
   /** Línea media + marcas de ancho (hombros/cintura/pelvis) sobre la figura. */
   widths: boolean
+  /** Construcción Loomis (cabeza) + plomada (eje de aplomo vertical). */
+  loomis: boolean
   /** Overlay de esqueleto (lámina extra). */
   skeleton: boolean
   /** Overlay de musculatura (lámina extra). */
@@ -33,6 +35,7 @@ export const DEFAULT_LAYERS: ChartLayers = {
   canon: true,
   anatomy: true,
   widths: false,
+  loomis: false,
   skeleton: false,
   muscles: false,
   joints: false,

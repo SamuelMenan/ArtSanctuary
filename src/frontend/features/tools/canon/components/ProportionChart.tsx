@@ -13,6 +13,8 @@ import { overlaySrc } from '../lib/overlays'
 import { getJoints } from '../lib/joints'
 import FigureOverlays, { type MeasureState } from './FigureOverlays'
 import ChartAxis from './ChartAxis'
+import GhostFigure from './GhostFigure'
+import LoomisOverlay from './LoomisOverlay'
 
 const NO_MEASURE: MeasureState = { active: false, points: [], onAdd: () => {}, onClear: () => {} }
 
@@ -39,6 +41,7 @@ export default function ProportionChart({
   refUrl = null,
   refOpacity = 0.5,
   measure = NO_MEASURE,
+  ghostCanonId = null,
 }: {
   figure: FigureModel
   view: View
@@ -47,6 +50,7 @@ export default function ProportionChart({
   refUrl?: string | null
   refOpacity?: number
   measure?: MeasureState
+  ghostCanonId?: string | null
 }) {
   const { t } = usePreferences()
   const { canonId, headCount, heightCm, headCm } = figure
@@ -92,6 +96,8 @@ export default function ProportionChart({
         {musclesSrc && (
           <Image src={musclesSrc} alt={t('canon.muscles')} fill sizes="(max-width: 640px) 50vw, 320px" priority className="pointer-events-none object-contain opacity-80" />
         )}
+        {ghostCanonId && ghostCanonId !== canonId && <GhostFigure canonId={ghostCanonId} view={view} />}
+        {layers.loomis && <LoomisOverlay canonId={canonId} view={view} />}
         <div className="pointer-events-none absolute inset-0">
           {layers.canon &&
             divisions.map((d) => (

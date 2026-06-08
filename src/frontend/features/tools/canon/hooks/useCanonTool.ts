@@ -11,7 +11,7 @@ import { type Unit } from '@shared/lib/canon/units'
 import { AVAILABLE_CANON_IDS, figureSrc, type View } from '../lib/figureMeta'
 import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
 import { setPendingFigure } from '../lib/boardHandoff'
-import { exportChartPng, exportChartPdf } from '../lib/exportChart'
+import { exportChartPng, exportChartPdf, exportChartScalePdf } from '../lib/exportChart'
 import {
   listPresets,
   savePreset,
@@ -41,7 +41,8 @@ export function useCanonTool() {
   const [view, setView] = useState<View>('frontal')
   const [unit, setUnit] = useState<Unit>('cm')
   const [layers, setLayers] = useState<ChartLayers>(DEFAULT_LAYERS)
-  const [exporting, setExporting] = useState<null | 'png' | 'pdf'>(null)
+  const [exporting, setExporting] = useState<null | 'png' | 'pdf' | 'scale'>(null)
+  const [ghostCanonId, setGhostCanonId] = useState<string | null>(null)
   const [presets, setPresets] = useState<CanonPreset[]>([])
   const [presetId, setPresetId] = useState('')
   const [compare, setCompare] = useState(false)
@@ -93,12 +94,12 @@ export function useCanonTool() {
   }, [canonId, height, view, unit, layers])
 
   const handleExport = useCallback(
-    async (kind: 'png' | 'pdf') => {
+    async (kind: 'png' | 'pdf' | 'scale') => {
       if (exporting) return
       setExporting(kind)
       try {
-        const fn = kind === 'png' ? exportChartPng : exportChartPdf
-        await fn({ figure, view, t, layers, unit })
+        if (kind === 'scale') await exportChartScalePdf({ figure, view })
+        else await (kind === 'png' ? exportChartPng : exportChartPdf)({ figure, view, t, layers, unit })
       } catch (err) {
         console.error('canon export failed', err)
       } finally {
@@ -154,6 +155,7 @@ export function useCanonTool() {
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,
+    ghostCanonId, setGhostCanonId,
     ...trace,
   }
 }
