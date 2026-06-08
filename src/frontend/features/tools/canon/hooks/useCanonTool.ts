@@ -1,13 +1,17 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { buildFigure } from '@shared/lib/canon/figure'
 import { buildMeasurements } from '@shared/lib/canon/measurements'
 import { CANON_LIST } from '@shared/lib/canon/canons'
 import { type Unit } from '@shared/lib/canon/units'
-import { AVAILABLE_CANON_IDS, type View } from '../lib/figureMeta'
-import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
+import { AVAILABLE_CANON_IDS, figureSrc, type View } from '../lib/figureMeta'
+import { DEFAULT_LAYERS, EXTRA_LAYER_KEYS, type ChartLayers } from '../lib/chartLayers'
+import { canonHasOverlay } from '../lib/overlays'
+import { hasJoints } from '../lib/joints'
+import { setPendingFigure } from '../lib/boardHandoff'
 import { exportChartPng, exportChartPdf } from '../lib/exportChart'
 import {
   listPresets,
@@ -24,6 +28,7 @@ export const AVAILABLE_CANONS = CANON_LIST.filter((c) => AVAILABLE_CANON_IDS.inc
 /** Estado + handlers de la herramienta Canon (saca la lógica del componente). */
 export function useCanonTool() {
   const { t } = usePreferences()
+  const router = useRouter()
   const [canonId, setCanonId] = useState(AVAILABLE_CANONS[0]?.id ?? 'heroic')
   const [height, setHeight] = useState(175)
   const [view, setView] = useState<View>('frontal')
@@ -42,6 +47,23 @@ export function useCanonTool() {
   const measurements = useMemo(() => buildMeasurements(figure), [figure])
 
   const toggleLayer = useCallback((k: keyof ChartLayers) => setLayers((p) => ({ ...p, [k]: !p[k] })), [])
+
+  // Capas extra que SÍ tienen asset/data para el canon+vista actual (las demás
+  // se ocultan para no mostrar toggles vacíos).
+  const extraLayers = useMemo(
+    () =>
+      EXTRA_LAYER_KEYS.filter((k) =>
+        k === 'joints' ? hasJoints(canonId, view) : canonHasOverlay(canonId, k),
+      ),
+    [canonId, view],
+  )
+
+  // Handoff: deja la lámina actual pendiente y abre Boards (el primer editor que
+  // monte la inserta). Ver `boardHandoff.ts`.
+  const handleSendToBoard = useCallback(() => {
+    setPendingFigure(figureSrc(canonId, view))
+    router.push('/dashboard/tools/boards')
+  }, [canonId, view, router])
 
   // Carga inicial (cliente; localStorage no existe en SSR). En microtask para no
   // setState síncrono en el effect ni provocar mismatch de hidratación: presets +
@@ -128,7 +150,7 @@ export function useCanonTool() {
 
   return {
     canonId, setCanonId, height, setHeight, view, setView, unit, setUnit,
-    layers, toggleLayer, exporting, handleExport,
+    layers, toggleLayer, extraLayers, handleSendToBoard, exporting, handleExport,
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,

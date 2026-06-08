@@ -27,6 +27,7 @@ import { usePanZoom, clampScale } from './hooks/usePanZoom'
 import { useBoardData } from './hooks/useBoardData'
 import { useStagePointer } from './hooks/useStagePointer'
 import { useObjectCreation } from './hooks/useObjectCreation'
+import { takePendingFigure } from '@frontend/features/tools/canon/lib/boardHandoff'
 import { useObjectActions } from './hooks/useObjectActions'
 import { useTransformerSync } from './hooks/useTransformerSync'
 import { useSpacePan } from './hooks/useSpacePan'
@@ -191,6 +192,22 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
   const { addImage, addText, addSticky, addShape, addExtensionObject } = useObjectCreation(
     objects, stageSize, pos, scale, mutate, setSelectedIds, setEditingId,
   )
+
+  // Handoff de Canon: si la herramienta dejó una lámina pendiente, insertarla
+  // una sola vez cuando el board ya cargó y el stage tiene tamaño (addImage usa
+  // el centro de la vista). Ver `canon/lib/boardHandoff.ts`.
+  const handoffDone = useRef(false)
+  useEffect(() => {
+    if (handoffDone.current || !loaded || readOnly || stageSize.w === 0) return
+    const src = takePendingFigure()
+    if (!src) {
+      handoffDone.current = true
+      return
+    }
+    handoffDone.current = true
+    addImage(src)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, readOnly, stageSize.w])
 
   /* ── Estado del board que se pasa a la extensión del workspace ── */
   const extSlot: BoardExtSlotProps = {

@@ -23,9 +23,17 @@ const KEY = 'canon:presets'
 const LAST_KEY = 'canon:last'
 
 // Capas con forma válida (presets viejos pueden traer otra estructura).
+// canon/anatomy ON salvo que se hayan apagado; las extra (skeleton/muscles/
+// joints) OFF salvo que estén explícitamente ON.
 function normalizeLayers(l: unknown): ChartLayers {
   const o = (l ?? {}) as Record<string, unknown>
-  return { canon: o.canon !== false, anatomy: o.anatomy !== false }
+  return {
+    canon: o.canon !== false,
+    anatomy: o.anatomy !== false,
+    skeleton: o.skeleton === true,
+    muscles: o.muscles === true,
+    joints: o.joints === true,
+  }
 }
 
 function read(): CanonPreset[] {

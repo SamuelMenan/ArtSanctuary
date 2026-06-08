@@ -5,9 +5,12 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
+import Image from 'next/image'
 import ReferenceFigure from './ReferenceFigure'
 import { type View } from '../lib/figureMeta'
 import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
+import { overlaySrc } from '../lib/overlays'
+import { getJoints } from '../lib/joints'
 
 // La figura llena el alto del frame (coronilla ~0, planta ~100). Si una lámina
 // trajera margen, ajustar estos dos consts.
@@ -43,6 +46,9 @@ export default function ProportionChart({
   const landmarks = useMemo(() => getLandmarks(canonId), [canonId])
   const leftLandmarks = useMemo(() => landmarks.filter((l) => l.side !== 'right'), [landmarks])
   const rightLandmarks = useMemo(() => landmarks.filter((l) => l.side === 'right'), [landmarks])
+  const skeletonSrc = layers.skeleton ? overlaySrc(canonId, 'skeleton', view) : null
+  const musclesSrc = layers.muscles ? overlaySrc(canonId, 'muscles', view) : null
+  const joints = useMemo(() => (layers.joints ? getJoints(canonId, view) : []), [layers.joints, canonId, view])
 
   const lineCls = 'absolute left-0 right-0 border-t border-dashed border-[var(--color-outline-variant)]'
 
@@ -66,9 +72,16 @@ export default function ProportionChart({
       {/* Columna izquierda: landmarks lado izquierdo (Capa Anatomía) */}
       <div className="relative w-24 sm:w-32 shrink-0">{layers.anatomy && leftLandmarks.map((lm) => renderLabel(lm, 'right'))}</div>
 
-      {/* Centro: figura + líneas de canon (Capa 1) + de anatomía (Capa 2) */}
+      {/* Centro: figura + overlays (esqueleto/músculos) + líneas + joints */}
       <div className="relative h-full shrink-0">
         <ReferenceFigure canonId={canonId} view={view} alt={t('canon.referenceAlt')} className="h-full w-auto" />
+        {/* Overlays anatómicos: PNG alineado coronilla→planta sobre la figura. */}
+        {skeletonSrc && (
+          <Image src={skeletonSrc} alt={t('canon.skeleton')} fill sizes="(max-width: 640px) 50vw, 320px" priority className="pointer-events-none object-contain" />
+        )}
+        {musclesSrc && (
+          <Image src={musclesSrc} alt={t('canon.muscles')} fill sizes="(max-width: 640px) 50vw, 320px" priority className="pointer-events-none object-contain opacity-80" />
+        )}
         <div className="pointer-events-none absolute inset-0">
           {layers.canon &&
             divisions.map((d) => (
@@ -82,6 +95,14 @@ export default function ProportionChart({
                 style={{ top: `${mapFrac(lm.frac)}%` }}
               />
             ))}
+          {joints.map((j) => (
+            <div
+              key={`joint-${j.key}`}
+              title={t(`canon.jointNames.${j.key}`)}
+              className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[var(--color-primary)]"
+              style={{ left: `${j.x * 100}%`, top: `${mapFrac(j.frac)}%` }}
+            />
+          ))}
         </div>
       </div>
 

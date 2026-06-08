@@ -13,7 +13,7 @@ export default function CanonPage() {
   const { t } = usePreferences()
   const {
     canonId, setCanonId, height, setHeight, view, setView, unit, setUnit,
-    layers, toggleLayer, exporting, handleExport,
+    layers, toggleLayer, extraLayers, handleSendToBoard, exporting, handleExport,
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,
@@ -33,6 +33,8 @@ export default function CanonPage() {
           onUnit={setUnit}
           layers={layers}
           onToggleLayer={toggleLayer}
+          extraLayers={extraLayers}
+          onSendToBoard={handleSendToBoard}
           compare={compare}
           onToggleCompare={toggleCompare}
           exporting={exporting}

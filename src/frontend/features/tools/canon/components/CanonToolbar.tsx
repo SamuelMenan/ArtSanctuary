@@ -5,7 +5,7 @@ import { UNITS, type Unit } from '@shared/lib/canon/units'
 import { VIEWS, type View } from '../lib/figureMeta'
 import type { ChartLayers } from '../lib/chartLayers'
 
-const LAYER_KEYS = ['canon', 'anatomy'] as const
+const BASE_LAYER_KEYS = ['canon', 'anatomy'] as const
 
 const fieldCls =
   'bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-1 text-[var(--color-primary)] font-mono text-label-sm focus:ring-0 focus:border-[var(--color-primary)] cursor-pointer'
@@ -31,6 +31,9 @@ export interface CanonToolbarProps {
   onUnit: (u: Unit) => void
   layers: ChartLayers
   onToggleLayer: (k: keyof ChartLayers) => void
+  /** Capas extra (skeleton/muscles/joints) que tienen asset/data ahora mismo. */
+  extraLayers: (keyof ChartLayers)[]
+  onSendToBoard: () => void
   compare: boolean
   onToggleCompare: () => void
   exporting: null | 'png' | 'pdf'
@@ -50,12 +53,15 @@ export default function CanonToolbar({
   onUnit,
   layers,
   onToggleLayer,
+  extraLayers,
+  onSendToBoard,
   compare,
   onToggleCompare,
   exporting,
   onExport,
 }: CanonToolbarProps) {
   const { t } = usePreferences()
+  const layerKeys = [...BASE_LAYER_KEYS, ...extraLayers]
 
   return (
     <div className="min-h-[var(--spacing-appbar-height)] bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] flex flex-wrap items-center justify-between px-[var(--spacing-grid-gutter)] py-2 shrink-0 overflow-x-auto gap-4">
@@ -112,11 +118,10 @@ export default function CanonToolbar({
           </select>
         </div>
 
-        {/* Capas */}
         <div className="flex items-center gap-2">
           <span className={labelCls}>{t('canon.layers')}</span>
           <div className="flex items-center gap-1">
-            {LAYER_KEYS.map((k) => (
+            {layerKeys.map((k) => (
               <button
                 key={k}
                 type="button"
@@ -135,8 +140,11 @@ export default function CanonToolbar({
         </div>
       </div>
 
-      {/* Comparar + Export PNG / PDF */}
       <div className="flex items-center gap-2">
+        <button type="button" onClick={onSendToBoard} className={exportBtnCls}>
+          <span className="material-symbols-outlined text-[20px]">add_to_photos</span>
+          {t('canon.sendToBoard')}
+        </button>
         <button
           type="button"
           onClick={onToggleCompare}
