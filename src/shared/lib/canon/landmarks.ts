@@ -24,25 +24,26 @@ export interface Landmark {
  *  fuerzan a coincidir con las divisiones geométricas del canon (Capa 1). Que un
  *  landmark caiga entre dos cabezas es correcto, no un error. El `side` se alterna
  *  arriba (zona apretada) para legibilidad. */
-// Las alturas de academic/comic se PROYECTAN desde el set heroico medido,
-// expresado en unidades-cabeza (frac·8): la parte superior (mentón→pubis) ocupa
-// una cuota fija de cabezas, y el tramo de pierna (pubis→planta) se reescala a
-// las cabezas que cada canon dedica a la pierna. Coherente con los `headCount`
-// y diferenciado por canon; se reemplazará por medición directa cuando se haga
-// la regla de píxeles sobre cada lámina.
+// Anatomía REAL medida sobre cada lámina con regla de píxeles (overlay 5% en
+// C:\tmp\ruler-<canon>.png, leído por mitades). Son fracciones de la altura
+// total del cuerpo (0=coronilla, 1=planta), independientes de las divisiones
+// geométricas del canon (capa 1). academic y comic salieron con la MISMA
+// proporción de dibujo, así que comparten alturas medidas.
+const MEASURED_ADULT: Landmark[] = [
+  { key: 'cabeza', frac: 0.115, side: 'left' }, // mentón
+  { key: 'cuello', frac: 0.15, side: 'right' }, // base del cuello / clavícula
+  { key: 'hombros', frac: 0.16, side: 'left' }, // línea de hombros (acromion)
+  { key: 'pecho', frac: 0.235, side: 'right' }, // pezones
+  { key: 'ombligo', frac: 0.375, side: 'left' }, // ombligo
+  { key: 'entrepierna', frac: 0.49, side: 'right' }, // pubis
+  { key: 'rodillas', frac: 0.63, side: 'left' }, // rótulas
+  { key: 'pantorrillas', frac: 0.74, side: 'right' }, // vientre de la pantorrilla
+  { key: 'pies', frac: 0.93, side: 'left' }, // tobillos
+]
+
 export const CANON_LANDMARKS: Record<string, Landmark[]> = {
-  // Académico — 7.5 cabezas.
-  academic: [
-    { key: 'cabeza', frac: 0.128, side: 'left' },
-    { key: 'cuello', frac: 0.149, side: 'right' },
-    { key: 'hombros', frac: 0.171, side: 'left' },
-    { key: 'pecho', frac: 0.256, side: 'right' },
-    { key: 'ombligo', frac: 0.416, side: 'left' },
-    { key: 'entrepierna', frac: 0.512, side: 'right' },
-    { key: 'rodillas', frac: 0.662, side: 'left' },
-    { key: 'pantorrillas', frac: 0.756, side: 'right' },
-    { key: 'pies', frac: 0.934, side: 'left' },
-  ],
+  // Académico — 7.5 cabezas (medido sobre la lámina).
+  academic: MEASURED_ADULT,
   // Figura de 8 cabezas (heroico). Anatomía real del dibujo (medida).
   heroic: [
     { key: 'cabeza', frac: 0.12, side: 'left' }, // mentón
@@ -55,18 +56,8 @@ export const CANON_LANDMARKS: Record<string, Landmark[]> = {
     { key: 'pantorrillas', frac: 0.74, side: 'right' }, // vientre de la pantorrilla
     { key: 'pies', frac: 0.93, side: 'left' }, // tobillos
   ],
-  // Cómic — 8.5 cabezas (piernas más largas → landmarks bajos suben de frac).
-  comic: [
-    { key: 'cabeza', frac: 0.113, side: 'left' },
-    { key: 'cuello', frac: 0.132, side: 'right' },
-    { key: 'hombros', frac: 0.151, side: 'left' },
-    { key: 'pecho', frac: 0.226, side: 'right' },
-    { key: 'ombligo', frac: 0.367, side: 'left' },
-    { key: 'entrepierna', frac: 0.452, side: 'right' },
-    { key: 'rodillas', frac: 0.621, side: 'left' },
-    { key: 'pantorrillas', frac: 0.726, side: 'right' },
-    { key: 'pies', frac: 0.926, side: 'left' },
-  ],
+  // Cómic — la lámina salió con la misma proporción que la académica (medido).
+  comic: MEASURED_ADULT,
 }
 
 // Femeninos: misma ALTURA que su contraparte por nº de cabezas (las alturas
