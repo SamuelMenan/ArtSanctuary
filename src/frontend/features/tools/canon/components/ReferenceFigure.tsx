@@ -17,10 +17,20 @@ interface Meta {
 // proporción. Añadir un canon = una entrada aquí + las 3 imágenes en
 // `public/canon/<id>/`. Mientras un canon no tenga láminas, cae a heroico.
 const FIGURES: Record<string, Record<View, Meta>> = {
+  academic: {
+    frontal: { w: 425, h: 1354 },
+    lateral: { w: 203, h: 1247 },
+    posterior: { w: 424, h: 1312 },
+  },
   heroic: {
     frontal: { w: 395, h: 1310 },
     lateral: { w: 216, h: 1312 },
     posterior: { w: 454, h: 1471 },
+  },
+  comic: {
+    frontal: { w: 433, h: 1361 },
+    lateral: { w: 211, h: 1255 },
+    posterior: { w: 432, h: 1320 },
   },
 }
 

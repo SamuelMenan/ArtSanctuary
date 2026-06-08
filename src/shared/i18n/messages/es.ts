@@ -820,11 +820,12 @@ export const es = {
     silhouette: 'Silueta',
     technical: 'Técnico',
     names: {
-      child: 'Niño (6)',
-      average: 'Adulto (7)',
       academic: 'Académico (7.5)',
       heroic: 'Heroico (8)',
       comic: 'Cómic (8.5)',
+      'academic-female': 'Académico ♀ (7.5)',
+      'heroic-female': 'Heroico ♀ (8)',
+      'comic-female': 'Cómic ♀ (8.5)',
     },
     view: 'Vista',
     views: {

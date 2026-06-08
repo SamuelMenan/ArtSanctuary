@@ -57,35 +57,6 @@ const seg = (key: SegmentKey, heads: number): CanonSegment => ({ key, heads })
  * herramienta para no alterar la figura existente ni la silueta de Carnaval.
  */
 export const CANONS: Record<string, Canon> = {
-  child: {
-    id: 'child',
-    headCount: 6,
-    // Cabeza relativamente grande, piernas cortas.
-    segments: [
-      seg('head', 1),
-      seg('thorax', 0.9),
-      seg('abdomen', 0.9),
-      seg('pelvis', 0.9),
-      seg('thigh', 1),
-      seg('leg', 1),
-      seg('feet', 0.3),
-    ],
-    widths: { shoulders: 1.4, waist: 1.25, pelvis: 1.35, limb: 0.34 },
-  },
-  average: {
-    id: 'average',
-    headCount: 7,
-    segments: [
-      seg('head', 1),
-      seg('thorax', 1),
-      seg('abdomen', 1),
-      seg('pelvis', 1),
-      seg('thigh', 1.25),
-      seg('leg', 1.25),
-      seg('feet', 0.5),
-    ],
-    widths: { shoulders: 1.6, waist: 1.35, pelvis: 1.5, limb: 0.34 },
-  },
   academic: {
     id: 'academic',
     headCount: 7.5,
@@ -128,6 +99,54 @@ export const CANONS: Record<string, Canon> = {
       seg('feet', 0.5),
     ],
     widths: { shoulders: 2.1, waist: 1.45, pelvis: 1.62, limb: 0.36 },
+  },
+
+  // --- Eje FEMENINO ---------------------------------------------------------
+  // Misma ALTURA (headCount/segmentos) que su contraparte masculina; lo que
+  // cambia es la SILUETA (anchos): hombros más estrechos, cintura más marcada,
+  // pelvis ancha (cadera ≥ hombros). Imágenes en `public/canon/<id>-female/`
+  // (pendientes); prompts en `docs/helps/canon-image-prompts-female.md`.
+  'academic-female': {
+    id: 'academic-female',
+    headCount: 7.5,
+    segments: [
+      seg('head', 1),
+      seg('thorax', 1),
+      seg('abdomen', 1),
+      seg('pelvis', 1),
+      seg('thigh', 1.5),
+      seg('leg', 1.5),
+      seg('feet', 0.5),
+    ],
+    widths: { shoulders: 1.45, waist: 1.15, pelvis: 1.6, limb: 0.32 },
+  },
+  'heroic-female': {
+    id: 'heroic-female',
+    headCount: 8,
+    segments: [
+      seg('head', 1),
+      seg('thorax', 1),
+      seg('abdomen', 1),
+      seg('pelvis', 1),
+      seg('thigh', 1.75),
+      seg('leg', 1.75),
+      seg('feet', 0.5),
+    ],
+    widths: { shoulders: 1.55, waist: 1.1, pelvis: 1.65, limb: 0.32 },
+  },
+  'comic-female': {
+    id: 'comic-female',
+    headCount: 8.5,
+    segments: [
+      seg('head', 1),
+      seg('thorax', 1),
+      seg('abdomen', 1),
+      seg('pelvis', 1),
+      seg('thigh', 2),
+      seg('leg', 2),
+      seg('feet', 0.5),
+    ],
+    widths: { shoulders: 1.6, waist: 1.05, pelvis: 1.68, limb: 0.31 },
   },
 }
 

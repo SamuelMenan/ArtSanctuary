@@ -814,11 +814,12 @@ export const en = {
     silhouette: 'Silhouette',
     technical: 'Technical',
     names: {
-      child: 'Child (6)',
-      average: 'Adult (7)',
       academic: 'Academic (7.5)',
       heroic: 'Heroic (8)',
       comic: 'Comic (8.5)',
+      'academic-female': 'Academic ♀ (7.5)',
+      'heroic-female': 'Heroic ♀ (8)',
+      'comic-female': 'Comic ♀ (8.5)',
     },
     view: 'View',
     views: {
