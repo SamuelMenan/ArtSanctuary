@@ -858,7 +858,9 @@ export const es = {
     measure: {
       headUnit: '1 cabeza',
       shouldersW: 'Ancho de hombros',
+      waistW: 'Ancho de cintura',
       pelvisW: 'Ancho de pelvis',
+      limb: 'Grosor de extremidad',
       upperArm: 'Brazo',
       forearm: 'Antebrazo',
       hand: 'Mano',

@@ -48,7 +48,9 @@ const LENGTH_ORDER = ['upperArm', 'forearm', 'hand', 'thigh', 'shin', 'foot'] as
  */
 export const ANATOMY_REFERENCE: Record<string, AnatomyRef> = {
   shouldersW: { min: 1.9, max: 2.1 },
+  waistW: { min: 1.1, max: 1.5 },
   pelvisW: { min: 1.5, max: 1.7 },
+  limb: { min: 0.3, max: 0.4 },
   upperArm: { min: 1.45, max: 1.55 },
   forearm: { min: 1.1, max: 1.2 },
   hand: { min: 0.85, max: 0.95 },
@@ -75,7 +77,9 @@ export function buildMeasurements(model: FigureModel): Measurement[] {
     { key: 'headUnit', heads: 1, cm: h, group: 'unit' },
     // Anchos (del canon): cm / cabeza = el valor en cabezas original.
     withRef('shouldersW', model.widthsCm.shoulders / h, model.widthsCm.shoulders, 'width'),
+    withRef('waistW', model.widthsCm.waist / h, model.widthsCm.waist, 'width'),
     withRef('pelvisW', model.widthsCm.pelvis / h, model.widthsCm.pelvis, 'width'),
+    withRef('limb', model.widthsCm.limb / h, model.widthsCm.limb, 'width'),
   ]
   for (const key of LENGTH_ORDER) {
     const heads = LENGTH_HEADS[key]

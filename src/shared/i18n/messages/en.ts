@@ -852,7 +852,9 @@ export const en = {
     measure: {
       headUnit: '1 head',
       shouldersW: 'Shoulder width',
+      waistW: 'Waist width',
       pelvisW: 'Pelvis width',
+      limb: 'Limb thickness',
       upperArm: 'Upper arm',
       forearm: 'Forearm',
       hand: 'Hand',
