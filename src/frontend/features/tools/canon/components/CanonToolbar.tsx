@@ -7,7 +7,7 @@ import { EXTRA_LAYER_KEYS, type ChartLayers } from '../lib/chartLayers'
 
 // canon/anatomy (dibujadas) + las extra (skeleton/muscles/joints). Se muestran
 // TODAS aunque aún no tengan asset/data: el chart simplemente no cambia.
-const LAYER_KEYS = ['canon', 'anatomy', ...EXTRA_LAYER_KEYS] as const
+const LAYER_KEYS = ['canon', 'anatomy', 'widths', ...EXTRA_LAYER_KEYS] as const
 
 const fieldCls =
   'bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-1 text-[var(--color-primary)] font-mono text-label-sm focus:ring-0 focus:border-[var(--color-primary)] cursor-pointer'

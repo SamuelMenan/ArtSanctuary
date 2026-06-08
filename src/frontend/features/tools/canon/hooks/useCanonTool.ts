@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTraceMeasure } from './useTraceMeasure'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { buildFigure } from '@shared/lib/canon/figure'
 import { buildMeasurements } from '@shared/lib/canon/measurements'
@@ -48,6 +49,8 @@ export function useCanonTool() {
   const [bHeight, setBHeight] = useState(height)
   const [bView, setBView] = useState<View>(view)
 
+  const trace = useTraceMeasure()
+
   const figure = useMemo(() => buildFigure({ canonId, heightCm: height }), [canonId, height])
   const figureB = useMemo(() => buildFigure({ canonId: bCanonId, heightCm: bHeight }), [bCanonId, bHeight])
   const measurements = useMemo(() => buildMeasurements(figure), [figure])
@@ -60,6 +63,7 @@ export function useCanonTool() {
     setPendingFigure(figureSrc(canonId, view))
     router.push('/dashboard/tools/boards')
   }, [canonId, view, router])
+
 
   // Carga inicial (cliente; localStorage no existe en SSR). En microtask para no
   // setState síncrono en el effect ni provocar mismatch de hidratación: presets +
@@ -150,5 +154,6 @@ export function useCanonTool() {
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,
+    ...trace,
   }
 }

@@ -4,6 +4,7 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import MeasurementsPanel from '../components/MeasurementsPanel'
 import ProportionChart from '../components/ProportionChart'
 import CanonToolbar from '../components/CanonToolbar'
+import CanonTraceBar from '../components/CanonTraceBar'
 import CanonPresets from '../components/CanonPresets'
 import CanonComparePanel from '../components/CanonComparePanel'
 import ChartCrossfade from '../components/ChartCrossfade'
@@ -17,7 +18,11 @@ export default function CanonPage() {
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure, measurements,
+    refUrl, refOpacity, setRefOpacity, handleRefFile, clearRef,
+    measureActive, toggleMeasure, measurePoints, addMeasurePoint, clearMeasure,
   } = useCanonTool()
+
+  const measure = { active: measureActive, points: measurePoints, onAdd: addMeasurePoint, onClear: clearMeasure }
 
   return (
     <>
@@ -38,6 +43,17 @@ export default function CanonPage() {
           onToggleCompare={toggleCompare}
           exporting={exporting}
           onExport={handleExport}
+        />
+
+        <CanonTraceBar
+          refUrl={refUrl}
+          refOpacity={refOpacity}
+          onRefFile={handleRefFile}
+          onRefOpacity={setRefOpacity}
+          onClearRef={clearRef}
+          measureActive={measureActive}
+          onToggleMeasure={toggleMeasure}
+          onClearMeasure={clearMeasure}
         />
 
         <CanonPresets
@@ -70,7 +86,15 @@ export default function CanonPage() {
                 </h1>
                 <div className="relative h-[72vh] max-h-[880px] shrink-0">
                   <ChartCrossfade swapKey={`${canonId}-${view}`}>
-                    <ProportionChart figure={figure} view={view} layers={layers} unit={unit} />
+                    <ProportionChart
+                      figure={figure}
+                      view={view}
+                      layers={layers}
+                      unit={unit}
+                      refUrl={refUrl}
+                      refOpacity={refOpacity}
+                      measure={measure}
+                    />
                   </ChartCrossfade>
                 </div>
               </div>

@@ -11,6 +11,10 @@ import { type View } from '../lib/figureMeta'
 import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
 import { overlaySrc } from '../lib/overlays'
 import { getJoints } from '../lib/joints'
+import FigureOverlays, { type MeasureState } from './FigureOverlays'
+import ChartAxis from './ChartAxis'
+
+const NO_MEASURE: MeasureState = { active: false, points: [], onAdd: () => {}, onClear: () => {} }
 
 // La figura llena el alto del frame (coronilla ~0, planta ~100). Si una lámina
 // trajera margen, ajustar estos dos consts.
@@ -32,11 +36,17 @@ export default function ProportionChart({
   view,
   layers = DEFAULT_LAYERS,
   unit = 'cm',
+  refUrl = null,
+  refOpacity = 0.5,
+  measure = NO_MEASURE,
 }: {
   figure: FigureModel
   view: View
   layers?: ChartLayers
   unit?: Unit
+  refUrl?: string | null
+  refOpacity?: number
+  measure?: MeasureState
 }) {
   const { t } = usePreferences()
   const { canonId, headCount, heightCm, headCm } = figure
@@ -104,52 +114,30 @@ export default function ProportionChart({
             />
           ))}
         </div>
+        <FigureOverlays
+          figure={figure}
+          view={view}
+          unit={unit}
+          showWidths={layers.widths}
+          refUrl={refUrl}
+          refOpacity={refOpacity}
+          measure={measure}
+        />
       </div>
 
       {/* Columna de landmarks lado derecho (Capa Anatomía) */}
       <div className="relative w-24 sm:w-32 shrink-0">{layers.anatomy && rightLandmarks.map((lm) => renderLabel(lm, 'left'))}</div>
 
-      {/* Columna derecha: número de división + ALTURA TOTAL */}
-      <div className="relative w-20 sm:w-28 shrink-0 flex">
-        {/* Números de división (Capa Canon) */}
-        <div className="relative flex-grow">
-          {layers.canon && (
-            <>
-              <span className="absolute right-1 top-0 font-mono text-[9px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">
-                {t('canon.division')}
-              </span>
-              {divisions.map((d) => (
-                <span
-                  key={`n-${d.label}`}
-                  className="absolute right-1 -translate-y-1/2 font-mono text-[10px] sm:text-label-sm text-[var(--color-on-surface-variant)]"
-                  style={{ top: `${mapFrac(d.frac)}%` }}
-                >
-                  {d.label}
-                </span>
-              ))}
-            </>
-          )}
-        </div>
-
-        {/* Bracket ALTURA TOTAL */}
-        <div
-          className="relative w-6 sm:w-8"
-          style={{ marginTop: `${FIG_TOP}%`, marginBottom: `${100 - FIG_BOT}%` }}
-        >
-          {layers.canon && (
-            <>
-              <div className="absolute inset-y-0 left-1/2 border-l border-[var(--color-primary)]" />
-              <div className="absolute top-0 left-1/2 right-0 border-t border-[var(--color-primary)]" />
-              <div className="absolute bottom-0 left-1/2 right-0 border-t border-[var(--color-primary)]" />
-              <div className="absolute top-1/2 left-1/2 ml-2 -translate-y-1/2 whitespace-nowrap [writing-mode:vertical-rl] rotate-180">
-                <span className="font-mono text-[9px] sm:text-[11px] uppercase tracking-widest text-[var(--color-primary)]">
-                  {t('canon.alturaTotal')} · {formatValue(heightCm, unit, headCm)} {u}
-                </span>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      <ChartAxis
+        show={layers.canon}
+        divisions={divisions}
+        mapFrac={mapFrac}
+        figTop={FIG_TOP}
+        figBot={FIG_BOT}
+        divisionLabel={t('canon.division')}
+        heightLabel={t('canon.alturaTotal')}
+        heightValue={`${formatValue(heightCm, unit, headCm)} ${u}`}
+      />
     </div>
   )
 }

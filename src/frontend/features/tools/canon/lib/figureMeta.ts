@@ -46,3 +46,8 @@ export function resolveCanonId(canonId: string): string {
 export function figureSrc(canonId: string, view: View): string {
   return `/canon/${resolveCanonId(canonId)}/${view}.png`
 }
+
+/** Dims intrínsecas (px) de la lámina resuelta para canon+vista. */
+export function figureDims(canonId: string, view: View): Meta {
+  return FIGURES[resolveCanonId(canonId)][view]
+}

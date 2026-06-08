@@ -13,6 +13,8 @@ export interface ChartLayers {
   canon: boolean
   /** Capa Anatomía: líneas + etiquetas de landmarks reales (frac medido). */
   anatomy: boolean
+  /** Línea media + marcas de ancho (hombros/cintura/pelvis) sobre la figura. */
+  widths: boolean
   /** Overlay de esqueleto (lámina extra). */
   skeleton: boolean
   /** Overlay de musculatura (lámina extra). */
@@ -30,6 +32,7 @@ export const EXTRA_LAYER_KEYS = ['skeleton', 'muscles', 'joints'] as const
 export const DEFAULT_LAYERS: ChartLayers = {
   canon: true,
   anatomy: true,
+  widths: false,
   skeleton: false,
   muscles: false,
   joints: false,

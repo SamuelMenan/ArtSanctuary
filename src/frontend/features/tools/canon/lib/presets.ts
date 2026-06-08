@@ -30,6 +30,7 @@ function normalizeLayers(l: unknown): ChartLayers {
   return {
     canon: o.canon !== false,
     anatomy: o.anatomy !== false,
+    widths: o.widths === true,
     skeleton: o.skeleton === true,
     muscles: o.muscles === true,
     joints: o.joints === true,
