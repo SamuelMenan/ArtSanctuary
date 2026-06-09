@@ -68,6 +68,25 @@ const H = (key: string, axis: DimAxis, heads: number, source: FactSource, ref?: 
 const R = (key: string, axis: DimAxis, relativeTo: string, ratio: number, source: FactSource): PartDimension =>
   ({ key, axis, relativeTo, ratio, source })
 
+/** Sufijos de falange por nº (3 normal, 2 el pulgar). El `kind` (proximal/
+ *  middle/distal) sirve a la i18n; la `key` se prefija con el dedo para ser única
+ *  en el índice global del atlas. */
+const PHALANX_KINDS = ['proximal', 'middle', 'distal'] as const
+/** Construye un dedo: largo total + falanges. Cada falange es `heads` absolutas
+ *  (decreciente prox>medio>distal, Bridgman); rango ±20%. El pulgar usa 2. */
+const finger = (key: string, len: number, lenSource: FactSource, phalanges: number[]): BodyPart => {
+  const kinds = phalanges.length === 2 ? (['proximal', 'distal'] as const) : PHALANX_KINDS
+  return {
+    key, region: 'arm', hit: {}, image: {},
+    dims: [H('length', 'length', len, lenSource, { min: +(len * 0.88).toFixed(3), max: +(len * 1.12).toFixed(3) })],
+    children: phalanges.map((p, i) => ({
+      key: `${key}_${kinds[i]}`,
+      region: 'arm' as const, hit: {}, image: {},
+      dims: [H('length', 'length', p, 'bridgman', { min: +(p * 0.8).toFixed(3), max: +(p * 1.2).toFixed(3) })],
+    })),
+  }
+}
+
 /**
  * Atlas adulto. Las partes son CANON-AGNÓSTICAS (un set sirve a todos los
  * cánones; solo pelvis/tórax podrían ganar variante ♀ en el futuro). `hit` e
@@ -82,6 +101,14 @@ export const BODY_PARTS: BodyPart[] = [
       H('depth', 'depth', 0.8, 'anthropometry', { min: 0.72, max: 0.88 }),
       R('eyeLine', 'length', 'height', 0.5, 'loomis'), // ojos a ½ de la altura de la cabeza
       R('faceThird', 'length', 'height', 0.33, 'loomis'), // tercios faciales iguales
+    ],
+    // Rasgos faciales (construcción Loomis). Largos/anchos como fracción de la
+    // cabeza (1 cab de alto, 0.66 de ancho).
+    children: [
+      { key: 'eye', region: 'head', hit: {}, image: {}, dims: [H('width', 'width', 0.132, 'loomis', { min: 0.11, max: 0.15 })] }, // ojo ≈ 1/5 del ancho de la cara
+      { key: 'nose', region: 'head', hit: {}, image: {}, dims: [H('length', 'length', 0.28, 'loomis', { min: 0.24, max: 0.32 })] }, // cejas → base de la nariz (un tercio facial)
+      { key: 'ear', region: 'head', hit: {}, image: {}, dims: [H('length', 'length', 0.3, 'loomis', { min: 0.26, max: 0.34 })] }, // ceja → base de la nariz
+      { key: 'mouth', region: 'head', hit: {}, image: {}, dims: [H('width', 'width', 0.3, 'loomis', { min: 0.26, max: 0.34 })] }, // ancho ≈ entre pupilas
     ],
   },
   {
@@ -128,11 +155,18 @@ export const BODY_PARTS: BodyPart[] = [
       H('length', 'length', 0.9, 'richer', { min: 0.85, max: 0.95 }), // ≈ largo de la cara
       H('width', 'width', 0.4, 'richer'),
     ],
-    // Sub-partes confirmadas (Richer). Las falanges por dedo se añaden en H2,
-    // solo tras confirmarlas contra Richer/Bridgman (no se inventan).
+    // Sub-partes: palma + 5 dedos. Largos como fracción de la mano (0.9 cab),
+    // orden confirmado medio>anular>índice>meñique>pulgar (antropometría); rangos
+    // amplios por alta variabilidad. El dedo medio lleva sus 3 falanges
+    // (proporción decreciente prox>medio>distal, Bridgman) como descomposición
+    // de referencia; el resto se descompone en H2b tras confirmarlas.
     children: [
-      { key: 'palm', region: 'arm', hit: {}, image: {}, dims: [H('length', 'length', 0.45, 'richer')] }, // palma ≈ ½ mano (0.5·0.9)
-      { key: 'middleFinger', region: 'arm', hit: {}, image: {}, dims: [H('length', 'length', 0.45, 'richer')] }, // dedo medio ≈ ½ mano
+      { key: 'palm', region: 'arm', hit: {}, image: {}, dims: [H('length', 'length', 0.45, 'richer', { min: 0.42, max: 0.48 })] }, // palma ≈ ½ mano
+      finger('thumb', 0.31, 'anthropometry', [0.17, 0.14]), // 2 falanges
+      finger('indexFinger', 0.41, 'anthropometry', [0.185, 0.123, 0.103]),
+      finger('middleFinger', 0.45, 'richer', [0.2, 0.135, 0.115]), // dedo medio ≈ ½ mano
+      finger('ringFinger', 0.43, 'anthropometry', [0.194, 0.129, 0.108]),
+      finger('littleFinger', 0.34, 'anthropometry', [0.153, 0.102, 0.085]),
     ],
   },
   {
@@ -154,6 +188,15 @@ export const BODY_PARTS: BodyPart[] = [
       H('length', 'length', 1, 'richer', { min: 0.95, max: 1.05 }), // ≈ 1 cabeza
       H('height', 'length', 0.3, 'richer'), // alto del empeine
       H('width', 'width', 0.35, 'richer'),
+    ],
+    // Sub-partes: los 5 dedos, decrecientes del gordo al pequeño. Largos como
+    // fracción del pie (antropometría); rangos amplios por variabilidad.
+    children: [
+      { key: 'bigToe', region: 'leg', hit: {}, image: {}, dims: [H('length', 'length', 0.18, 'anthropometry', { min: 0.14, max: 0.22 })] },
+      { key: 'secondToe', region: 'leg', hit: {}, image: {}, dims: [H('length', 'length', 0.16, 'anthropometry', { min: 0.12, max: 0.2 })] },
+      { key: 'thirdToe', region: 'leg', hit: {}, image: {}, dims: [H('length', 'length', 0.14, 'anthropometry', { min: 0.1, max: 0.18 })] },
+      { key: 'fourthToe', region: 'leg', hit: {}, image: {}, dims: [H('length', 'length', 0.11, 'anthropometry', { min: 0.08, max: 0.15 })] },
+      { key: 'littleToe', region: 'leg', hit: {}, image: {}, dims: [H('length', 'length', 0.08, 'anthropometry', { min: 0.05, max: 0.11 })] },
     ],
   },
 ]

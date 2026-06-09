@@ -40,13 +40,41 @@ describe('anatomyParts (atlas)', () => {
     expect(new Set(inTree)).toEqual(new Set(BODY_PARTS))
   })
 
-  it('la mano tiene sub-partes palma y dedo medio ≈ ½ mano', () => {
+  it('la mano tiene palma + 5 dedos; palma y dedo medio ≈ ½ mano', () => {
     const hand = getPart('hand')!
     const handLen = dimHeads(hand, hand.dims.find((d) => d.key === 'length')!)!
-    const palm = getPart('palm')!
+    expect(hand.children!.map((c) => c.key)).toEqual([
+      'palm', 'thumb', 'indexFinger', 'middleFinger', 'ringFinger', 'littleFinger',
+    ])
+    expect(dimHeads(getPart('palm')!, getPart('palm')!.dims[0])).toBeCloseTo(handLen * 0.5, 6)
+    expect(dimHeads(getPart('middleFinger')!, getPart('middleFinger')!.dims[0])).toBeCloseTo(handLen * 0.5, 6)
+  })
+
+  it('cada dedo de la mano tiene falanges decrecientes (pulgar 2, resto 3)', () => {
+    for (const fk of ['thumb', 'indexFinger', 'middleFinger', 'ringFinger', 'littleFinger']) {
+      const f = getPart(fk)!
+      const phal = f.children!
+      expect(phal.length).toBe(fk === 'thumb' ? 2 : 3)
+      const lens = phal.map((p) => dimHeads(p, p.dims[0])!)
+      for (let i = 1; i < lens.length; i++) expect(lens[i - 1], `${fk}`).toBeGreaterThan(lens[i])
+    }
+  })
+
+  it('falanges del dedo medio suman ≈ su largo', () => {
     const middle = getPart('middleFinger')!
-    expect(dimHeads(palm, palm.dims[0])).toBeCloseTo(handLen * 0.5, 6)
-    expect(dimHeads(middle, middle.dims[0])).toBeCloseTo(handLen * 0.5, 6)
+    const sum = middle.children!.reduce((a, p) => a + dimHeads(p, p.dims[0])!, 0)
+    expect(sum).toBeCloseTo(dimHeads(middle, middle.dims[0])!, 1)
+  })
+
+  it('el pie tiene 5 dedos decrecientes del gordo al pequeño', () => {
+    const foot = getPart('foot')!
+    const lens = foot.children!.map((t) => dimHeads(t, t.dims[0])!)
+    expect(lens.length).toBe(5)
+    for (let i = 1; i < lens.length; i++) expect(lens[i - 1]).toBeGreaterThan(lens[i])
+  })
+
+  it('la cabeza tiene rasgos faciales (ojo/nariz/oreja/boca)', () => {
+    expect(getPart('head')!.children!.map((c) => c.key)).toEqual(['eye', 'nose', 'ear', 'mouth'])
   })
 
   it('dimCm escala lineal con headCm', () => {
