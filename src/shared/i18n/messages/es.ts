@@ -944,6 +944,21 @@ export const es = {
         'comic-female': 'Cómic ♀ (8.5 cabezas): proporciones estilizadas y alargadas con pelvis ancha.',
       },
     },
+    atlasNote: 'Referencia anatómica, escalada a la altura',
+    part: {
+      regions: { head: 'Cabeza', trunk: 'Tronco', arm: 'Brazo', leg: 'Pierna' },
+      phalanx: { proximal: 'Proximal', middle: 'Media', distal: 'Distal' },
+      names: {
+        head: 'Cabeza', neck: 'Cuello', torso: 'Torso', pelvis: 'Pelvis', arm: 'Brazo', forearm: 'Antebrazo', hand: 'Mano', thigh: 'Muslo', leg: 'Pierna', foot: 'Pie',
+        eye: 'Ojo', nose: 'Nariz', ear: 'Oreja', mouth: 'Boca',
+        palm: 'Palma', thumb: 'Pulgar', indexFinger: 'Índice', middleFinger: 'Medio', ringFinger: 'Anular', littleFinger: 'Meñique',
+        bigToe: 'Dedo gordo', secondToe: '2.º dedo', thirdToe: '3.er dedo', fourthToe: '4.º dedo', littleToe: 'Dedo pequeño',
+      },
+      dim: {
+        length: 'Largo', width: 'Ancho', depth: 'Profundidad', height: 'Alto',
+        eyeLine: 'Línea de ojos', faceThird: 'Tercio facial', upperArm: 'Brazo', forearm: 'Antebrazo', full: 'Largo total', shin: 'Pantorrilla', nippleLine: 'Línea de pezones',
+      },
+    },
   },
   validation: {
     invalidBody: 'Cuerpo inválido',

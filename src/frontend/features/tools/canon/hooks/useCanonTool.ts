@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useTraceMeasure } from './useTraceMeasure'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { buildFigure } from '@shared/lib/canon/figure'
-import { buildMeasurements } from '@shared/lib/canon/measurements'
 import { CANON_LIST } from '@shared/lib/canon/canons'
 import { type Unit } from '@shared/lib/canon/units'
 import { AVAILABLE_CANON_IDS, figureSrc, type View } from '../lib/figureMeta'
@@ -55,7 +54,6 @@ export function useCanonTool() {
 
   const figure = useMemo(() => buildFigure({ canonId, heightCm: height }), [canonId, height])
   const figureB = useMemo(() => buildFigure({ canonId: bCanonId, heightCm: bHeight }), [bCanonId, bHeight])
-  const measurements = useMemo(() => buildMeasurements(figure, view), [figure, view])
 
   const toggleLayer = useCallback((k: keyof ChartLayers) => setLayers((p) => ({ ...p, [k]: !p[k] })), [])
 
@@ -155,7 +153,7 @@ export function useCanonTool() {
     layers, toggleLayer, handleSendToBoard, exporting, handleExport,
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
-    figure, measurements,
+    figure,
     ghostCanonId, setGhostCanonId,
     helpMode, toggleHelp: () => setHelpMode((v) => !v),
     ...trace,

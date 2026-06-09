@@ -19,7 +19,7 @@ export default function CanonPage() {
     layers, toggleLayer, handleSendToBoard, exporting, handleExport,
     presets, presetId, handleLoadPreset, handleSavePreset, handleDeletePreset,
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
-    figure, measurements,
+    figure,
     ghostCanonId, setGhostCanonId,
     refUrl, refOpacity, setRefOpacity, handleRefFile, clearRef,
     measureActive, toggleMeasure, measurePoints, addMeasurePoint, clearMeasure,
@@ -93,7 +93,7 @@ export default function CanonPage() {
           </ZoomPanViewport>
         </div>
       </div>
-      <CanonMeasuresPanel measurements={measurements} unit={unit} headCm={figure.headCm} canonId={figure.canonId} view={view} />
+      <CanonMeasuresPanel unit={unit} headCm={figure.headCm} canonId={figure.canonId} />
     </div>
   )
 
