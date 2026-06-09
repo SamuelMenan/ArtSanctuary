@@ -17,7 +17,7 @@ import { appBarShell, appBarBg, appBarTitle } from './appbar/appBarStyles'
 export default function Navbar() {
   const { status } = useSession()
   const { locale, theme, setLocale, setTheme, t } = usePreferences()
-  const { sidebarOpen, toggleSidebar, navbarOpen, toggleNavbar } = useChrome()
+  const { sidebarOpen, toggleSidebar, navbarOpen } = useChrome()
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isNotifOpen, setIsNotifOpen] = useState(false)
@@ -53,18 +53,20 @@ export default function Navbar() {
     <>
       {/* Desktop TopAppBar — se esconde/muestra con su propio toggle */}
       <motion.header
-        className={`hidden md:flex print:hidden ${appBarShell} ${appBarBg.glass} fixed top-0 right-0 justify-between z-40 transition-[left] duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'}`}
+        className={`hidden md:flex print:hidden ${appBarShell} !pl-0 ${appBarBg.glass} fixed top-0 right-0 justify-between z-40 transition-[left] duration-300 ease-in-out ${sidebarOpen ? 'md:left-[var(--spacing-sidebar-width)]' : 'md:left-0'}`}
         animate={{ y: navbarOpen ? 0 : '-100%' }}
         transition={transition.base}
       >
-        <div className="flex items-center gap-1">
-          <AppBarButton
-            icon={sidebarOpen ? 'chevron_left' : 'chevron_right'}
-            label={sidebarOpen ? t('common.hideSidebar') : t('common.showSidebar')}
-            onClick={toggleSidebar}
-          />
+        <div className="flex items-center">
+          {/* Chevron centrado sobre el rail de herramientas (56px). */}
+          <div className="flex w-14 shrink-0 justify-center">
+            <AppBarButton
+              icon={sidebarOpen ? 'chevron_left' : 'chevron_right'}
+              label={sidebarOpen ? t('common.hideSidebar') : t('common.showSidebar')}
+              onClick={toggleSidebar}
+            />
+          </div>
           <div className={`${appBarTitle} px-1`}>ArtSanctuary</div>
-          <AppBarButton icon="expand_less" label={t('common.hideTopBar')} onClick={toggleNavbar} />
         </div>
         <div className="flex items-center gap-1">
           <AppBarButton icon="search" label={t('common.search')} href="/explore" />
