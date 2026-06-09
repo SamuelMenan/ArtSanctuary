@@ -40,8 +40,11 @@ export default function ChromeProvider({ children }: { children: ReactNode }) {
   // `/dashboard/workspaces/<id>/tools/<x>`). El índice `/dashboard/tools` (sin
   // `/tools/`) NO es inmersivo → conserva el sidebar global y no muestra el rail.
   const isTools = pathname.includes('/tools/')
-  // Boards (lista + editor) usan el layout de herramientas (tool-sidebar).
-  const isBoards = pathname.startsWith('/dashboard/tools/boards') || pathname.includes('/boards')
+  // Solo el EDITOR de un board (con id en la ruta `/boards/<id>`) es inmersivo
+  // a lo "lienzo limpio": esconde el navbar y activa el revelado por proximidad.
+  // La LISTA de boards (`/dashboard/tools/boards`, sin id) NO → se está eligiendo,
+  // el navbar sigue visible. El layout de tools lo aporta `isTools` igual.
+  const isBoards = /\/boards\/[^/]+/.test(pathname)
   // Detalle de workspace (`/dashboard/workspaces/<id>...`): entra al "layout 2"
   // (rail del workspace), sin sidebar global. La LISTA `/dashboard/workspaces` no.
   const isWorkspaceDetail = /^\/dashboard\/workspaces\/[^/]+/.test(pathname)

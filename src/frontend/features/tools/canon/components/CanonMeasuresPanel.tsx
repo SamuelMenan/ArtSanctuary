@@ -128,8 +128,8 @@ export default function CanonMeasuresPanel({ figure, unit }: { figure: FigureMod
         animate="animate"
         className="flex flex-1 flex-col gap-3 overflow-y-auto p-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-      <motion.div variants={fadeSlide} className="flex flex-col gap-0.5">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-primary)]">{t(`canon.names.${canonId}`)}</span>
+      <motion.div variants={fadeSlide} className="-mx-4 -mt-4 flex flex-col justify-center border-b border-[var(--color-outline-variant)] bg-[var(--color-surface-container-high)] px-4 py-2">
+        <span className="font-mono text-sm uppercase tracking-[0.05em] text-[var(--color-primary)]">{t(`canon.names.${canonId}`)}</span>
         <span className="font-mono text-[10px] tabular-nums text-[var(--color-on-surface-variant)]">{t('canon.baseUnit', { n: headCm.toFixed(2) })}</span>
       </motion.div>
 
@@ -188,9 +188,10 @@ export default function CanonMeasuresPanel({ figure, unit }: { figure: FigureMod
       </PanelSection>
       </motion.div>
 
-      {/* Fades indicadores de scroll (sin scrollbar). No interceptan el ratón. */}
-      <div aria-hidden className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-8 bg-gradient-to-b from-[var(--color-surface-container-low)] to-transparent transition-opacity duration-200 ${fade.top ? 'opacity-100' : 'opacity-0'}`} />
-      <div aria-hidden className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-14 items-end justify-center pb-1 bg-gradient-to-t from-[var(--color-surface-container-low)] from-40% via-[var(--color-surface-container-low)]/85 to-transparent transition-opacity duration-200 ${fade.bottom ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Fades indicadores de scroll (sin scrollbar) — mismo lenguaje que el rail
+          de herramientas/workspace. No interceptan el ratón. */}
+      <div aria-hidden className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-10 bg-gradient-to-b from-[var(--color-surface-container-low)] to-transparent transition-opacity duration-200 ${fade.top ? 'opacity-100' : 'opacity-0'}`} />
+      <div aria-hidden className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-16 items-end justify-center pb-1 bg-gradient-to-t from-[var(--color-surface-container-low)] from-40% via-[var(--color-surface-container-low)]/85 to-transparent transition-opacity duration-200 ${fade.bottom ? 'opacity-100' : 'opacity-0'}`}>
         <motion.span
           className="material-symbols-outlined text-[22px] text-[var(--color-primary)]"
           animate={{ y: [0, 4, 0] }}

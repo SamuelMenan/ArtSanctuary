@@ -244,10 +244,13 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
 
           {project && project.boards.length > 0 && (
             <>
-              <div className={`flex items-center bg-[var(--color-surface-container-high)] shrink-0 border-b border-[var(--color-outline-variant)] overflow-hidden ${isExpanded ? 'px-6 h-[42px] mt-4' : 'hidden'}`}>
+              <div className={`flex flex-col justify-center bg-[var(--color-surface-container-high)] shrink-0 border-b border-[var(--color-outline-variant)] overflow-hidden ${isExpanded ? 'px-6 py-1.5 mt-4' : 'hidden'}`}>
                 <h3 className={`${sectionTitleText} whitespace-nowrap`}>
-                  VISTAS ({project.name})
+                  VISTAS
                 </h3>
+                <span className="font-mono text-[10px] tracking-[0.04em] text-[var(--color-on-surface-variant)] truncate first-letter:uppercase">
+                  {project.name}
+                </span>
               </div>
               <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 ${isExpanded ? '' : 'gap-2 mt-2 mb-2 border-t border-[var(--color-outline-variant)] pt-2'}`}>
                 {project.boards.map((b) => {
