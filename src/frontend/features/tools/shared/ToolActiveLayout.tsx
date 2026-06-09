@@ -111,23 +111,23 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
       title: 'HERRAMIENTAS',
       boards: 'Tableros',
       crop: 'Recorte',
-      cutout: 'Quitar fondo',
-      grid: 'Cuadrícula de referencia',
+      cutout: 'Fondo',
+      grid: 'Cuadrícula',
       notan: 'Notan',
-      mix: 'Mezcla de colores',
-      gesture: 'Dibujo gestual',
-      canon: 'Canon de proporciones',
+      mix: 'Mezcla',
+      gesture: 'Gestual',
+      canon: 'Canon',
     },
     en: {
       title: 'TOOLS',
       boards: 'Boards',
       crop: 'Crop',
-      cutout: 'Remove background',
-      grid: 'Reference grid',
+      cutout: 'Cutout',
+      grid: 'Grid',
       notan: 'Notan',
-      mix: 'Color mixing',
-      gesture: 'Gesture drawing',
-      canon: 'Proportion canon',
+      mix: 'Mixing',
+      gesture: 'Gesture',
+      canon: 'Canon',
     },
   }[locale]
 
@@ -144,6 +144,13 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
 
   const [isHovered, setIsHovered] = useState(false)
   const isExpanded = toolNavOpen || isHovered
+
+  // Ancho expandido ADAPTADO a la etiqueta más larga (título + tools + plugins),
+  // en vez de un ancho fijo: icono(20) + gap(16) + texto + padding(~40). Cálculo
+  // trivial (longitudes de string), no necesita memo.
+  const maxChars = [toolLabels.title, ...tools.map((x) => x.title), ...plugins.map((p) => t(p.meta.labelKey))]
+    .reduce((m, s) => Math.max(m, s.length), 0)
+  const expandedWidth = Math.min(280, Math.max(140, 76 + maxChars * 8.5))
 
   // Scroll del rail sin scrollbar: fades superior/inferior que indican contenido
   // oculto. Se recalculan al hacer scroll, al cambiar de tamaño y al cambiar el
@@ -171,7 +178,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
       {showRail && (
       <motion.aside
         className={`hidden lg:flex print:hidden relative bg-[var(--color-surface-container-lowest)] border-[var(--color-outline-variant)] flex-col overflow-visible z-30 shrink-0 border-r`}
-        animate={{ width: isExpanded ? 260 : 56 }}
+        animate={{ width: isExpanded ? expandedWidth : 56 }}
         transition={transition.base}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
