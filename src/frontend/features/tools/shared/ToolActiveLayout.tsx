@@ -111,6 +111,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
       title: 'HERRAMIENTAS',
       boards: 'Tableros',
       crop: 'Recorte',
+      cutout: 'Quitar fondo',
       grid: 'Cuadrícula de referencia',
       notan: 'Notan',
       mix: 'Mezcla de colores',
@@ -121,6 +122,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
       title: 'TOOLS',
       boards: 'Boards',
       crop: 'Crop',
+      cutout: 'Remove background',
       grid: 'Reference grid',
       notan: 'Notan',
       mix: 'Color mixing',
@@ -132,6 +134,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
   const tools = [
     { title: toolLabels.boards, href: '/dashboard/tools/boards', icon: 'dashboard' },
     { title: toolLabels.crop, href: '/dashboard/tools/crop', icon: 'crop' },
+    { title: toolLabels.cutout, href: '/dashboard/tools/cutout', icon: 'background_replace' },
     { title: toolLabels.grid, href: '/dashboard/tools/grid', icon: 'grid_4x4' },
     { title: toolLabels.notan, href: '/dashboard/tools/notan', icon: 'contrast' },
     { title: toolLabels.mix, href: '/dashboard/tools/color-mixing', icon: 'palette' },
@@ -168,7 +171,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
       {showRail && (
       <motion.aside
         className={`hidden lg:flex print:hidden relative bg-[var(--color-surface-container-lowest)] border-[var(--color-outline-variant)] flex-col overflow-visible z-30 shrink-0 border-r`}
-        animate={{ width: isExpanded ? 260 : 64 }}
+        animate={{ width: isExpanded ? 260 : 56 }}
         transition={transition.base}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -214,7 +217,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
                   WORKSPACE
                 </h2>
               </div>
-              <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 ${isExpanded ? '' : 'gap-2 mt-4 mb-2'}`}>
+              <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 ${isExpanded ? '' : 'gap-2 mt-2 mb-2'}`}>
                 {plugins.map((plugin) => (
                   <Link
                     key={plugin.id}
@@ -239,7 +242,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
                   VISTAS ({project.name})
                 </h3>
               </div>
-              <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 ${isExpanded ? '' : 'gap-2 mt-2 mb-2 border-t border-[var(--color-outline-variant)] pt-4'}`}>
+              <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 ${isExpanded ? '' : 'gap-2 mt-2 mb-2 border-t border-[var(--color-outline-variant)] pt-2'}`}>
                 {project.boards.map((b) => {
                   const href = `/dashboard/workspaces/${project._id}/boards/${b._id}`
                   const isActive = pathname.startsWith(href)
@@ -267,7 +270,7 @@ export default function ToolActiveLayout({ children, projectId }: { children: Re
               {toolLabels.title}
             </h2>
           </div>
-          <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 pb-6 ${isExpanded ? '' : wsId ? 'gap-2 mt-2 mb-4 border-t border-[var(--color-outline-variant)] pt-4' : 'gap-2 mb-4 pt-2'}`}>
+          <nav className={`flex flex-col font-mono text-sm tracking-[0.05em] shrink-0 pb-6 ${isExpanded ? '' : wsId ? 'gap-2 mt-2 mb-4 border-t border-[var(--color-outline-variant)] pt-2' : 'gap-2 mb-4 pt-2'}`}>
             {tools.map((tool) => {
               const slug = tool.href.split('/').pop()!
               // Dentro de un workspace: "Tableros" vuelve al PROYECTO; las demás

@@ -21,6 +21,13 @@ export default function ToolsDashboardPage() {
       href: '/dashboard/tools/crop'
     },
     {
+      title: t('toolsDashboard.cutoutTitle'),
+      desc: t('toolsDashboard.cutoutDesc'),
+      icon: 'background_replace',
+      badge: 'FREE',
+      href: '/dashboard/tools/cutout'
+    },
+    {
       title: t('toolsDashboard.gridTitle'),
       desc: t('toolsDashboard.gridDesc'),
       icon: 'select_all',

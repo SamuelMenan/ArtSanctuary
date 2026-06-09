@@ -9,6 +9,7 @@
 import * as React from 'react'
 import { notFound } from 'next/navigation'
 import CropScreen from '@frontend/features/tools/crop/screens/CropScreen'
+import CutoutScreen from '@frontend/features/tools/crop/screens/CutoutScreen'
 import ReferenceGridScreen from '@frontend/features/tools/grid/screens/ReferenceGridScreen'
 import NotanScreen from '@frontend/features/tools/notan/screens/NotanScreen'
 import ColorMixScreen from '@frontend/features/tools/color-mixing/screens/ColorMixScreen'
@@ -17,6 +18,7 @@ import CanonScreen from '@frontend/features/tools/canon/screens/CanonScreen'
 
 const SCREENS: Record<string, React.ComponentType> = {
   crop: CropScreen,
+  cutout: CutoutScreen,
   grid: ReferenceGridScreen,
   notan: NotanScreen,
   'color-mixing': ColorMixScreen,
