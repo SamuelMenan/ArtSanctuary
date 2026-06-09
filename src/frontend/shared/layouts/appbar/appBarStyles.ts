@@ -1,7 +1,7 @@
 // Fuente ÚNICA de estilos para las barras superiores de chrome (navbar global y
 // top bars de herramientas). Coherencia dura: iconos, tamaños y tipografía
 // IGUALES en todas; el color de fondo PUEDE variar por contexto (glass vs
-// sólido), siempre vía token. Ver docs/pr/plan-appbar-unify.md.
+// sólido), siempre vía token. Ver docs/pr/completos/plan-appbar-unify.md.
 
 /** Estructura de la barra principal. */
 export const appBarShell =

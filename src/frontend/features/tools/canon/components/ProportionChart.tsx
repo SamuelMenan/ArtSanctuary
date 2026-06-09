@@ -12,6 +12,7 @@ import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
 import { overlaySrc } from '../lib/overlays'
 import { getJoints } from '../lib/joints'
 import FigureOverlays, { type MeasureState } from './FigureOverlays'
+import LandmarkLabel from './LandmarkLabel'
 import ChartAxis from './ChartAxis'
 import GhostFigure from './GhostFigure'
 import LoomisOverlay from './LoomisOverlay'
@@ -67,18 +68,13 @@ export default function ProportionChart({
   const lineCls = 'absolute left-0 right-0 border-t border-dashed border-[var(--color-outline-variant)]'
 
   const renderLabel = (lm: (typeof landmarks)[number], align: 'left' | 'right') => (
-    <div
+    <LandmarkLabel
       key={lm.key}
-      className={`absolute ${align === 'right' ? 'right-0 items-end text-right' : 'left-0 items-start text-left'} flex flex-col -translate-y-1/2`}
-      style={{ top: `${mapFrac(lm.frac)}%` }}
-    >
-      <span className="font-mono text-[10px] sm:text-label-sm uppercase tracking-wider text-[var(--color-on-surface)] leading-tight">
-        {t(`canon.landmarks.${lm.key}`)}
-      </span>
-      <span className="font-mono text-[9px] sm:text-[11px] text-[var(--color-primary)] leading-tight">
-        {formatValue(lm.frac * heightCm, unit, headCm)} {u}
-      </span>
-    </div>
+      lm={lm}
+      align={align}
+      top={mapFrac(lm.frac)}
+      valueText={`${formatValue(lm.frac * heightCm, unit, headCm)} ${u}`}
+    />
   )
 
   return (

@@ -6,8 +6,7 @@ import type { Unit } from '@shared/lib/canon/units'
 import ProportionChart from './ProportionChart'
 import { type ChartLayers } from '../lib/chartLayers'
 import ChartCrossfade from './ChartCrossfade'
-import { VIEWS, type View } from '../lib/figureMeta'
-import type { CanonOption } from './CanonToolbar'
+import { VIEWS, type View, type CanonOption } from '../lib/figureMeta'
 
 const miniField =
   'bg-[var(--color-surface-dim)] border border-[var(--color-outline-variant)] rounded-[var(--radius-sm)] px-2 py-0.5 text-[var(--color-primary)] font-mono text-[11px] focus:ring-0 focus:border-[var(--color-primary)]'

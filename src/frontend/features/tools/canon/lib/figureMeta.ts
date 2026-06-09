@@ -7,6 +7,14 @@ export type View = 'frontal' | 'lateral' | 'posterior'
 
 export const VIEWS: View[] = ['frontal', 'lateral', 'posterior']
 
+/** Opción de canon para selects (id + nº cabezas + si tiene las 3 láminas). */
+export interface CanonOption {
+  id: string
+  headCount: number
+  /** Si tiene las 3 láminas. Los sin lámina se muestran marcados igual. */
+  available?: boolean
+}
+
 export interface Meta {
   w: number
   h: number
