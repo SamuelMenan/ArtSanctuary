@@ -42,7 +42,6 @@ export function useCanonTool() {
   const [layers, setLayers] = useState<ChartLayers>(DEFAULT_LAYERS)
   const [exporting, setExporting] = useState<null | 'png' | 'pdf' | 'scale'>(null)
   const [ghostCanonId, setGhostCanonId] = useState<string | null>(null)
-  const [helpMode, setHelpMode] = useState(false)
   const [presets, setPresets] = useState<CanonPreset[]>([])
   const [presetId, setPresetId] = useState('')
   const [compare, setCompare] = useState(false)
@@ -155,7 +154,6 @@ export function useCanonTool() {
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure,
     ghostCanonId, setGhostCanonId,
-    helpMode, toggleHelp: () => setHelpMode((v) => !v),
     ...trace,
   }
 }

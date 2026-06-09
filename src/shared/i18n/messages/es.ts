@@ -945,6 +945,10 @@ export const es = {
       },
     },
     atlasNote: 'Referencia anatómica, escalada a la altura',
+    measuredTitle: 'Medidas reales',
+    measuredNote: 'Medidas del dibujo · coinciden con la regla · exactas al replicar',
+    referenceTitle: 'Referencia anatómica',
+    referenceNote: 'Proporciones ideales (atlas) — no es la medida de replicación',
     part: {
       regions: { head: 'Cabeza', trunk: 'Tronco', arm: 'Brazo', leg: 'Pierna' },
       phalanx: { proximal: 'Proximal', middle: 'Media', distal: 'Distal' },

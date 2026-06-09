@@ -1,14 +1,14 @@
 'use client'
 
 import { useCallback, useRef, useState, type PointerEvent, type ReactNode, type WheelEvent } from 'react'
+import { motion } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
+import { staggerParent } from '@frontend/shared/motion/tokens'
+import RailButton from './RailButton'
 
 const MIN = 0.5
 const MAX = 4
 const clamp = (v: number) => Math.min(MAX, Math.max(MIN, v))
-
-const btnCls =
-  'p-1 rounded-[var(--radius-sm)] border border-[var(--color-outline-variant)] bg-[var(--color-surface-container)] text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all'
 
 /** Visor con zoom (rueda) y pan (arrastre). El pan se desactiva cuando otra
  *  herramienta necesita los clicks (p.ej. la regla). Las medidas siguen siendo
@@ -53,17 +53,11 @@ export default function ZoomPanViewport({ panEnabled = true, children }: { panEn
           {children}
         </div>
       </div>
-      <div className="absolute bottom-2 right-2 flex flex-col gap-1">
-        <button type="button" onClick={() => setScale((s) => clamp(s * 1.2))} aria-label={t('canon.zoomIn')} title={t('canon.zoomIn')} className={btnCls}>
-          <span className="material-symbols-outlined text-[18px] block">add</span>
-        </button>
-        <button type="button" onClick={() => setScale((s) => clamp(s / 1.2))} aria-label={t('canon.zoomOut')} title={t('canon.zoomOut')} className={btnCls}>
-          <span className="material-symbols-outlined text-[18px] block">remove</span>
-        </button>
-        <button type="button" onClick={reset} aria-label={t('canon.zoomReset')} title={t('canon.zoomReset')} className={btnCls}>
-          <span className="material-symbols-outlined text-[18px] block">restart_alt</span>
-        </button>
-      </div>
+      <motion.div variants={staggerParent} initial="initial" animate="animate" className="absolute bottom-3 right-3 flex flex-col gap-1.5">
+        <RailButton icon="add" title={t('canon.zoomIn')} onClick={() => setScale((s) => clamp(s * 1.2))} />
+        <RailButton icon="remove" title={t('canon.zoomOut')} onClick={() => setScale((s) => clamp(s / 1.2))} />
+        <RailButton icon="restart_alt" title={t('canon.zoomReset')} onClick={reset} />
+      </motion.div>
     </div>
   )
 }

@@ -6,14 +6,27 @@ import { ToolRow, ToolGrid, ToolPanelFooter } from '@frontend/features/tools/sha
 import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
 import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
 import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
-import type { CanonOption } from '../lib/figureMeta'
+import Select from '@frontend/shared/ui/Select'
+import { UNITS, type Unit } from '@shared/lib/canon/units'
+import { VIEWS, type View, type CanonOption } from '../lib/figureMeta'
 import type { CanonPreset } from '../lib/presets'
 
 const lbl = 'font-mono text-[10px] text-[var(--color-on-surface-variant)] uppercase tracking-[0.08em]'
-const selectCls =
-  'w-full min-w-0 bg-transparent border border-[var(--color-outline-variant)] rounded-lg px-2 h-9 text-[var(--color-primary)] font-mono text-label-sm cursor-pointer focus:outline-none focus:border-[var(--color-primary)]'
+// Input de texto con contraste sólido (mismo lenguaje que el Select compartido).
+const inputCls =
+  'w-full min-w-0 h-9 px-2.5 rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-high)] text-[var(--color-on-surface)] font-mono text-[11px] focus:outline-none focus:border-[var(--color-primary)]'
 
 export interface CanonControlsProps {
+  // Lámina
+  canonId: string
+  onCanon: (id: string) => void
+  canons: CanonOption[]
+  height: number
+  onHeight: (cm: number) => void
+  view: View
+  onView: (v: View) => void
+  unit: Unit
+  onUnit: (u: Unit) => void
   // Estudio
   refUrl: string | null
   refOpacity: number
@@ -26,8 +39,6 @@ export interface CanonControlsProps {
   ghostCanonId: string | null
   onGhost: (id: string | null) => void
   ghostCanons: CanonOption[]
-  helpMode: boolean
-  onToggleHelp: () => void
   // Presets
   presets: CanonPreset[]
   presetId: string
@@ -38,15 +49,13 @@ export interface CanonControlsProps {
   onSendToBoard: () => void
   compare: boolean
   onToggleCompare: () => void
-  exporting: null | 'png' | 'pdf' | 'scale'
-  onExport: (kind: 'png' | 'pdf' | 'scale') => void
 }
 
 /**
  * Panel lateral de Canon (estilo editor, sin scroll). Controles de estudio
- * (calco · regla · superponer · ayuda) y Presets; pie con enviar/comparar/
- * exports. Lámina y Capas viven en la barra superior (`CanonTopBar`). Mismos
- * primitivos que crop/grid.
+ * clusters: Lámina (canon/vista/unidad/altura), Estudio (calco · regla ·
+ * superponer), Presets; pie con enviar/comparar/exports. Las Capas viven en el
+ * rail flotante del lienzo (`CanonLayersRail`). Mismos primitivos que crop/grid.
  */
 export default function CanonControls(p: CanonControlsProps) {
   const { t } = usePreferences()
@@ -62,6 +71,41 @@ export default function CanonControls(p: CanonControlsProps) {
 
   return (
     <>
+      <ToolCluster name={t('canon.plate')}>
+        <label className="flex flex-col gap-1">
+          <span className={lbl}>{t('canon.canon')}</span>
+          <Select
+            ariaLabel={t('canon.canon')}
+            value={p.canonId}
+            onChange={p.onCanon}
+            options={p.canons.map((c) => ({ value: c.id, label: `${t(`canon.names.${c.id}`)}${c.available === false ? ` · ${t('canon.noPlate')}` : ''}` }))}
+          />
+        </label>
+        <ToolGrid cols={2}>
+          <label className="flex flex-col gap-1">
+            <span className={lbl}>{t('canon.view')}</span>
+            <Select ariaLabel={t('canon.view')} value={p.view} onChange={(v) => p.onView(v as View)} options={VIEWS.map((v) => ({ value: v, label: t(`canon.views.${v}`) }))} />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className={lbl}>{t('canon.unit')}</span>
+            <Select ariaLabel={t('canon.unit')} value={p.unit} onChange={(v) => p.onUnit(v as Unit)} options={UNITS.map((un) => ({ value: un, label: t(`canon.units.${un}`) }))} />
+          </label>
+        </ToolGrid>
+        <label className="flex flex-col gap-1">
+          <span className={lbl}>{t('canon.totalHeight')}</span>
+          <div className="flex h-9 items-center gap-1 rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-high)] px-2.5 focus-within:border-[var(--color-primary)]">
+            <input
+              type="number"
+              aria-label={t('canon.totalHeight')}
+              value={p.height}
+              onChange={(e) => p.onHeight(Number(e.target.value))}
+              className="min-w-0 flex-1 border-0 bg-transparent p-0 font-mono text-[11px] text-[var(--color-on-surface)] focus:outline-none appearance-none"
+            />
+            <span className={lbl}>cm</span>
+          </div>
+        </label>
+      </ToolCluster>
+
       <ToolCluster name={t('canon.study')}>
         <input
           ref={fileRef}
@@ -92,29 +136,26 @@ export default function CanonControls(p: CanonControlsProps) {
         </ToolRow>
         <label className="flex flex-col gap-1">
           <span className={lbl}>{t('canon.superimpose')}</span>
-          <select value={p.ghostCanonId ?? ''} onChange={(e) => p.onGhost(e.target.value || null)} className={selectCls}>
-            <option value="">{t('canon.none')}</option>
-            {p.ghostCanons.map((c) => (
-              <option key={c.id} value={c.id}>{t(`canon.names.${c.id}`)}</option>
-            ))}
-          </select>
+          <Select
+            ariaLabel={t('canon.superimpose')}
+            value={p.ghostCanonId ?? ''}
+            onChange={(v) => p.onGhost(v || null)}
+            placeholder={t('canon.none')}
+            options={p.ghostCanons.map((c) => ({ value: c.id, label: t(`canon.names.${c.id}`) }))}
+          />
         </label>
-        <ToolButton variant="toggle" icon="menu_book" label={t('canon.help.mode')} active={p.helpMode} onClick={p.onToggleHelp} className="w-full" />
       </ToolCluster>
 
       <ToolCluster name={t('canon.presets')}>
         <ToolRow>
-          <select
-            aria-label={t('canon.presets')}
+          <Select
+            ariaLabel={t('canon.presets')}
+            className="flex-1"
             value={p.presetId}
-            onChange={(e) => p.onLoadPreset(e.target.value)}
-            className={`${selectCls} flex-1`}
-          >
-            <option value="">{p.presets.length ? t('canon.selectPreset') : t('canon.noPresets')}</option>
-            {p.presets.map((pr) => (
-              <option key={pr.id} value={pr.id}>{pr.name}</option>
-            ))}
-          </select>
+            onChange={p.onLoadPreset}
+            placeholder={p.presets.length ? t('canon.selectPreset') : t('canon.noPresets')}
+            options={p.presets.map((pr) => ({ value: pr.id, label: pr.name }))}
+          />
           <ToolButton variant="icon" icon="delete" title={t('canon.deletePreset')} disabled={!p.presetId} onClick={() => p.presetId && p.onDeletePreset(p.presetId)} />
         </ToolRow>
         <ToolRow>
@@ -124,24 +165,17 @@ export default function CanonControls(p: CanonControlsProps) {
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && savePreset()}
             placeholder={t('canon.presetName')}
-            className={`${selectCls} flex-1 placeholder:text-[var(--color-on-surface-variant)]/50`}
+            className={`${inputCls} flex-1 placeholder:text-[var(--color-on-surface-variant)]/50`}
           />
           <ToolButton variant="icon" icon="bookmark_add" title={t('canon.savePreset')} disabled={!name.trim()} onClick={savePreset} />
         </ToolRow>
       </ToolCluster>
 
       <ToolPanelFooter>
-        <div className="flex flex-col gap-2">
-          <ToolRow>
-            <ToolButton variant="ghost" icon="add_to_photos" label={t('canon.sendToBoard')} onClick={p.onSendToBoard} className="flex-1 min-w-0" />
-            <ToolButton variant="toggle" icon={p.compare ? 'close_fullscreen' : 'compare'} label={t('canon.compare')} active={p.compare} onClick={p.onToggleCompare} className="flex-1 min-w-0" />
-          </ToolRow>
-          <ToolGrid cols={3}>
-            <ToolButton variant="action" icon={p.exporting === 'png' ? 'hourglass_top' : 'image'} label="PNG" disabled={p.exporting !== null} onClick={() => p.onExport('png')} className="!px-1" />
-            <ToolButton variant="action" icon={p.exporting === 'pdf' ? 'hourglass_top' : 'picture_as_pdf'} label="PDF" disabled={p.exporting !== null} onClick={() => p.onExport('pdf')} className="!px-1" />
-            <ToolButton variant="action" icon={p.exporting === 'scale' ? 'hourglass_top' : 'straighten'} label="1:1" disabled={p.exporting !== null} onClick={() => p.onExport('scale')} className="!px-1" />
-          </ToolGrid>
-        </div>
+        <ToolRow>
+          <ToolButton variant="ghost" icon="dashboard" label={t('tools.boards')} title={t('tools.sendBoards')} onClick={p.onSendToBoard} className="flex-1 min-w-[72px]" />
+          <ToolButton variant="toggle" icon={p.compare ? 'close_fullscreen' : 'compare'} label={t('canon.compare')} active={p.compare} onClick={p.onToggleCompare} className="flex-1 min-w-0" />
+        </ToolRow>
       </ToolPanelFooter>
     </>
   )

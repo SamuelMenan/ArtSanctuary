@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { transition } from '@frontend/shared/motion/tokens'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
@@ -80,7 +82,15 @@ export default function ProportionChart({
   return (
     <div className="flex h-full items-stretch justify-center gap-2 sm:gap-4">
       {/* Columna izquierda: landmarks lado izquierdo (Capa Anatomía) */}
-      <div className="relative w-24 sm:w-32 shrink-0">{layers.anatomy && leftLandmarks.map((lm) => renderLabel(lm, 'right'))}</div>
+      <div className="relative w-24 sm:w-32 shrink-0">
+        <AnimatePresence>
+          {layers.anatomy && (
+            <motion.div key="anat-left" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.fast} className="absolute inset-0">
+              {leftLandmarks.map((lm) => renderLabel(lm, 'right'))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Centro: figura + overlays (esqueleto/músculos) + líneas + joints */}
       <div className="relative h-full shrink-0">
@@ -95,18 +105,28 @@ export default function ProportionChart({
         {ghostCanonId && ghostCanonId !== canonId && <GhostFigure canonId={ghostCanonId} view={view} />}
         {layers.loomis && <LoomisOverlay canonId={canonId} view={view} />}
         <div className="pointer-events-none absolute inset-0">
-          {layers.canon &&
-            divisions.map((d) => (
-              <div key={`div-${d.label}`} className={lineCls} style={{ top: `${mapFrac(d.frac)}%` }} />
-            ))}
-          {layers.anatomy &&
-            landmarks.map((lm) => (
-              <div
-                key={`lm-${lm.key}`}
-                className="absolute left-0 right-0 border-t border-[var(--color-primary)]/70"
-                style={{ top: `${mapFrac(lm.frac)}%` }}
-              />
-            ))}
+          <AnimatePresence>
+            {layers.canon && (
+              <motion.div key="canon-div" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.fast} className="absolute inset-0">
+                {divisions.map((d) => (
+                  <div key={`div-${d.label}`} className={lineCls} style={{ top: `${mapFrac(d.frac)}%` }} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <AnimatePresence>
+            {layers.anatomy && (
+              <motion.div key="anat-lines" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.fast} className="absolute inset-0">
+                {landmarks.map((lm) => (
+                  <div
+                    key={`lm-${lm.key}`}
+                    className="absolute left-0 right-0 border-t border-[var(--color-primary)]/70"
+                    style={{ top: `${mapFrac(lm.frac)}%` }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
           {joints.map((j) => (
             <div
               key={`joint-${j.key}`}
@@ -128,7 +148,15 @@ export default function ProportionChart({
       </div>
 
       {/* Columna de landmarks lado derecho (Capa Anatomía) */}
-      <div className="relative w-24 sm:w-32 shrink-0">{layers.anatomy && rightLandmarks.map((lm) => renderLabel(lm, 'left'))}</div>
+      <div className="relative w-24 sm:w-32 shrink-0">
+        <AnimatePresence>
+          {layers.anatomy && (
+            <motion.div key="anat-right" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.fast} className="absolute inset-0">
+              {rightLandmarks.map((lm) => renderLabel(lm, 'left'))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <ChartAxis
         show={layers.canon}

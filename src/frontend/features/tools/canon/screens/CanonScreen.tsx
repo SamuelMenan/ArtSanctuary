@@ -1,13 +1,14 @@
 'use client'
 
+import { MotionConfig } from 'motion/react'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
 import ProportionChart from '../components/ProportionChart'
 import CanonControls from '../components/CanonControls'
-import CanonTopBar from '../components/CanonTopBar'
+import CanonLayersRail from '../components/CanonLayersRail'
+import CanonExportRail from '../components/CanonExportRail'
 import CanonMeasuresPanel from '../components/CanonMeasuresPanel'
 import CanonComparePanel from '../components/CanonComparePanel'
-import CanonLearnCard from '../components/CanonLearnCard'
 import ChartCrossfade from '../components/ChartCrossfade'
 import ZoomPanViewport from '../components/ZoomPanViewport'
 import { useCanonTool, AVAILABLE_CANONS, CANON_OPTIONS } from '../hooks/useCanonTool'
@@ -23,13 +24,21 @@ export default function CanonPage() {
     ghostCanonId, setGhostCanonId,
     refUrl, refOpacity, setRefOpacity, handleRefFile, clearRef,
     measureActive, toggleMeasure, measurePoints, addMeasurePoint, clearMeasure,
-    helpMode, toggleHelp,
   } = useCanonTool()
 
   const measure = { active: measureActive, points: measurePoints, onAdd: addMeasurePoint, onClear: clearMeasure }
 
   const panel = (
     <CanonControls
+      canonId={canonId}
+      onCanon={setCanonId}
+      canons={CANON_OPTIONS}
+      height={height}
+      onHeight={setHeight}
+      view={view}
+      onView={setView}
+      unit={unit}
+      onUnit={setUnit}
       refUrl={refUrl}
       refOpacity={refOpacity}
       onRefFile={handleRefFile}
@@ -41,8 +50,6 @@ export default function CanonPage() {
       ghostCanonId={ghostCanonId}
       onGhost={setGhostCanonId}
       ghostCanons={AVAILABLE_CANONS}
-      helpMode={helpMode}
-      onToggleHelp={toggleHelp}
       presets={presets}
       presetId={presetId}
       onLoadPreset={handleLoadPreset}
@@ -51,8 +58,6 @@ export default function CanonPage() {
       onSendToBoard={handleSendToBoard}
       compare={compare}
       onToggleCompare={toggleCompare}
-      exporting={exporting}
-      onExport={handleExport}
     />
   )
 
@@ -69,11 +74,12 @@ export default function CanonPage() {
     </div>
   ) : (
     <div className="flex-1 min-h-0 flex overflow-hidden">
-      <div className="relative flex-1 min-h-0 flex flex-col items-center bg-[var(--color-surface-dim)] overflow-hidden p-4">
+      <div className="relative flex-1 min-h-0 flex flex-col items-center bg-[var(--color-surface-dim)] overflow-hidden pt-4">
         <h1 className="font-mono text-label-md text-[var(--color-primary)] uppercase tracking-widest mb-3 text-center shrink-0">
           {t('canon.chartTitle', { n: figure.headCount })}
         </h1>
-        {helpMode && <CanonLearnCard canonId={figure.canonId} onClose={toggleHelp} />}
+        <CanonLayersRail layers={layers} onToggleLayer={toggleLayer} />
+        <CanonExportRail exporting={exporting} onExport={handleExport} />
         <div className="relative flex-1 min-h-0 w-full">
           <ZoomPanViewport panEnabled={!measureActive}>
             <div className="flex h-full items-center justify-center">
@@ -93,26 +99,13 @@ export default function CanonPage() {
           </ZoomPanViewport>
         </div>
       </div>
-      <CanonMeasuresPanel unit={unit} headCm={figure.headCm} canonId={figure.canonId} />
+      <CanonMeasuresPanel figure={figure} unit={unit} />
     </div>
   )
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-      <CanonTopBar
-        canonId={canonId}
-        onCanon={setCanonId}
-        canons={CANON_OPTIONS}
-        height={height}
-        onHeight={setHeight}
-        view={view}
-        onView={setView}
-        unit={unit}
-        onUnit={setUnit}
-        layers={layers}
-        onToggleLayer={toggleLayer}
-      />
+    <MotionConfig reducedMotion="user">
       <ToolWorkspace panel={panel} stage={stage} />
-    </div>
+    </MotionConfig>
   )
 }

@@ -72,6 +72,23 @@ export function getLandmarks(canonId: string): Landmark[] {
   return CANON_LANDMARKS[canonId] ?? CANON_LANDMARKS.heroic
 }
 
+/**
+ * Posiciones REALES de los landmarks desde la coronilla, en cm, a una altura
+ * dada. Es la MISMA geometría que mide la regla (`frac · heightCm`) y que pinta
+ * el chart → fuente única, replicable exacta (fidelidad P10). Escala lineal con
+ * la altura. */
+export function landmarkPositionsCm(canonId: string, heightCm: number): { key: string; cm: number; frac: number }[] {
+  return getLandmarks(canonId).map((l) => ({ key: l.key, frac: l.frac, cm: l.frac * heightCm }))
+}
+
+/** Largos de los segmentos entre landmarks consecutivos (cm), del dibujo real. */
+export function segmentLengthsCm(canonId: string, heightCm: number): { from: string; to: string; cm: number }[] {
+  const pos = landmarkPositionsCm(canonId, heightCm)
+  const out: { from: string; to: string; cm: number }[] = []
+  for (let i = 1; i < pos.length; i++) out.push({ from: pos[i - 1].key, to: pos[i].key, cm: pos[i].cm - pos[i - 1].cm })
+  return out
+}
+
 export interface DivisionMark {
   label: string
   /** Posición de la línea como fracción de la altura total (0..1). */

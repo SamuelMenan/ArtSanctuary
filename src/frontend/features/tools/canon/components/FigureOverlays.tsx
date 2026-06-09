@@ -2,6 +2,8 @@
 
 import { useMemo, type MouseEvent } from 'react'
 import Image from 'next/image'
+import { AnimatePresence, motion } from 'motion/react'
+import { growX, popIn, lineDraw, transition } from '@frontend/shared/motion/tokens'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks } from '@shared/lib/canon/landmarks'
@@ -78,45 +80,63 @@ export default function FigureOverlays({
       )}
 
       {/* Marcas de ancho: línea media + segmento horizontal centrado por marca. */}
-      {showWidths && (
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-y-0 left-1/2 border-l border-dashed border-[var(--color-tertiary)]/70" />
-          {widthMarks.map((m) => {
-            const wf = widthFrac(canonId, view, heightCm, m.cm)
-            return (
-              <div key={m.key} className="absolute -translate-y-1/2" style={{ top: `${m.frac * 100}%`, left: `${50 - (wf * 100) / 2}%`, width: `${wf * 100}%` }}>
-                <div className="border-t-2 border-[var(--color-tertiary)]" />
-                <span className="absolute left-1/2 -translate-x-1/2 -translate-y-full font-mono text-[9px] text-[var(--color-tertiary)] whitespace-nowrap">
-                  {formatValue(m.cm, unit, headCm)}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      )}
+      <AnimatePresence>
+        {showWidths && (
+          <motion.div key="widths" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.fast} className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-y-0 left-1/2 border-l border-dashed border-[var(--color-tertiary)]/70" />
+            {widthMarks.map((m) => {
+              const wf = widthFrac(canonId, view, heightCm, m.cm)
+              return (
+                <div key={m.key} className="absolute -translate-y-1/2" style={{ top: `${m.frac * 100}%`, left: `${50 - (wf * 100) / 2}%`, width: `${wf * 100}%` }}>
+                  {/* El trazo crece desde el centro (refuerza la lectura "ancho"). */}
+                  <motion.div variants={growX} initial="initial" animate="animate" style={{ transformOrigin: 'center' }} className="border-t-2 border-[var(--color-tertiary)]" />
+                  <span className="absolute left-1/2 -translate-x-1/2 -translate-y-full font-mono text-[9px] text-[var(--color-tertiary)] whitespace-nowrap">
+                    {formatValue(m.cm, unit, headCm)}
+                  </span>
+                </div>
+              )
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Regla: capa que captura clicks (solo activa), puntos + línea + distancia. */}
       <div className={`absolute inset-0 ${measure.active ? 'cursor-crosshair' : 'pointer-events-none'}`} onClick={onClick}>
         {measure.points.map((p, i) => (
-          <div
+          <motion.div
             key={i}
+            variants={popIn}
+            initial="initial"
+            animate="animate"
             className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-[var(--color-secondary)]"
             style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
           />
         ))}
         {a && b && (
           <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
-            <line x1={`${a.x * 100}%`} y1={`${a.y * 100}%`} x2={`${b.x * 100}%`} y2={`${b.y * 100}%`} stroke="var(--color-secondary)" strokeWidth={1.5} strokeDasharray="4 3" />
+            <motion.line
+              variants={lineDraw}
+              initial="initial"
+              animate="animate"
+              x1={`${a.x * 100}%`} y1={`${a.y * 100}%`} x2={`${b.x * 100}%`} y2={`${b.y * 100}%`}
+              stroke="var(--color-secondary)" strokeWidth={1.5} strokeDasharray="4 3"
+            />
           </svg>
         )}
-        {dist != null && b && (
-          <span
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-[var(--color-secondary)] px-1 font-mono text-[10px] text-[var(--color-on-secondary)] whitespace-nowrap"
-            style={{ left: `${((a.x + b.x) / 2) * 100}%`, top: `${((a.y + b.y) / 2) * 100}%` }}
-          >
-            {formatValue(dist, unit, headCm)} · {(dist / headCm).toFixed(2)} {t('canon.units.heads')}
-          </span>
-        )}
+        <AnimatePresence>
+          {dist != null && b && (
+            <motion.span
+              variants={popIn}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-[var(--color-secondary)] px-1 font-mono text-[10px] text-[var(--color-on-secondary)] whitespace-nowrap"
+              style={{ left: `${((a.x + b.x) / 2) * 100}%`, top: `${((a.y + b.y) / 2) * 100}%` }}
+            >
+              {formatValue(dist, unit, headCm)} · {(dist / headCm).toFixed(2)} {t('canon.units.heads')}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
     </>
   )

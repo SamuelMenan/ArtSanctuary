@@ -939,6 +939,10 @@ export const en = {
       },
     },
     atlasNote: 'Anatomical reference, scaled to height',
+    measuredTitle: 'Real measurements',
+    measuredNote: 'Measured off the figure · matches the ruler · exact when replicated',
+    referenceTitle: 'Anatomical reference',
+    referenceNote: 'Ideal proportions (atlas) — not the replication measure',
     part: {
       regions: { head: 'Head', trunk: 'Trunk', arm: 'Arm', leg: 'Leg' },
       phalanx: { proximal: 'Proximal', middle: 'Middle', distal: 'Distal' },

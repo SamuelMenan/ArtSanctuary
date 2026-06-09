@@ -54,6 +54,29 @@ export function cardSwap(direction: 1 | -1): Variants {
   }
 }
 
+/** Contenedor que escalona la entrada de sus hijos (usa `variants` en los hijos,
+ *  p. ej. `fadeSlide`). Aplicar `initial="initial" animate="animate"` al padre. */
+export const staggerParent: Variants = {
+  initial: {},
+  animate: { transition: { staggerChildren: 0.04, delayChildren: 0.02 } },
+}
+
+/** Trazo SVG que se dibuja (`pathLength 0→1`). Para plomada/Loomis/segmento de
+ *  regla y líneas guía. El elemento debe ser un `<path>`/`<line>` con `motion`. */
+export const lineDraw: Variants = {
+  initial: { pathLength: 0, opacity: 0 },
+  animate: { pathLength: 1, opacity: 1, transition: { ...transition.slow, opacity: transition.fast } },
+  exit: { opacity: 0, transition: transition.fast },
+}
+
+/** Marca horizontal que crece desde su centro (`scaleX 0→1`). Para marcas de
+ *  ancho. Requiere `transformOrigin: 'center'`. */
+export const growX: Variants = {
+  initial: { scaleX: 0, opacity: 0 },
+  animate: { scaleX: 1, opacity: 1, transition: transition.base },
+  exit: { scaleX: 0, opacity: 0, transition: transition.fast },
+}
+
 /** Sacudida para errores de envío (credenciales incorrectas, etc.). */
 export const shake = {
   x: [0, -4, 4, -4, 4, 0],
