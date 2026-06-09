@@ -102,7 +102,13 @@ export default function ProportionChart({
         {musclesSrc && (
           <Image src={musclesSrc} alt={t('canon.muscles')} fill sizes="(max-width: 640px) 50vw, 320px" priority className="pointer-events-none object-contain opacity-80" />
         )}
-        {ghostCanonId && ghostCanonId !== canonId && <GhostFigure canonId={ghostCanonId} view={view} />}
+        <AnimatePresence>
+          {ghostCanonId && ghostCanonId !== canonId && (
+            <motion.div key={`ghost-${ghostCanonId}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.base} className="absolute inset-0">
+              <GhostFigure canonId={ghostCanonId} view={view} />
+            </motion.div>
+          )}
+        </AnimatePresence>
         {layers.loomis && <LoomisOverlay canonId={canonId} view={view} />}
         <div className="pointer-events-none absolute inset-0">
           <AnimatePresence>

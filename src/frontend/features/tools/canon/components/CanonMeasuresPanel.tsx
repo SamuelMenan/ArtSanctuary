@@ -49,7 +49,7 @@ function DimRow({ part, dim, headCm, unit, u, depth }: { part: BodyPart; dim: Pa
   return (
     <ValueRow
       label={t(`canon.part.dim.${dim.key}`)} cm={cm} unit={unit} headCm={headCm} u={u} depth={depth}
-      extra={dev ? <span className={`font-mono text-[10px] ${ok ? 'text-emerald-500' : 'text-amber-500'}`}>{dev}</span> : undefined}
+      extra={dev ? <span className={`font-mono text-[10px] transition-colors duration-200 ${ok ? 'text-emerald-500' : 'text-amber-500'}`}>{dev}</span> : undefined}
     />
   )
 }

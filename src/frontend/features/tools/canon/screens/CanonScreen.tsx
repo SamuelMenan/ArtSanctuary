@@ -1,6 +1,7 @@
 'use client'
 
-import { MotionConfig } from 'motion/react'
+import { MotionConfig, AnimatePresence, motion } from 'motion/react'
+import { transition } from '@frontend/shared/motion/tokens'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
 import ProportionChart from '../components/ProportionChart'
@@ -61,7 +62,7 @@ export default function CanonPage() {
     />
   )
 
-  const stage = compare ? (
+  const stageInner = compare ? (
     <div className="flex-1 min-h-0 flex flex-col sm:flex-row items-stretch gap-4 p-4 bg-[var(--color-surface-dim)] overflow-auto">
       <CanonComparePanel figure={figure} view={view} unit={unit} layers={layers} />
       <CanonComparePanel
@@ -101,6 +102,22 @@ export default function CanonPage() {
       </div>
       <CanonMeasuresPanel figure={figure} unit={unit} />
     </div>
+  )
+
+  // Crossfade al entrar/salir del modo Comparar.
+  const stage = (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={compare ? 'compare' : 'single'}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={transition.base}
+        className="flex flex-1 min-h-0 overflow-hidden"
+      >
+        {stageInner}
+      </motion.div>
+    </AnimatePresence>
   )
 
   return (
