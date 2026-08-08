@@ -12,7 +12,7 @@ import { figureDims, type View } from '../lib/figureMeta'
 export default function LoomisOverlay({ canonId, view }: { canonId: string; view: View }) {
   const { w, h } = figureDims(canonId, view)
   const cx = w / 2
-  const chinFrac = getLandmarks(canonId).find((l) => l.key === 'cabeza')?.frac ?? 0.12
+  const chinFrac = getLandmarks(canonId, view).find((l) => l.key === 'cabeza')?.frac ?? 0.12
   const chinY = chinFrac * h
 
   // Cabeza: bola craneal (arriba) + mandíbula a la barbilla + tercios faciales.

@@ -6,7 +6,7 @@ import { staggerParent } from '@frontend/shared/motion/tokens'
 import RailButton from './RailButton'
 import { EXTRA_LAYER_KEYS, type ChartLayers } from '../lib/chartLayers'
 
-const LAYER_KEYS = ['canon', 'anatomy', 'widths', 'loomis', ...EXTRA_LAYER_KEYS] as const
+const LAYER_KEYS = ['canon', 'anatomy', 'widths', 'loomis', 'zones', ...EXTRA_LAYER_KEYS] as const
 
 /** Icono por capa (material-symbols). Algunos generan warning de nombre (aceptado). */
 const ICON: Record<(typeof LAYER_KEYS)[number], string> = {
@@ -14,6 +14,7 @@ const ICON: Record<(typeof LAYER_KEYS)[number], string> = {
   anatomy: 'point_scan',
   widths: 'width_normal',
   loomis: 'architecture',
+  zones: 'horizontal_distribute',
   skeleton: 'skeleton',
   muscles: 'exercise',
   joints: 'join_inner',

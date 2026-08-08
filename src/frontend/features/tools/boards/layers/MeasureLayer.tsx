@@ -14,11 +14,11 @@ export default function MeasureLayer({ measure, scale }: { measure: MeasureSegme
       <Line
         points={[measure.ax, measure.ay, measure.bx, measure.by]}
         stroke="#f43f5e"
-        strokeWidth={1.5 / scale}
-        dash={[6 / scale, 4 / scale]}
+        strokeWidth={1 / scale}
+        dash={[4 / scale, 4 / scale]}
       />
-      <Line points={[measure.ax, measure.ay, measure.ax, measure.ay]} stroke="#f43f5e" strokeWidth={6 / scale} lineCap="round" />
-      <Line points={[measure.bx, measure.by, measure.bx, measure.by]} stroke="#f43f5e" strokeWidth={6 / scale} lineCap="round" />
+      <Line points={[measure.ax, measure.ay, measure.ax, measure.ay]} stroke="#f43f5e" strokeWidth={3 / scale} lineCap="round" />
+      <Line points={[measure.bx, measure.by, measure.bx, measure.by]} stroke="#f43f5e" strokeWidth={3 / scale} lineCap="round" />
     </Layer>
   )
 }

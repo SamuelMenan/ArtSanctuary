@@ -15,41 +15,34 @@ const fmtM = (cm: number) => {
   return ` (${Number.isInteger(m) ? m.toString() : m.toFixed(2).replace(/\.?0+$/, '')} m)`
 }
 
-/** Etiqueta flotante con la distancia de la regla (Referencia + Final en cuadrícula). */
+/** HUD de cabecera flotante y translúcido con la distancia de la regla.
+ * Se posiciona de forma fija en el centro superior del escenario para no tapar los dibujos. */
 export default function MeasureLabel({
   measure,
-  pos,
-  scale,
   isGrid,
   scaler = defaultScaler,
 }: {
   measure: MeasureSegment
-  pos: { x: number; y: number }
-  scale: number
+  pos?: { x: number; y: number }
+  scale?: number
   isGrid: boolean
   scaler?: Scaler
 }) {
   const { t } = usePreferences()
   const distCm = round1(cmOf(Math.hypot(measure.bx - measure.ax, measure.by - measure.ay)))
-  const mx = pos.x + ((measure.ax + measure.bx) / 2) * scale
-  const my = pos.y + ((measure.ay + measure.by) / 2) * scale
 
-  // Mostrar ambas escalas (Referencia + Final).
-  if (isGrid) {
-    return (
-      <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap overflow-hidden shadow text-center" style={{ left: mx, top: my }}>
-        <div className="px-2 py-0.5 opacity-90 border-b border-white/25">
-          {t('boards.reference')} {formatCm(distCm)}
-        </div>
-        <div className="px-2 py-0.5">
-          {t('boards.final')} {scaler.formatScaled(distCm)}
-        </div>
-      </div>
-    )
-  }
   return (
-    <div className="absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded bg-rose-500 text-white font-mono text-[11px] pointer-events-none z-20 whitespace-nowrap shadow" style={{ left: mx, top: my }}>
-      {distCm} cm{fmtM(distCm)}
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-neutral-950/80 border border-white/10 text-white font-mono text-[12px] pointer-events-none z-20 shadow-lg backdrop-blur-md flex items-center gap-2">
+      <span className="material-symbols-outlined text-[16px] text-rose-500 select-none">straighten</span>
+      {isGrid ? (
+        <div className="flex items-center gap-2">
+          <span>{t('boards.reference')}: <strong className="text-rose-400 font-semibold">{formatCm(distCm)}</strong></span>
+          <span className="w-px h-3 bg-white/20" />
+          <span>{t('boards.final')}: <strong className="text-rose-400 font-semibold">{scaler.formatScaled(distCm)}</strong></span>
+        </div>
+      ) : (
+        <span>{distCm} cm{fmtM(distCm)}</span>
+      )}
     </div>
   )
 }

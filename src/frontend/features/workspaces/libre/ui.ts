@@ -2,9 +2,9 @@
 // deshabilitado. Cuando se implemente el Proyecto Libre real, poner enabled:true
 // y añadir variants/createProject.
 
-import { registerWorkspaceUi, fmtWorkspaceDate } from '../shared/workspacePlugin'
+import { type WorkspaceUiPlugin, fmtWorkspaceDate } from '../shared/workspacePlugin'
 
-registerWorkspaceUi({
+export const librePlugin: WorkspaceUiPlugin = {
   id: 'libre',
   enabled: false,
   meta: { labelKey: 'workspaces.libre', descKey: 'workspaces.libreDesc', icon: 'dashboard' },
@@ -12,4 +12,4 @@ registerWorkspaceUi({
     icon: 'dashboard',
     subtitle: `${t('workspaces.libre')} · ${fmtWorkspaceDate(p.updatedAt)}`,
   }),
-})
+}

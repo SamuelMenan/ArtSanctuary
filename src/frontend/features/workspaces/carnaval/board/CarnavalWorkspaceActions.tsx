@@ -10,17 +10,32 @@
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import IconButton from '@frontend/features/tools/boards/toolbars/IconButton'
 import type { BoardExtSlotProps } from '@frontend/features/tools/boards/extensions/boardExtension'
-import { getCarnavalRule } from '@shared/lib/workspaces/carnaval'
+import { getCarnavalRule, isLateralView } from '@shared/lib/workspaces/carnaval'
 import { useCarnavalBoard } from './context'
 
-export default function CarnavalWorkspaceActions({ workspace }: BoardExtSlotProps) {
+export default function CarnavalWorkspaceActions({ workspace, lateralMirrorEnabled, setLateralMirrorEnabled }: BoardExtSlotProps) {
   const { t } = usePreferences()
   const { inspectorOpen, setInspectorOpen, guideOffsets, addGuide, clearGuides } = useCarnavalBoard()
   const rule = workspace.modality ? getCarnavalRule(workspace.modality) : null
   if (!rule) return null
+  const canMirrorLateral = isLateralView(workspace.view)
 
   return (
     <>
+      {canMirrorLateral && (
+        <IconButton
+          icon="compare_arrows"
+          label={t('boards.lateralMirrorToggle')}
+          title={
+            lateralMirrorEnabled
+              ? t('boards.lateralMirrorOn')
+              : t('boards.lateralMirrorOff')
+          }
+          active={lateralMirrorEnabled}
+          pressed={lateralMirrorEnabled}
+          onClick={() => setLateralMirrorEnabled(!lateralMirrorEnabled)}
+        />
+      )}
       <IconButton
         icon="fact_check"
         label={t('boards.inspectorTitle')}

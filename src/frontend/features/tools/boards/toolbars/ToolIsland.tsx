@@ -6,13 +6,14 @@ import { transition } from '@frontend/shared/motion/tokens'
 import { island, islandSep, ISLAND } from './islandStyles'
 import IconButton from './IconButton'
 
-type Tool = 'select' | 'hand' | 'measure'
+type Tool = 'select' | 'hand' | 'measure' | 'draw'
 type ShapeType = 'rect' | 'ellipse' | 'line' | 'arrow'
 
 const MODES: { id: Tool; icon: string; tip: string }[] = [
   { id: 'select', icon: 'arrow_selector_tool', tip: 'selectTip' },
   { id: 'hand', icon: 'pan_tool', tip: 'moveBoardTip' },
   { id: 'measure', icon: 'straighten', tip: 'measureTip' },
+  { id: 'draw', icon: 'edit', tip: 'drawTip' },
 ]
 
 /**

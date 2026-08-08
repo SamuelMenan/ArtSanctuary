@@ -12,12 +12,15 @@ type FitTarget = { x: number; y: number; w: number; h: number } | null
 interface BoardStateBridge {
   objects: BoardObject[]
   background: BoardBackground
+  workspace: BoardWorkspace
   name: string
+  lateralMirrorEnabled: boolean
   pos: Vec
   scale: number
   setObjects: Dispatch<SetStateAction<BoardObject[]>>
   setBackground: Dispatch<SetStateAction<BoardBackground>>
   setName: Dispatch<SetStateAction<string>>
+  setLateralMirrorEnabled: Dispatch<SetStateAction<boolean>>
   setPos: Dispatch<SetStateAction<Vec>>
   setScale: Dispatch<SetStateAction<number>>
   setFitTarget: Dispatch<SetStateAction<FitTarget>>
@@ -95,6 +98,7 @@ export function useBoardData(
         if (d.board.workspace) s.setWorkspace(d.board.workspace)
         s.setProjectId(d.board.projectId ?? null)
         s.setName(d.board.name)
+        s.setLateralMirrorEnabled(!!d.board.lateralMirrorEnabled)
         if (vp) {
           s.setPos({ x: vp.x, y: vp.y })
           s.setScale(vp.zoom || 1)
@@ -133,6 +137,8 @@ export function useBoardData(
             objects: s.objects,
             background: s.background,
             name: s.name,
+            workspace: s.workspace,
+            lateralMirrorEnabled: s.lateralMirrorEnabled,
             ...(thumbnailUrl ? { thumbnailUrl } : {}),
           }),
         })
@@ -168,7 +174,7 @@ export function useBoardData(
     }, 800)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.objects, s.background, s.name, loaded, readOnly, boardId])
+  }, [s.objects, s.background, s.workspace, s.name, s.lateralMirrorEnabled, loaded, readOnly, boardId])
 
   /* ── Autosave de VIEWPORT (pan/zoom) ──
      Ligero: solo persiste el encuadre, sin miniatura ni indicador de guardado.

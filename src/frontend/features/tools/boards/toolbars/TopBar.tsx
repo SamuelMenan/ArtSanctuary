@@ -9,7 +9,7 @@ import { appBarShellSecondary, appBarBg, appBarLabel } from '@frontend/shared/la
 /** Divisor vertical hairline entre grupos de la barra superior. */
 const vsep = 'w-px h-6 bg-[var(--color-outline-variant)] mx-1 shrink-0'
 
-/** Barra superior del board: volver, nombre editable, estado de guardado, undo/redo y descarga. */
+/** Barra superior del board: volver, nombre editable, estado de guardado y undo/redo. */
 export default function TopBar({
   name,
   onName,
@@ -17,7 +17,6 @@ export default function TopBar({
   saveState,
   onUndo,
   onRedo,
-  onDownload,
   backHref,
 }: {
   name: string
@@ -26,7 +25,6 @@ export default function TopBar({
   saveState: 'idle' | 'saving' | 'saved'
   onUndo: () => void
   onRedo: () => void
-  onDownload: () => void
   /** Destino del botón "volver": workspace si es plano Carnaval, lista de tableros si no. */
   backHref: string
 }) {
@@ -51,17 +49,15 @@ export default function TopBar({
       <span role="status" aria-live="polite" className={`${appBarLabel} shrink-0`}>
         {readOnly ? t('boards.readOnly') : saveState === 'saving' ? t('boards.saving') : saveState === 'saved' ? t('boards.saved') : ''}
       </span>
-      <span className={vsep} />
-      <div className="flex items-center gap-1">
-        {!readOnly && (
-          <>
+      {!readOnly && (
+        <>
+          <span className={vsep} />
+          <div className="flex items-center gap-1">
             <AppBarButton icon="undo" label={t('boards.undoTip')} onClick={onUndo} />
             <AppBarButton icon="redo" label={t('boards.redoTip')} onClick={onRedo} />
-            <span className={vsep} />
-          </>
-        )}
-        <AppBarButton icon="download" label={t('boards.downloadTip')} onClick={onDownload} />
-      </div>
+          </div>
+        </>
+      )}
     </motion.div>
   )
 }

@@ -23,6 +23,8 @@ export interface ChartLayers {
   muscles: boolean
   /** Puntos de articulación (posición x,frac por dibujo). */
   joints: boolean
+  /** Líneas guía de las fronteras entre masas de la espalda (solo posterior). */
+  zones: boolean
 }
 
 /** Capas extra que dependen de assets/data (se ocultan si no hay). El orden es
@@ -39,4 +41,5 @@ export const DEFAULT_LAYERS: ChartLayers = {
   skeleton: false,
   muscles: false,
   joints: false,
+  zones: true,
 }

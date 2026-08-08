@@ -23,6 +23,7 @@ export default function CanonPage() {
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure,
     ghostCanonId, setGhostCanonId,
+    activePart, handleSelectPart,
     refUrl, refOpacity, setRefOpacity, handleRefFile, clearRef,
     measureActive, toggleMeasure, measurePoints, addMeasurePoint, clearMeasure,
   } = useCanonTool()
@@ -94,13 +95,15 @@ export default function CanonPage() {
                   refOpacity={refOpacity}
                   measure={measure}
                   ghostCanonId={ghostCanonId}
+                  activePart={activePart}
+                  onSelectPart={handleSelectPart}
                 />
               </ChartCrossfade>
             </div>
           </ZoomPanViewport>
         </div>
       </div>
-      <CanonMeasuresPanel figure={figure} unit={unit} />
+      <CanonMeasuresPanel figure={figure} unit={unit} view={view} activePart={activePart} onSelectPart={handleSelectPart} />
     </div>
   )
 

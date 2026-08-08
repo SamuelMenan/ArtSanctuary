@@ -40,6 +40,14 @@ describe('anatomyParts (atlas)', () => {
     expect(new Set(inTree)).toEqual(new Set(BODY_PARTS))
   })
 
+  it('el atlas ampliado tiene las 17 raíces (incl. trapecio/hombro/codo/muñeca/glúteo/rodilla/tobillo)', () => {
+    const keys = BODY_PARTS.map((p) => p.key)
+    expect(keys.length).toBe(17)
+    for (const k of ['trapezius', 'shoulder', 'elbow', 'wrist', 'gluteus', 'knee', 'ankle']) {
+      expect(keys, k).toContain(k)
+    }
+  })
+
   it('la mano tiene palma + 5 dedos; palma y dedo medio ≈ ½ mano', () => {
     const hand = getPart('hand')!
     const handLen = dimHeads(hand, hand.dims.find((d) => d.key === 'length')!)!

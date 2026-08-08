@@ -115,12 +115,23 @@ function ImageNode({
     
     const cw = obj.gridCm * PX_PER_CM
     const ch = obj.gridCm * PX_PER_CM
+    const baseCols: number[] = []
+    for (let c = 0; c < cols; c++) {
+      baseCols.push(c === cols - 1 ? obj.w - c * cw : cw)
+    }
+    const colWidths = obj.flipX ? [...baseCols].reverse() : baseCols
+    const colStarts: number[] = []
+    let acc = 0
+    for (let c = 0; c < colWidths.length; c++) {
+      colStarts.push(acc)
+      acc += colWidths[c]
+    }
     const vx: number[] = []
     const hy: number[] = []
-    for (let i = 1; i < cols; i++) vx.push(i * cw)
+    for (let i = 1; i < cols; i++) vx.push(colStarts[i])
     for (let j = 1; j < rows; j++) hy.push(j * ch)
-    return { cols, rows, cw, ch, vx, hy }
-  }, [obj.gridCm, obj.w, obj.h])
+    return { cols, rows, cw, ch, vx, hy, colStarts, colWidths }
+  }, [obj.flipX, obj.gridCm, obj.w, obj.h])
 
   return (
     <Group
@@ -159,8 +170,9 @@ function ImageNode({
     >
       <KonvaImage
         image={img ?? undefined}
-        x={0}
+        x={obj.flipX ? obj.w : 0}
         y={0}
+        scaleX={obj.flipX ? -1 : 1}
         width={obj.w}
         height={obj.h}
         opacity={(obj.opacity ?? 100) / 100}
@@ -176,7 +188,14 @@ function ImageNode({
       {grid && (
         <>
           {grid.vx.map((x, i) => (
-            <Line key={`v${i}`} points={[x, 0, x, obj.h]} stroke="#ef4444" strokeWidth={1 / scale} opacity={0.7} listening={false} />
+            <Line
+              key={`v${i}`}
+              points={[x, 0, x, obj.h]}
+              stroke="#ef4444"
+              strokeWidth={1 / scale}
+              opacity={0.7}
+              listening={false}
+            />
           ))}
           {grid.hy.map((y, i) => (
             <Line key={`h${i}`} points={[0, y, obj.w, y]} stroke="#ef4444" strokeWidth={1 / scale} opacity={0.7} listening={false} />
@@ -188,16 +207,18 @@ function ImageNode({
             Array.from({ length: grid.cols * grid.rows }).map((_, i) => {
               const c = i % grid.cols
               const r = Math.floor(i / grid.cols)
-              const cellW = c === grid.cols - 1 ? obj.w - c * grid.cw : grid.cw
+              const cellW = grid.colWidths[c]
               const cellH = r === grid.rows - 1 ? obj.h - r * grid.ch : grid.ch
+              const cellX = grid.colStarts[c]
+              const labelCol = obj.flipX ? grid.cols - 1 - c : c
               // Ocultar la etiqueta si la celda residual es muy pequeña para albergarla
               if (cellW * scale < 25 || cellH * scale < 14) return null
               return (
                 <Text
                   key={`lbl${i}`}
-                  x={c * grid.cw}
+                  x={cellX}
                   y={r * grid.ch}
-                  text={`${colLabel(c)}${r + 1}`}
+                  text={`${colLabel(labelCol)}${r + 1}`}
                   fontSize={10 / scale}
                   fill="#ef4444"
                   opacity={0.8}

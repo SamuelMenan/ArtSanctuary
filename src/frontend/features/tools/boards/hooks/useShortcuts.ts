@@ -14,6 +14,7 @@ export interface ShortcutHandlers {
   onHandTool: () => void
   onSelectTool: () => void
   onMeasureTool: () => void
+  onDrawTool?: () => void
   onEscape: () => void
   onZoomIn: () => void
   onZoomOut: () => void
@@ -91,6 +92,8 @@ export function useShortcuts(h: ShortcutHandlers, deps: unknown[]) {
         h.onSelectTool()
       } else if (!mod && k === 'm') {
         h.onMeasureTool()
+      } else if (!mod && k === 'p') {
+        h.onDrawTool?.()
       } else if (e.key === 'Escape') {
         h.onEscape()
       }

@@ -67,8 +67,16 @@ CANON_LANDMARKS['academic-female'] = CANON_LANDMARKS.academic
 CANON_LANDMARKS['heroic-female'] = CANON_LANDMARKS.heroic
 CANON_LANDMARKS['comic-female'] = CANON_LANDMARKS.comic
 
-/** Landmarks de un canon; cae a heroico mientras no haya medición propia. */
-export function getLandmarks(canonId: string): Landmark[] {
+// Override de landmarks POR VISTA (para la COLOCACIÓN visual de líneas/etiquetas
+// cuando una lámina tenga proporciones propias). Vacío: todas las vistas heroicas
+// usan la misma figura/proporciones (frontal.png · etc.). Las medidas en cm usan
+// los landmarks del canon (`getLandmarks(canonId)` sin vista) → verdad única.
+const CANON_VIEW_LANDMARKS: Record<string, Record<string, Landmark[]>> = {}
+
+/** Landmarks de un canon (o de una VISTA si tiene override de colocación); cae a
+ *  heroico mientras no haya medición propia. */
+export function getLandmarks(canonId: string, view?: string): Landmark[] {
+  if (view && CANON_VIEW_LANDMARKS[canonId]?.[view]) return CANON_VIEW_LANDMARKS[canonId][view]
   return CANON_LANDMARKS[canonId] ?? CANON_LANDMARKS.heroic
 }
 

@@ -10,8 +10,12 @@ import {
   getCarnavalRule,
   carnavalGridSquareCm,
   isCarnavalModality,
+  isLateralView,
+  lateralMirrorTarget,
+  mirrorBoardObjectsForLateral,
   type CarnavalModality,
 } from "@shared/lib/workspaces/carnaval";
+import type { BoardObject } from "@shared/lib/boards/types";
 
 export type BoardWorkspaceInput = {
   kind?: "free" | "carnaval";
@@ -95,6 +99,42 @@ export async function updateBoard(
     { returnDocument: 'after' },
   ).lean();
   return board ? JSON.parse(JSON.stringify(board)) : null;
+}
+
+type MirrorSourceBoard = {
+  projectId?: string;
+  lateralMirrorEnabled?: boolean;
+  workspace?: { kind?: string; view?: string };
+};
+
+/**
+ * Si el board pertenece a un proyecto Carnaval y su plano es lateral, actualiza
+ * automáticamente el plano lateral opuesto con los mismos objetos en espejo.
+ */
+export async function syncCarnavalLateralMirror(
+  ownerId: string,
+  sourceBoard: MirrorSourceBoard,
+  objects: BoardObject[],
+) {
+  if (!sourceBoard.projectId) return;
+  if (!sourceBoard.lateralMirrorEnabled) return;
+  if (sourceBoard.workspace?.kind !== "carnaval") return;
+  if (!isLateralView(sourceBoard.workspace?.view)) return;
+
+  const targetView = lateralMirrorTarget(sourceBoard.workspace.view);
+  if (!targetView) return;
+
+  await connectDB();
+  await Board.findOneAndUpdate(
+    {
+      projectId: sourceBoard.projectId,
+      owner: ownerId,
+      "workspace.kind": "carnaval",
+      "workspace.view": targetView,
+    },
+    { $set: { objects: mirrorBoardObjectsForLateral(objects) } },
+    { returnDocument: "after" },
+  ).lean();
 }
 
 /** Borra el board si el usuario es el propietario. `true` si se borró. */

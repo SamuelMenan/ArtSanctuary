@@ -1,0 +1,40 @@
+{
+  "image": "public/canon/heroic/posterior.png",
+  "step": 4,
+  "_comment": "Cortes MEDIDOS sobre la lámina posterior (proporción propia, NO copiar de frontal): cintura 0.341, pliegue glúteo/crotch 0.45 (lumbar arriba) / glúteo hasta 0.543, corva 0.694, tobillo 0.867, codo 0.33, muñeca 0.45, mano fin 0.552, axila 0.29.",
+  "cuts": {
+    "chin": 0.12,
+    "torsoTop": 0.15,
+    "armTop": 0.16,
+    "elbow": 0.33,
+    "waist": 0.341,
+    "wrist": 0.45,
+    "crotch": 0.43,
+    "knee": 0.694,
+    "ankle": 0.867,
+    "armpitFrac": 0.29,
+    "handsEndFrac": 0.552
+  },
+  "mirror": "auto",
+  "symmetricTrunk": true,
+  "skipParts": ["neck", "torso"],
+  "landmarks": {
+    "cuello": 0.13,
+    "hombros": 0.16,
+    "ombligo": 0.33,
+    "entrepierna": 0.45,
+    "rodillas": 0.694,
+    "pies": 0.867
+  },
+  "bands": {
+    "neck": { "mode": "centerFull", "from": 0.12, "to": 0.145 },
+    "lats": { "mode": "spineBox", "from": 0.292, "to": 0.341, "frac": 0.82, "fracTo": 1.0 },
+    "_note_upper": "trapezius (diamante) y shoulder (deltoide lágrima) son HAND-AUTHORED en partHits.ts: arriba de la axila los brazos van pegados y el flood-fill no da el contorno real → se trazan a mano. scapula se omite (el trapecio cubre esa superficie).",
+    "gluteus": { "mode": "centerSplit", "from": 0.43, "to": 0.544 },
+    "hamstring": { "mode": "legs", "from": 0.556, "to": 0.694 },
+    "elbow": { "mode": "sideLimb", "anchor": "ombligo", "offset": 0.04, "half": 0.022 },
+    "wrist": { "mode": "sideLimb", "anchor": "entrepierna", "offset": 0.0, "half": 0.018 },
+    "knee": { "mode": "legs", "anchor": "rodillas", "offset": 0.0, "half": 0.03 },
+    "ankle": { "mode": "legs", "anchor": "pies", "offset": 0.033, "half": 0.022 }
+  }
+}

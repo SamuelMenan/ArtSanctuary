@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { FIGURES, resolveCanonId, type View } from '../lib/figureMeta'
+import { figureDims, figureSrc, type View } from '../lib/figureMeta'
 
 /** Figura anatómica limpia (sin anotaciones). La interfaz (labels, divisiones,
  *  medidas) la dibuja `ProportionChart` por encima/al lado. */
@@ -16,11 +16,10 @@ export default function ReferenceFigure({
   alt: string
   className?: string
 }) {
-  const id = resolveCanonId(canonId)
-  const m = FIGURES[id][view]
+  const m = figureDims(canonId, view)
   return (
     <Image
-      src={`/canon/${id}/${view}.png`}
+      src={figureSrc(canonId, view)}
       alt={alt}
       width={m.w}
       height={m.h}

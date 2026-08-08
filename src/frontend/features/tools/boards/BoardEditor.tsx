@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import type Konva from 'konva'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import BoardStage from './components/BoardStage'
+import { uid } from './lib/uid'
 import TextFormatBar from './toolbars/TextFormatBar'
 import ShapeStyleBar from './toolbars/ShapeStyleBar'
 import SelectionRect from './overlays/SelectionRect'
@@ -40,12 +41,12 @@ import { BoardObject, BoardBackground, BoardWorkspace, DEFAULT_WORKSPACE } from 
 import { workspaceScaler } from '@shared/lib/workspaces/registry'
 import { fadeSlide } from '@frontend/shared/motion/tokens'
 
-const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow'] as const
+const SHAPE_TYPES = ['rect', 'ellipse', 'line', 'arrow', 'freehand'] as const
 const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
 
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
-import { exportImageGridPdf } from './lib/imageGridPdf'
+import ImageGridModal from './components/ImageGridModal'
 
 export default function BoardEditor({ boardId, workspaceId }: { boardId: string; workspaceId?: string }) {
   const { t } = usePreferences()
@@ -69,12 +70,13 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
   })
   const [name, setName] = useState('Board sin título')
   const [workspace, setWorkspace] = useState<BoardWorkspace>(DEFAULT_WORKSPACE)
+  const [lateralMirrorEnabled, setLateralMirrorEnabled] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [snap, setSnap] = useState(true)
   const [layersOpen, setLayersOpen] = useState(false)
   const dragLayer = useRef<string | null>(null)
-  const [tool, setTool] = useState<'select' | 'hand' | 'measure'>('select')
+  const [tool, setTool] = useState<'select' | 'hand' | 'measure' | 'draw'>('select')
   const [spaceHeld, setSpaceHeld] = useState(false)
   // Proyecto Carnaval dueño del board (define la ruta de salida). null = board libre.
   const [projectId, setProjectId] = useState<string | null>(null)
@@ -91,6 +93,8 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
 
   const [modalOpen, setModalOpen] = useState(false)
+  // Modal "Cuadrícula + PDF a escala" para la imagen seleccionada.
+  const [gridModalOpen, setGridModalOpen] = useState(false)
   // Encuadre pendiente: imagen entrante por handoff a enmarcar cuando el
   // escenario ya tenga tamaño (las imágenes físicas pueden ser enormes en px).
   const [fitTarget, setFitTarget] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
@@ -127,8 +131,8 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
   /* ── Carga inicial + autosave ── */
   const { loaded, notFound, readOnly, saveState } = useBoardData(boardId, stageRef, trRef, {
-    objects, background, name, pos, scale,
-    setObjects, setBackground, setName, setPos, setScale, setFitTarget, setWorkspace, setProjectId,
+    objects, background, workspace, name, lateralMirrorEnabled, pos, scale,
+    setObjects, setBackground, setName, setLateralMirrorEnabled, setPos, setScale, setFitTarget, setWorkspace, setProjectId,
   })
 
   // Ruta de salida: al workspace si es un plano de proyecto Carnaval; si no, lista de tableros.
@@ -176,6 +180,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
       onHandTool: () => { setTool('hand'); setMeasure(null) },
       onSelectTool: () => { setTool('select'); setMeasure(null) },
       onMeasureTool: () => setTool('measure'),
+      onDrawTool: () => { setTool('draw'); setMeasure(null) },
       onEscape: () => { setMeasure(null); setSelectedIds([]) },
       onZoomIn: () => zoomBy(1.2),
       onZoomOut: () => zoomBy(1 / 1.2),
@@ -211,7 +216,17 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
   /* ── Estado del board que se pasa a la extensión del workspace ── */
   const extSlot: BoardExtSlotProps = {
-    workspace, objects, readOnly, scale, pos, stageSize, squareCm: background.squareCm, addObject: addExtensionObject,
+    boardId,
+    workspace,
+    objects,
+    readOnly,
+    scale,
+    pos,
+    stageSize,
+    squareCm: background.squareCm,
+    lateralMirrorEnabled,
+    setLateralMirrorEnabled,
+    addObject: addExtensionObject,
   }
 
   // Líneas-imán extra de la extensión (px de mundo): bordes de la guía
@@ -235,7 +250,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
   const selectedId = selectedIds.length === 1 ? selectedIds[0] : null
 
   /* ── Salidas del board: exportar PNG + enviar a otra herramienta ── */
-  const { editIn, downloadBoard } = useBoardExport({
+  const { editIn } = useBoardExport({
     boardId, workspaceId: ws ?? undefined, name, objects, selectedId, selectedIds,
     squareCm: background.squareCm, stageRef, trRef,
   })
@@ -279,10 +294,36 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
     fitToIds(selectedIds)
   }
 
+  const [tempPoints, setTempPoints] = useState<number[] | null>(null)
+
+  const onDrawComplete = useCallback(
+    (points: number[], rect: { x: number; y: number; w: number; h: number }) => {
+      const nextZ = Math.max(0, ...objects.map((o) => o.z)) + 1
+      const newObj: BoardObject = {
+        id: uid(),
+        type: 'freehand',
+        x: rect.x,
+        y: rect.y,
+        w: rect.w,
+        h: rect.h,
+        rotation: 0,
+        z: nextZ,
+        points,
+        stroke: '#e8e8e8',
+        strokeWidth: 3,
+      }
+      mutate((arr) => [...arr, newObj])
+      setSelectedIds([newObj.id])
+    },
+    [objects, mutate, setSelectedIds],
+  )
+
   /* ── Punteros del escenario: regla + paneo + selección por recuadro ── */
   const { panMode, onStagePointerDown, onStagePointerMove, onStagePointerUp } = useStagePointer({
     readOnly, tool, spaceHeld, pos, objects, stageRef, toWorld,
     setMeasure, setPos, setSelectedIds, setSelRect, setDragPanning,
+    onDrawMove: setTempPoints,
+    onDrawComplete,
   })
 
 
@@ -324,7 +365,6 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
         saveState={saveState}
         onUndo={undo}
         onRedo={redo}
-        onDownload={downloadBoard}
         backHref={backHref}
       />
 
@@ -353,7 +393,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
           const r = e.currentTarget.getBoundingClientRect()
           setCtxMenu({ x: e.clientX - r.left, y: e.clientY - r.top })
         }}
-        className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${dragPanning ? 'cursor-grabbing' : panMode ? 'cursor-grab active:cursor-grabbing' : tool === 'measure' ? 'cursor-crosshair' : ''}`}
+        className={`flex-1 bg-[var(--color-surface-container-lowest)] min-h-0 overflow-hidden relative ${dragPanning ? 'cursor-grabbing' : panMode ? 'cursor-grab active:cursor-grabbing' : (tool === 'measure' || tool === 'draw') ? 'cursor-crosshair' : ''}`}
       >
         <BoardExtProvider extension={extension} slot={extSlot}>
         <BoardStage
@@ -382,6 +422,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
           snapLines={extSnapLines}
           gridGap={gridGap}
           measure={measure}
+          tempPoints={tempPoints}
           onSelectObject={selectObject}
           setSelectedIds={setSelectedIds}
           setEditingId={setEditingId}
@@ -424,12 +465,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
           onToggleSnap={() => setSnap((s) => !s)}
           onSetSquareCm={setSquareCm}
           onToggleLayers={() => setLayersOpen((v) => !v)}
-          onToggleImageGrid={() => patchSelected({ gridCm: selectedObj?.gridCm ? undefined : background.squareCm })}
-          onExportPdf={() => {
-            if (selectedObj?.type === 'image') {
-              exportImageGridPdf(selectedObj, scaler, name).catch(console.error)
-            }
-          }}
+          onOpenImageTool={() => setGridModalOpen(true)}
           workspaceSlot={extension?.WorkspaceActions ? <BoardExtWorkspaceActions extension={extension} slot={extSlot} /> : undefined}
         />
 
@@ -562,6 +598,16 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
             addImage(url)
             setModalOpen(false)
           }}
+        />
+      )}
+
+      {gridModalOpen && selectedObj?.type === 'image' && (
+        <ImageGridModal
+          obj={selectedObj}
+          scaler={scaler}
+          name={name}
+          onClose={() => setGridModalOpen(false)}
+          onApplyGrid={(gridCm) => { patchSelected({ gridCm }); setGridModalOpen(false) }}
         />
       )}
     </div>

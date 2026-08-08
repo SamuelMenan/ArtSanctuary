@@ -12,6 +12,8 @@ import { partTree, dimHeads, dimCm, type BodyPart, type PartDimension } from '@s
 import { CANON_NOTES, CROSS_RULES } from '@shared/lib/canon/anatomyFacts'
 import PanelSection from '@frontend/shared/ui/PanelSection'
 import SourceBadge from './SourceBadge'
+import CanonPartPanel from './CanonPartPanel'
+import { type View } from '../lib/figureMeta'
 
 const REGION_ICON: Record<string, string> = { head: 'face', trunk: 'accessibility_new', arm: 'back_hand', leg: 'footprint' }
 
@@ -54,12 +56,29 @@ function DimRow({ part, dim, headCm, unit, u, depth }: { part: BodyPart; dim: Pa
   )
 }
 
-function PartNode({ part, headCm, unit, u, depth }: { part: BodyPart; headCm: number; unit: Unit; u: string; depth: number }) {
+function PartNode({ part, headCm, unit, u, depth, activePart = null }: { part: BodyPart; headCm: number; unit: Unit; u: string; depth: number; activePart?: string | null }) {
   const name = usePartName()
   const hasChildren = !!part.children?.length
   const [open, setOpen] = useState(false)
+  const isActive = activePart === part.key
+  const nodeRef = useRef<HTMLDivElement>(null)
+  // Seleccionar la parte en la lámina (A3) enfoca su rama: expande + scroll.
+  // La selección ENFOCA, nunca filtra (el filtro llega con la ficha, A4).
+  // Expandir se ajusta EN RENDER (comparación con la prop previa, sin commit
+  // intermedio); el scroll sí necesita el DOM → effect.
+  const [prevActive, setPrevActive] = useState<string | null>(null)
+  if (activePart !== prevActive) {
+    setPrevActive(activePart)
+    if (isActive && hasChildren) setOpen(true)
+  }
+  useEffect(() => {
+    if (isActive) nodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [isActive])
   return (
-    <div className="flex flex-col">
+    <div
+      ref={nodeRef}
+      className={`flex flex-col rounded-sm transition-colors duration-200 ${isActive ? '-mx-1 bg-[var(--color-primary)]/10 px-1 ring-1 ring-inset ring-[var(--color-primary)]/30' : ''}`}
+    >
       <button
         type="button"
         onClick={() => hasChildren && setOpen((v) => !v)}
@@ -90,9 +109,17 @@ function PartNode({ part, headCm, unit, u, depth }: { part: BodyPart; headCm: nu
  * debajo, plegable, el **atlas anatómico** como REFERENCIA (ideal + Δ). Una sola
  * fuente para lo medido; el ideal no compite, contextualiza.
  */
-export default function CanonMeasuresPanel({ figure, unit }: { figure: FigureModel; unit: Unit }) {
+export default function CanonMeasuresPanel({ figure, unit, view = 'frontal', activePart = null, onSelectPart }: { figure: FigureModel; unit: Unit; view?: View; activePart?: string | null; onSelectPart?: (key: string | null) => void }) {
   const { t } = usePreferences()
   const { canonId, heightCm, headCm } = figure
+  // Con una parte seleccionada el árbol FILTRA a su rama (nunca borra: al
+  // deseleccionar vuelve TODO). Ficha (A4) encabeza; el árbol detalla las dims.
+  const groups = activePart
+    ? partTree().flatMap((g) => {
+        const parts = g.parts.filter((p) => p.key === activePart)
+        return parts.length ? [{ ...g, parts }] : []
+      })
+    : partTree()
   const u = t(`canon.units.${unit}`)
 
   const positions = landmarkPositionsCm(canonId, heightCm)
@@ -113,10 +140,10 @@ export default function CanonMeasuresPanel({ figure, unit }: { figure: FigureMod
     window.addEventListener('resize', updateFades)
     return () => window.removeEventListener('resize', updateFades)
   }, [updateFades])
-  // Recalcula al cambiar el contenido (canon → distinto nº de filas).
+  // Recalcula al cambiar el contenido (canon/selección → distinto nº de filas).
   useEffect(() => {
     updateFades()
-  }, [updateFades, canonId])
+  }, [updateFades, canonId, activePart])
 
   return (
     <aside className="relative hidden w-72 shrink-0 flex-col overflow-hidden border-l border-[var(--color-outline-variant)] bg-[var(--color-surface-container-low)] lg:flex">
@@ -153,13 +180,22 @@ export default function CanonMeasuresPanel({ figure, unit }: { figure: FigureMod
       <PanelSection title={t('canon.referenceTitle')} icon="menu_book">
         <div className="flex flex-col gap-3">
           <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-on-surface-variant)]/60">{t('canon.referenceNote')}</span>
-          {CANON_NOTES[canonId] && (
+          {activePart && (
+            <CanonPartPanel
+              figure={figure}
+              view={view}
+              partKey={activePart}
+              unit={unit}
+              onClose={() => onSelectPart?.(null)}
+            />
+          )}
+          {!activePart && CANON_NOTES[canonId] && (
             <div className="flex flex-col gap-1.5">
               <p className="font-sans text-[11px] leading-snug text-[var(--color-on-surface)]">{t(`canon.help.note.${canonId}`)}</p>
               <SourceBadge source={CANON_NOTES[canonId].source} />
             </div>
           )}
-          {partTree().map(({ region, parts }) => (
+          {groups.map(({ region, parts }) => (
             <div key={region} className="flex flex-col">
               <div className="mb-0.5 flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[14px] text-[var(--color-on-surface-variant)]/70">{REGION_ICON[region]}</span>
@@ -167,7 +203,7 @@ export default function CanonMeasuresPanel({ figure, unit }: { figure: FigureMod
               </div>
               <div className="flex flex-col divide-y divide-[var(--color-outline-variant)]/20">
                 {parts.map((p) => (
-                  <div key={p.key} className="py-0.5"><PartNode part={p} headCm={headCm} unit={unit} u={u} depth={0} /></div>
+                  <div key={p.key} className="py-0.5"><PartNode part={p} headCm={headCm} unit={unit} u={u} depth={0} activePart={activePart} /></div>
                 ))}
               </div>
             </div>

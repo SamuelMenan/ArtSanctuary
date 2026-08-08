@@ -46,19 +46,6 @@ export interface WorkspaceUiPlugin {
   card: (p: WorkspaceProjectMeta, t: (key: string) => string) => WorkspaceCard
 }
 
-const REGISTRY: WorkspaceUiPlugin[] = []
-
-export function registerWorkspaceUi(plugin: WorkspaceUiPlugin): void {
-  if (!REGISTRY.some((p) => p.id === plugin.id)) REGISTRY.push(plugin)
-}
-
-export function allWorkspaceUi(): readonly WorkspaceUiPlugin[] {
-  return REGISTRY
-}
-
-export function getWorkspaceUi(id: string): WorkspaceUiPlugin | undefined {
-  return REGISTRY.find((p) => p.id === id)
-}
 
 /** Formato de fecha común para las cards (es). */
 export function fmtWorkspaceDate(iso: string): string {

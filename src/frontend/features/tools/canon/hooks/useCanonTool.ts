@@ -49,12 +49,28 @@ export function useCanonTool() {
   const [bHeight, setBHeight] = useState(height)
   const [bView, setBView] = useState<View>(view)
 
+  // Parte seleccionada en la lámina (A3). Hover NO vive aquí (local al layer).
+  const [activePart, setActivePart] = useState<string | null>(null)
+
   const trace = useTraceMeasure()
 
   const figure = useMemo(() => buildFigure({ canonId, heightCm: height }), [canonId, height])
   const figureB = useMemo(() => buildFigure({ canonId: bCanonId, heightCm: bHeight }), [bCanonId, bHeight])
 
   const toggleLayer = useCallback((k: keyof ChartLayers) => setLayers((p) => ({ ...p, [k]: !p[k] })), [])
+
+  // Clic en una parte: selecciona; re-clic (o null) deselecciona.
+  const handleSelectPart = useCallback((key: string | null) => {
+    setActivePart((cur) => (key === null || cur === key ? null : key))
+  }, [])
+
+  // La vista de la PARTE sigue la vista del cuerpo: al cambiar `view` se MANTIENE
+  // `activePart` (la ficha conmuta su lámina; si la parte no existe en esa vista,
+  // simplemente no se resalta). Solo cambiar de CANON limpia la selección (otra
+  // figura distinta). Ver plan-canon-hover-vistas-partes.md §"Interacción".
+  useEffect(() => {
+    setActivePart(null)
+  }, [canonId])
 
   // Handoff: deja la lámina actual pendiente y abre Boards (el primer editor que
   // monte la inserta). Ver `boardHandoff.ts`.
@@ -154,6 +170,7 @@ export function useCanonTool() {
     compare, toggleCompare, figureB, bView, setBView, setBCanonId, setBHeight,
     figure,
     ghostCanonId, setGhostCanonId,
+    activePart, handleSelectPart,
     ...trace,
   }
 }

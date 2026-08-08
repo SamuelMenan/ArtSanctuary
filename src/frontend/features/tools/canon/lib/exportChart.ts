@@ -114,7 +114,7 @@ export async function buildChartCanvas({ figure, view, t, layers = DEFAULT_LAYER
 
   // Capa Anatomía: líneas + etiquetas (nombre + cm) de landmarks reales
   if (layers.anatomy) {
-    const landmarks = getLandmarks(canonId)
+    const landmarks = getLandmarks(canonId, view)
     for (const lm of landmarks) {
       const y = yOf(lm.frac)
       ctx.strokeStyle = COL.landmark

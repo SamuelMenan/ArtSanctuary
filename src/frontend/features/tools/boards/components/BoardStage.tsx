@@ -1,12 +1,13 @@
 import { useCallback } from 'react'
 import type { RefObject, Dispatch, SetStateAction } from 'react'
-import { Stage, Layer, Transformer } from 'react-konva'
+import { Stage, Layer, Transformer, Line } from 'react-konva'
 import type Konva from 'konva'
 import { BoardObject, BoardBackground } from '@shared/lib/boards/types'
 import ImageNode from '../nodes/ImageNode'
 import TextNode from '../nodes/TextNode'
 import StickyNode from '../nodes/StickyNode'
 import ShapeNode from '../nodes/ShapeNode'
+import FreehandNode from '../nodes/FreehandNode'
 import GridLayer from '../layers/GridLayer'
 import MeasureLayer from '../layers/MeasureLayer'
 import { BoardExtLayers } from '../extensions/Host'
@@ -49,6 +50,7 @@ export default function BoardStage({
   snapLines,
   gridGap,
   measure,
+  tempPoints,
   onSelectObject,
   setSelectedIds,
   setEditingId,
@@ -73,7 +75,7 @@ export default function BoardStage({
   readOnly: boolean
   selectedIds: string[]
   editingId: string | null
-  tool: 'select' | 'hand' | 'measure'
+  tool: 'select' | 'hand' | 'measure' | 'draw'
   snap: boolean
   snapVal: (v: number) => number
   snapDrag: (v: number, span: number) => number
@@ -82,6 +84,7 @@ export default function BoardStage({
   /** Paso de grilla actual (px de mundo); define la tolerancia de las líneas-imán. */
   gridGap: number
   measure: MeasureSeg
+  tempPoints: number[] | null
   onSelectObject: (id: string, additive: boolean) => void
   setSelectedIds: Dispatch<SetStateAction<string[]>>
   setEditingId: Dispatch<SetStateAction<string | null>>
@@ -140,8 +143,22 @@ export default function BoardStage({
             return <StickyNode key={obj.id} obj={obj} editing={obj.id === editingId} onSelect={onSelectObject} onEdit={onEditObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
           if (isShape(obj.type))
             return <ShapeNode key={obj.id} obj={obj} onSelect={onSelectObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
+          if (obj.type === 'freehand')
+            return <FreehandNode key={obj.id} obj={obj} onSelect={onSelectObject} onChange={onUpdateObject} readOnly={readOnly} snap={snap} snapVal={snapVal} snapDrag={snapDrag} draggable={draggable} />
           return null
         })}
+        {tempPoints && tempPoints.length >= 4 && (
+          <Line
+            points={tempPoints}
+            stroke="var(--color-primary, #a78bfa)"
+            strokeWidth={3}
+            tension={0.35}
+            lineCap="round"
+            lineJoin="round"
+            opacity={0.85}
+            perfectDrawEnabled={false}
+          />
+        )}
         {!readOnly && (
           <Transformer
             ref={(node) => {

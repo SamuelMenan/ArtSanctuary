@@ -1,0 +1,29 @@
+{
+  "image": "public/canon/heroic/lateral.png",
+  "step": 4,
+  "_comment": "Vista LATERAL (perfil): UN solo run a toda altura, el brazo va FUNDIDO con el torso → inseparable. Regiones = bandas horizontales del perfil (profileBand, contorno real frente→espalda). Brazo/antebrazo/mano se OMITEN (fundidos, degrada limpio). Cortes medidos sobre lateral.png (h=1312): cuello 0.13-0.16, flanco 0.16-0.42, cadera 0.42-0.50, muslo 0.50-0.64, rodilla 0.64-0.67, pierna 0.67-0.86, tobillo 0.86-0.92, pie 0.92+.",
+  "cuts": {
+    "chin": 0.13,
+    "torsoTop": 0.16,
+    "armTop": 0.16,
+    "elbow": 0.4,
+    "waist": 0.42,
+    "wrist": 0.5,
+    "crotch": 0.5,
+    "knee": 0.64,
+    "ankle": 0.86,
+    "armpitFrac": 0.5,
+    "handsEndFrac": 0.56
+  },
+  "skipParts": ["neck", "torso", "pelvis", "arm", "forearm", "hand", "thigh", "leg", "foot"],
+  "bands": {
+    "neck": { "mode": "profileBand", "from": 0.13, "to": 0.16 },
+    "flank": { "mode": "profileBand", "from": 0.16, "to": 0.42 },
+    "hip": { "mode": "profileBand", "from": 0.42, "to": 0.5 },
+    "thigh": { "mode": "profileBand", "from": 0.5, "to": 0.64 },
+    "knee": { "mode": "profileBand", "from": 0.64, "to": 0.67 },
+    "leg": { "mode": "profileBand", "from": 0.67, "to": 0.86 },
+    "ankle": { "mode": "profileBand", "from": 0.86, "to": 0.92 },
+    "foot": { "mode": "profileBand", "from": 0.92, "to": 0.998 }
+  }
+}

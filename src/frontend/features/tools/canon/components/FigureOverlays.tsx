@@ -43,7 +43,7 @@ export default function FigureOverlays({
   // Altura (frac) de cada ancho, tomada de los landmarks medidos.
   const widthMarks = useMemo(() => {
     if (!showWidths) return []
-    const lm = getLandmarks(canonId)
+    const lm = getLandmarks(canonId, view)
     const at = (k: string) => lm.find((l) => l.key === k)?.frac
     const rows: { key: string; frac: number; cm: number }[] = []
     const push = (key: string, frac: number | undefined, cm: number) => {
@@ -53,7 +53,7 @@ export default function FigureOverlays({
     push('waistW', at('ombligo'), widthsCm.waist)
     push('pelvisW', at('entrepierna'), widthsCm.pelvis)
     return rows
-  }, [showWidths, canonId, widthsCm])
+  }, [showWidths, canonId, view, widthsCm])
 
   const onClick = (e: MouseEvent<HTMLDivElement>) => {
     if (!measure.active) return

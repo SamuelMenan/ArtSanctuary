@@ -9,6 +9,7 @@ export type BoardObjectType =
   | 'ellipse'
   | 'line'
   | 'arrow'
+  | 'freehand'
 
 export type BoardObject = {
   id: string
@@ -27,6 +28,8 @@ export type BoardObject = {
   blendMode?: string // (future) Konva globalCompositeOperation
   // type-specific
   src?: string
+  /** Imagen: volteo horizontal sin alterar caja/medidas. */
+  flipX?: boolean
   text?: string
   fontSize?: number
   fontFamily?: string
@@ -98,6 +101,8 @@ export type BoardData = {
   _id: string
   name: string
   isPrivate: boolean
+  /** Espejado automático entre lateral izq/der en proyectos Carnaval. */
+  lateralMirrorEnabled?: boolean
   background: BoardBackground
   objects: BoardObject[]
   viewport: BoardViewport

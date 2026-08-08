@@ -18,6 +18,9 @@ export interface CanonOption {
 export interface Meta {
   w: number
   h: number
+  /** Ruta de la lámina si NO es `/canon/<id>/<view>.png` (p.ej. heroico frontal
+   *  usa el dibujo de músculos `musculosblanco.png`). */
+  src?: string
 }
 
 // Tamaño intrínseco real de cada lámina (px), por canon y vista. next/image lo
@@ -52,7 +55,8 @@ export function resolveCanonId(canonId: string): string {
 
 /** Ruta de la lámina; comparte la misma resolución/fallback que el componente. */
 export function figureSrc(canonId: string, view: View): string {
-  return `/canon/${resolveCanonId(canonId)}/${view}.png`
+  const id = resolveCanonId(canonId)
+  return FIGURES[id][view].src ?? `/canon/${id}/${view}.png`
 }
 
 /** Dims intrínsecas (px) de la lámina resuelta para canon+vista. */

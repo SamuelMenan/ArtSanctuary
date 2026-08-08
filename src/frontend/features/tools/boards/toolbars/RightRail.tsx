@@ -38,8 +38,7 @@ export default function RightRail({
   onToggleSnap,
   onSetSquareCm,
   onToggleLayers,
-  onToggleImageGrid,
-  onExportPdf,
+  onOpenImageTool,
   workspaceSlot,
 }: {
   selectedIds: string[]
@@ -60,10 +59,8 @@ export default function RightRail({
   onToggleSnap: () => void
   onSetSquareCm: (n: number) => void
   onToggleLayers: () => void
-  /** Superpone/quita la cuadrícula (método de cuadrícula) en la imagen seleccionada. */
-  onToggleImageGrid: () => void
-  /** Exporta la imagen seleccionada a PDF. */
-  onExportPdf: () => void
+  /** Abre el modal "Cuadrícula + PDF a escala" para la imagen seleccionada. */
+  onOpenImageTool: () => void
   /** Acciones de la extensión del workspace (sección inferior). */
   workspaceSlot?: ReactNode
 }) {
@@ -111,14 +108,7 @@ export default function RightRail({
                 {selectedObj?.type === 'image' && (
                   <>
                     <IconButton icon="crop" label={t('boards.editCropTip')} onClick={() => onEditIn('crop')} />
-                    <IconButton
-                      icon="grid_on"
-                      label={t('boards.gridImageTip')}
-                      active={!!selectedObj.gridCm}
-                      pressed={!!selectedObj.gridCm}
-                      onClick={onToggleImageGrid}
-                    />
-                    <IconButton icon="picture_as_pdf" label={t('boards.downloadPdfTip')} onClick={onExportPdf} />
+                    <IconButton icon="download" label={t('boards.imageToolTip')} onClick={onOpenImageTool} />
                   </>
                 )}
                 <IconButton icon="delete" label={t('boards.deleteTip')} danger onClick={onDelete} />

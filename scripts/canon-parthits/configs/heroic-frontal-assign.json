@@ -1,0 +1,15 @@
+[
+  { "m": "head",     "bucket": "orange", "y": [0.0, 0.12], "x": [0.3, 0.7], "paired": false },
+  { "m": "neck",     "bucket": "salmon", "y": [0.12, 0.18], "x": [0.35, 0.65], "paired": false },
+  { "m": "shoulder", "bucket": "blue",   "y": [0.12, 0.20], "paired": true },
+  { "m": "chest",    "bucket": "orange", "y": [0.18, 0.28], "x": [0.3, 0.7], "paired": false },
+  { "m": "arm",      "bucket": "salmon", "y": [0.20, 0.40], "x": [0.0, 0.2], "xOr": [0.8, 1.0], "paired": true },
+  { "m": "flank",    "bucket": "purple", "y": [0.30, 0.40], "paired": true },
+  { "m": "abdomen",  "bucket": "green",  "y": [0.28, 0.42], "x": [0.3, 0.7], "paired": false },
+  { "m": "pelvis",   "bucket": "orange", "y": [0.40, 0.50], "x": [0.3, 0.7], "paired": false },
+  { "m": "forearm",  "bucket": "purple", "y": [0.46, 0.58], "x": [0.0, 0.2], "xOr": [0.8, 1.0], "paired": true },
+  { "m": "thigh",    "bucket": "blue",   "y": [0.48, 0.60], "paired": true },
+  { "m": "knee",     "bucket": "green",  "y": [0.64, 0.72], "paired": true },
+  { "m": "leg",      "bucket": "orange", "y": [0.74, 0.88], "paired": true },
+  { "m": "foot",     "bucket": "salmon", "y": [0.92, 1.0], "paired": true }
+]

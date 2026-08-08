@@ -35,6 +35,7 @@ function normalizeLayers(l: unknown): ChartLayers {
     skeleton: o.skeleton === true,
     muscles: o.muscles === true,
     joints: o.joints === true,
+    zones: o.zones !== false, // ON por defecto (líneas de masas de espalda)
   }
 }
 

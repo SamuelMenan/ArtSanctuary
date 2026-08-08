@@ -1,0 +1,31 @@
+{
+  "image": "public/canon/heroic/frontal.png",
+  "step": 4,
+  "cuts": {
+    "chin": 0.12,
+    "torsoTop": 0.155,
+    "armTop": 0.165,
+    "elbow": 0.395,
+    "waist": 0.42,
+    "wrist": 0.5,
+    "crotch": 0.5,
+    "knee": 0.64,
+    "ankle": 0.925
+  },
+  "landmarks": {
+    "cuello": 0.14,
+    "hombros": 0.16,
+    "ombligo": 0.39,
+    "entrepierna": 0.48,
+    "rodillas": 0.64,
+    "pies": 0.93
+  },
+  "bands": {
+    "trapezius": { "mode": "trapSlope", "from": 0.155, "to": 0.178 },
+    "shoulder": { "mode": "armPegado", "from": 0.165, "to": 0.25 },
+    "elbow": { "mode": "sideLimb", "anchor": "ombligo", "offset": -0.02, "half": 0.018 },
+    "wrist": { "mode": "sideLimb", "anchor": "entrepierna", "offset": -0.005, "half": 0.016 },
+    "knee": { "mode": "legs", "anchor": "rodillas", "offset": 0.012, "half": 0.032 },
+    "ankle": { "mode": "legs", "anchor": "pies", "offset": -0.015, "half": 0.02 }
+  }
+}

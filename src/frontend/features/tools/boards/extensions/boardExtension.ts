@@ -21,6 +21,7 @@ export type NewBoardObject = Omit<BoardObject, 'id' | 'z'>
  * propia extensión a partir de `workspace` + su estado interno.
  */
 export interface BoardExtSlotProps {
+  boardId: string
   workspace: BoardWorkspace
   objects: BoardObject[]
   readOnly: boolean
@@ -32,6 +33,9 @@ export interface BoardExtSlotProps {
   stageSize: { w: number; h: number }
   /** cm por cuadro mayor de la grilla (para alinear elementos a la cuadrícula). */
   squareCm: number
+  /** Espejado automático lateral (lateralIzq ↔ lateralDer). */
+  lateralMirrorEnabled: boolean
+  setLateralMirrorEnabled: (enabled: boolean) => void
   /** Inserta un objeto ya construido por la extensión (el motor pone id/z). */
   addObject: (obj: NewBoardObject) => void
 }

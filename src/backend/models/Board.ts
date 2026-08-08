@@ -16,7 +16,7 @@ export interface IBoardBackground {
  */
 export interface IBoardObject {
   id: string; // uuid generado en cliente
-  type: "image" | "text" | "sticky" | "rect" | "ellipse" | "line" | "arrow";
+  type: "image" | "text" | "sticky" | "rect" | "ellipse" | "line" | "arrow" | "freehand";
   x: number;
   y: number;
   w: number;
@@ -59,6 +59,7 @@ export interface IBoard extends Document {
   _id: Types.ObjectId;
   name: string;
   isPrivate: boolean;
+  lateralMirrorEnabled: boolean;
   background: IBoardBackground;
   objects: IBoardObject[];
   viewport: IBoardViewport;
@@ -144,6 +145,8 @@ const BoardSchema = new Schema<IBoard>(
 
     // Privado = solo visible para el propietario
     isPrivate: { type: Boolean, default: false },
+    // Espejo automático entre laterales (solo aplica a planos lateralIzq/lateralDer).
+    lateralMirrorEnabled: { type: Boolean, default: false },
 
     background: { type: BackgroundSchema, default: () => ({}) },
 

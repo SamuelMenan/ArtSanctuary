@@ -6,6 +6,7 @@ import { transition } from '@frontend/shared/motion/tokens'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import type { FigureModel } from '@shared/lib/canon/figure'
 import { getLandmarks, divisionMarks } from '@shared/lib/canon/landmarks'
+import { getBackZoneLines } from '@shared/lib/canon/partHits'
 import { formatValue, type Unit } from '@shared/lib/canon/units'
 import Image from 'next/image'
 import ReferenceFigure from './ReferenceFigure'
@@ -14,6 +15,8 @@ import { DEFAULT_LAYERS, type ChartLayers } from '../lib/chartLayers'
 import { overlaySrc } from '../lib/overlays'
 import { getJoints } from '../lib/joints'
 import FigureOverlays, { type MeasureState } from './FigureOverlays'
+import PartHitLayer from './PartHitLayer'
+import MuscleMapLayer from './MuscleMapLayer'
 import LandmarkLabel from './LandmarkLabel'
 import ChartAxis from './ChartAxis'
 import GhostFigure from './GhostFigure'
@@ -45,6 +48,8 @@ export default function ProportionChart({
   refOpacity = 0.5,
   measure = NO_MEASURE,
   ghostCanonId = null,
+  activePart = null,
+  onSelectPart,
 }: {
   figure: FigureModel
   view: View
@@ -54,18 +59,26 @@ export default function ProportionChart({
   refOpacity?: number
   measure?: MeasureState
   ghostCanonId?: string | null
+  /** Parte seleccionada en la lámina (A3). */
+  activePart?: string | null
+  /** Si se pasa, la capa de regiones clicables se monta (cuando hay trazado). */
+  onSelectPart?: (key: string | null) => void
 }) {
   const { t } = usePreferences()
   const { canonId, headCount, heightCm, headCm } = figure
   const u = t(`canon.units.${unit}`)
 
   const divisions = useMemo(() => divisionMarks(headCount), [headCount])
-  const landmarks = useMemo(() => getLandmarks(canonId), [canonId])
+  const landmarks = useMemo(() => getLandmarks(canonId, view), [canonId, view])
   const leftLandmarks = useMemo(() => landmarks.filter((l) => l.side !== 'right'), [landmarks])
   const rightLandmarks = useMemo(() => landmarks.filter((l) => l.side === 'right'), [landmarks])
   const skeletonSrc = layers.skeleton ? overlaySrc(canonId, 'skeleton', view) : null
   const musclesSrc = layers.muscles ? overlaySrc(canonId, 'muscles', view) : null
   const joints = useMemo(() => (layers.joints ? getJoints(canonId, view) : []), [layers.joints, canonId, view])
+  const zoneLines = useMemo(
+    () => (layers.zones ? getBackZoneLines(canonId, view) : []),
+    [layers.zones, canonId, view],
+  )
 
   const lineCls = 'absolute left-0 right-0 border-t border-dashed border-[var(--color-outline-variant)]'
 
@@ -102,6 +115,9 @@ export default function ProportionChart({
         {musclesSrc && (
           <Image src={musclesSrc} alt={t('canon.muscles')} fill sizes="(max-width: 640px) 50vw, 320px" priority className="pointer-events-none object-contain opacity-80" />
         )}
+        {/* Capa Músculos sin lámina PNG: pinta las regiones de partHits con el
+            color de su grupo (tipo écorché de referencia). Display-only. */}
+        {layers.muscles && !musclesSrc && <MuscleMapLayer canonId={canonId} view={view} />}
         <AnimatePresence>
           {ghostCanonId && ghostCanonId !== canonId && (
             <motion.div key={`ghost-${ghostCanonId}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.base} className="absolute inset-0">
@@ -141,6 +157,22 @@ export default function ProportionChart({
               style={{ left: `${j.x * 100}%`, top: `${mapFrac(j.frac)}%` }}
             />
           ))}
+          {/* Líneas guía de las masas de la espalda (E3): finas y discretas, en
+              el ancho central de la figura (no de borde a borde, para no chocar
+              con las columnas de landmarks). Solo posterior (donde hay data). */}
+          <AnimatePresence>
+            {zoneLines.length > 0 && (
+              <motion.div key="zone-lines" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition.fast} className="absolute inset-0">
+                {zoneLines.map((frac) => (
+                  <div
+                    key={`zone-${frac}`}
+                    className="absolute left-[18%] right-[18%] border-t border-dashed border-[var(--color-outline-variant)]/70"
+                    style={{ top: `${mapFrac(frac)}%` }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <FigureOverlays
           figure={figure}
@@ -151,6 +183,17 @@ export default function ProportionChart({
           refOpacity={refOpacity}
           measure={measure}
         />
+        {/* Regiones clicables por parte (A3). Encima de todo; con la regla
+            activa se desactiva para no robarle los clics. */}
+        {onSelectPart && (
+          <PartHitLayer
+            canonId={canonId}
+            view={view}
+            activePart={activePart}
+            onSelectPart={onSelectPart}
+            disabled={measure.active}
+          />
+        )}
       </div>
 
       {/* Columna de landmarks lado derecho (Capa Anatomía) */}

@@ -8,7 +8,7 @@ import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvide
 import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
 import { useCanHover } from '@frontend/shared/hooks/useCanHover'
 import { transition } from '@frontend/shared/motion/tokens'
-import { allWorkspaceUi } from '@frontend/features/workspaces/shared/workspacePlugin'
+import { allWorkspaceUi } from '@frontend/features/workspaces/shared/workspaceRegistry'
 import { planoLabel, type CarnavalPlano } from '@shared/lib/workspaces/carnaval'
 
 // Estilos únicos del sidebar de herramientas.

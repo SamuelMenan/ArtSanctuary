@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import Spinner from '@frontend/shared/ui/Spinner'
 import {
-  allWorkspaceUi,
-  getWorkspaceUi,
   type WorkspaceProjectMeta,
   type WorkspaceUiPlugin,
 } from '../workspacePlugin'
+import {
+  allWorkspaceUi,
+  getWorkspaceUi,
+} from '../workspaceRegistry'
 
 export default function WorkspacesScreen() {
   const { t } = usePreferences()

@@ -1,9 +1,9 @@
 // Plugin de UI del tipo Carnaval para la landing de Workspaces.
 
 import { CARNAVAL_MODALITIES, getCarnavalRule, type CarnavalModality } from '@shared/lib/workspaces/carnaval'
-import { registerWorkspaceUi, fmtWorkspaceDate } from '../shared/workspacePlugin'
+import { type WorkspaceUiPlugin, fmtWorkspaceDate } from '../shared/workspacePlugin'
 
-registerWorkspaceUi({
+export const carnavalPlugin: WorkspaceUiPlugin = {
   id: 'carnaval',
   enabled: true,
   meta: { labelKey: 'workspaces.carnaval', descKey: 'workspaces.carnavalDesc', icon: 'festival' },
@@ -36,4 +36,4 @@ registerWorkspaceUi({
       : fmtWorkspaceDate(p.updatedAt),
     statusBadgeKey: `carnaval.status_${p.accreditationStatus}`,
   }),
-})
+}
