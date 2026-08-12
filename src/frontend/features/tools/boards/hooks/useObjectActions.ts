@@ -149,9 +149,15 @@ export function useObjectActions(
   }
 
   // Aplica un parche a todos los seleccionados (panel de formato/estilo).
-  const patchSelected = (patch: Partial<BoardObject>) => {
+  const patchSelected = (patch: Partial<BoardObject> | ((o: BoardObject) => Partial<BoardObject>)) => {
     if (!selectedIds.length) return
-    mutate((arr) => arr.map((o) => (selectedIds.includes(o.id) ? { ...o, ...patch } : o)))
+    mutate((arr) =>
+      arr.map((o) => {
+        if (!selectedIds.includes(o.id) || o.locked) return o
+        const p = typeof patch === 'function' ? patch(o) : patch
+        return { ...o, ...p }
+      }),
+    )
   }
 
   /* ── Capas (panel tipo Photoshop) ── */

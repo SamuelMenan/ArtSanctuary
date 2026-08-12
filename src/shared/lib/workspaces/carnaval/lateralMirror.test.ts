@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lateralMirrorTarget, mirrorBoardObjectsForLateral } from './lateralMirror'
+import { lateralMirrorTarget, mirrorBoardObjectsForLateral, mirrorSelectedImagesForLateral } from './lateralMirror'
 import type { BoardObject } from '@shared/lib/boards/types'
 
 describe('lateral mirror', () => {
@@ -62,6 +62,52 @@ describe('lateral mirror', () => {
       {
         ...objects[2],
         x: -105,
+        rotation: 0,
+        flipX: true,
+      },
+    ])
+  })
+
+  it('solo espeja imágenes seleccionadas', () => {
+    const objects: BoardObject[] = [
+      {
+        id: 'txt',
+        type: 'text',
+        x: 10,
+        y: 10,
+        w: 20,
+        h: 10,
+        rotation: 0,
+        z: 1,
+      },
+      {
+        id: 'img-a',
+        type: 'image',
+        x: 5,
+        y: 4,
+        w: 100,
+        h: 40,
+        rotation: 0,
+        z: 2,
+        src: 'https://example.com/a.png',
+      },
+      {
+        id: 'img-b',
+        type: 'image',
+        x: 15,
+        y: 8,
+        w: 60,
+        h: 30,
+        rotation: 0,
+        z: 3,
+        src: 'https://example.com/b.png',
+      },
+    ]
+
+    expect(mirrorSelectedImagesForLateral(objects, ['img-b', 'txt'])).toEqual([
+      {
+        ...objects[2],
+        x: -75,
         rotation: 0,
         flipX: true,
       },

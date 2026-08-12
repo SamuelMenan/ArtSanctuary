@@ -107,31 +107,46 @@ function ImageNode({
   // Cuadrícula (método de cuadrícula) EXACTA: usa cuadrados perfectos de `gridCm`.
   // La última columna/fila puede ser un corte parcial, como ocurre en la vida real.
   const grid = useMemo(() => {
-    if (!obj.gridCm || obj.gridCm <= 0) return null
+    if (!obj.gridCm || obj.gridCm <= 0 || obj.gridVisible === false) return null
     const wCm = cmOf(obj.w)
     const hCm = cmOf(obj.h)
     const cols = Math.ceil(wCm / obj.gridCm)
     const rows = Math.ceil(hCm / obj.gridCm)
-    
+
     const cw = obj.gridCm * PX_PER_CM
     const ch = obj.gridCm * PX_PER_CM
+
     const baseCols: number[] = []
     for (let c = 0; c < cols; c++) {
       baseCols.push(c === cols - 1 ? obj.w - c * cw : cw)
     }
     const colWidths = obj.flipX ? [...baseCols].reverse() : baseCols
     const colStarts: number[] = []
-    let acc = 0
+    let accW = 0
     for (let c = 0; c < colWidths.length; c++) {
-      colStarts.push(acc)
-      acc += colWidths[c]
+      colStarts.push(accW)
+      accW += colWidths[c]
     }
+
+    const baseRows: number[] = []
+    for (let r = 0; r < rows; r++) {
+      baseRows.push(r === rows - 1 ? obj.h - r * ch : ch)
+    }
+    const rowHeights = obj.flipY ? [...baseRows].reverse() : baseRows
+    const rowStarts: number[] = []
+    let accH = 0
+    for (let r = 0; r < rowHeights.length; r++) {
+      rowStarts.push(accH)
+      accH += rowHeights[r]
+    }
+
     const vx: number[] = []
     const hy: number[] = []
     for (let i = 1; i < cols; i++) vx.push(colStarts[i])
-    for (let j = 1; j < rows; j++) hy.push(j * ch)
-    return { cols, rows, cw, ch, vx, hy, colStarts, colWidths }
-  }, [obj.flipX, obj.gridCm, obj.w, obj.h])
+    for (let i = 1; i < rows; i++) hy.push(rowStarts[i])
+
+    return { cols, rows, cw, ch, vx, hy, colStarts, colWidths, rowStarts, rowHeights }
+  }, [obj.flipX, obj.flipY, obj.gridCm, obj.gridVisible, obj.w, obj.h])
 
   return (
     <Group
@@ -142,8 +157,8 @@ function ImageNode({
       rotation={obj.rotation}
       visible={obj.visible !== false}
       draggable={draggable}
-      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
-      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x(), obj.w ?? 0))
@@ -171,19 +186,13 @@ function ImageNode({
       <KonvaImage
         image={img ?? undefined}
         x={obj.flipX ? obj.w : 0}
-        y={0}
+        y={obj.flipY ? obj.h : 0}
         scaleX={obj.flipX ? -1 : 1}
+        scaleY={obj.flipY ? -1 : 1}
         width={obj.w}
         height={obj.h}
         opacity={(obj.opacity ?? 100) / 100}
         perfectDrawEnabled={false}
-        // Énfasis de selección con borde fino (barato) en vez de shadowBlur, que
-        // era caro al panear con una imagen grande seleccionada. El Transformer
-        // (manijas) ya marca la selección; esto solo refuerza el contorno.
-        stroke={isSelected ? '#3b82f6' : undefined}
-        strokeWidth={isSelected ? 2 / scale : 0}
-        strokeEnabled={isSelected}
-        strokeScaleEnabled={false}
       />
       {grid && (
         <>
@@ -208,17 +217,19 @@ function ImageNode({
               const c = i % grid.cols
               const r = Math.floor(i / grid.cols)
               const cellW = grid.colWidths[c]
-              const cellH = r === grid.rows - 1 ? obj.h - r * grid.ch : grid.ch
+              const cellH = grid.rowHeights[r]
               const cellX = grid.colStarts[c]
+              const cellY = grid.rowStarts[r]
               const labelCol = obj.flipX ? grid.cols - 1 - c : c
+              const labelRow = obj.flipY ? grid.rows - 1 - r : r
               // Ocultar la etiqueta si la celda residual es muy pequeña para albergarla
               if (cellW * scale < 25 || cellH * scale < 14) return null
               return (
                 <Text
                   key={`lbl${i}`}
                   x={cellX}
-                  y={r * grid.ch}
-                  text={`${colLabel(labelCol)}${r + 1}`}
+                  y={cellY}
+                  text={`${colLabel(labelCol)}${labelRow + 1}`}
                   fontSize={10 / scale}
                   fill="#ef4444"
                   opacity={0.8}

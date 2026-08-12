@@ -33,6 +33,7 @@ export interface IBoardObject {
   stroke?: string;
   strokeWidth?: number;
   points?: number[];
+  gridVisible?: boolean;
 }
 
 export interface IBoardViewport {

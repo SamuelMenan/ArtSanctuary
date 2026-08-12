@@ -28,8 +28,8 @@ function ShapeNode({ obj, onSelect, onChange, readOnly, snap, snapDrag, draggabl
       opacity={(obj.opacity ?? 100) / 100}
       visible={obj.visible !== false}
       draggable={draggable}
-      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
-      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x() - cx, obj.w) + cx)

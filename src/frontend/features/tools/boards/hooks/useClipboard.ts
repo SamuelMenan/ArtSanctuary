@@ -23,6 +23,8 @@ export function useClipboard(
     if (!src.length) return
     const baseZ = Math.max(0, ...objects.map((o) => o.z)) + 1
     const clones = src.map((o, i) => ({ ...o, id: uid(), x: o.x + 24, y: o.y + 24, z: baseZ + i }))
+
+    // Actualizar objetos y selección con los nuevos clones
     mutate((arr) => [...arr, ...clones])
     setSelectedIds(clones.map((c) => c.id))
   }
@@ -31,3 +33,4 @@ export function useClipboard(
 
   return { copySelection, pasteClipboard, duplicateSelection }
 }
+

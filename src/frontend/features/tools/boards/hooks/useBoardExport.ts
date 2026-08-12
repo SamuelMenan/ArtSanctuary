@@ -5,6 +5,12 @@ import type Konva from 'konva'
 import { BoardObject } from '@shared/lib/boards/types'
 import { cmOf, applyScale } from '@shared/lib/measure'
 import { setHandoff } from '@shared/lib/tools/handoff'
+import {
+  loadImage,
+  buildTransformedCanvas,
+  canvasToBlob,
+  uploadBlob,
+} from '@shared/lib/image/canvas'
 
 interface BoardExportArgs {
   boardId: string
@@ -39,13 +45,34 @@ export function useBoardExport({
   const { t } = usePreferences()
 
   // Enviar el objeto imagen seleccionado a otra herramienta (round-trip).
-  const editIn = (tool: 'crop' | 'grid') => {
+  const editIn = async (tool: 'crop' | 'grid') => {
     const o = selectedId ? objects.find((x) => x.id === selectedId) : null
     if (!o || o.type !== 'image' || !o.src) return
+
+    let imageUrl = o.src
+    if (o.flipX || o.flipY) {
+      try {
+        const image = await loadImage(o.src)
+        const canvas = buildTransformedCanvas(
+          image,
+          image.naturalWidth,
+          image.naturalHeight,
+          !!o.flipX,
+          !!o.flipY,
+        )
+        const blob = await canvasToBlob(canvas)
+        imageUrl = await uploadBlob(blob, 'flipped-image')
+      } catch (error) {
+        console.error('Failed to process flipped image for handoff:', error)
+        // Opcional: mostrar un error al usuario
+        return
+      }
+    }
+
     const widthCm = cmOf(o.w)
     const heightCm = cmOf(o.h)
     setHandoff({
-      imageUrl: o.src,
+      imageUrl,
       widthCm,
       heightCm,
       widthScaledCm: applyScale(widthCm),

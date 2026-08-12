@@ -9,7 +9,7 @@ import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { cmOf, applyScale, formatCm, formatScaled } from '@shared/lib/measure'
 import ToolWorkspace from '@frontend/features/tools/shared/workspace/ToolWorkspace'
-import { ToolRow, ToolPanelFooter } from '@frontend/features/tools/shared/workspace/ToolPanel'
+import { ToolRow, ToolGrid, ToolPanelFooter } from '@frontend/features/tools/shared/workspace/ToolPanel'
 import ToolCluster from '@frontend/features/tools/shared/workspace/ToolCluster'
 import ToolButton from '@frontend/features/tools/shared/workspace/ToolButton'
 import ToolSlider from '@frontend/features/tools/shared/workspace/ToolSlider'
@@ -20,7 +20,21 @@ import HistoryButtons from '@frontend/features/tools/shared/workspace/HistoryBut
 import SendActions from '@frontend/features/tools/shared/workspace/SendActions'
 import MeasureBar from '@frontend/features/tools/shared/workspace/MeasureBar'
 
-type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se' | null
+type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e' | null
+
+const buildTransformedCanvas = (source: CanvasImageSource, width: number, height: number, flipX: boolean, flipY: boolean) => {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('No 2D context')
+  ctx.save()
+  ctx.translate(width / 2, height / 2)
+  ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
+  ctx.drawImage(source, -width / 2, -height / 2, width, height)
+  ctx.restore()
+  return canvas
+}
 
 const ASPECTS: { label: string; value: number | null }[] = [
   { label: 'Libre', value: null },
@@ -35,6 +49,8 @@ export default function CropTool() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [img, setImg] = useState<HTMLImageElement | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [flipX, setFlipX] = useState(false)
+  const [flipY, setFlipY] = useState(false)
   const [crop, setCrop] = useState<Bounds>({ x: 0, y: 0, w: 0, h: 0 })
   const [aspectIdx, setAspectIdx] = useState('0')
   const [tolerance, setTolerance] = useState(18)
@@ -219,7 +235,8 @@ export default function CropTool() {
     if (!img) return
     setBusy(true)
     try {
-      const out = cropCanvas(img, crop)
+      const transformed = flipX || flipY ? buildTransformedCanvas(img, img.naturalWidth, img.naturalHeight, flipX, flipY) : img
+      const out = cropCanvas(transformed, crop)
       const blob = await canvasToBlob(out, 'image/png')
       downloadBlob(blob, 'crop.png')
     } catch {
@@ -240,7 +257,8 @@ export default function CropTool() {
     setBusy(true)
     setError(null)
     try {
-      const blob = await canvasToBlob(cropCanvas(img, crop), 'image/png')
+      const transformed = flipX || flipY ? buildTransformedCanvas(img, img.naturalWidth, img.naturalHeight, flipX, flipY) : img
+      const blob = await canvasToBlob(cropCanvas(transformed, crop), 'image/png')
       const url = await uploadBlob(blob, 'crop.png')
       const widthCm = cmOf(crop.w)
       const heightCm = cmOf(crop.h)
@@ -295,6 +313,13 @@ export default function CropTool() {
         />
       </ToolCluster>
 
+      <ToolCluster name={t('crop.transform')}>
+        <ToolGrid cols={2}>
+          <ToolButton variant="toggle" icon="swap_horiz" title={t('crop.flipHorizontal')} active={flipX} disabled={off} onClick={() => setFlipX((value) => !value)} />
+          <ToolButton variant="toggle" icon="swap_vert" title={t('crop.flipVertical')} active={flipY} disabled={off} onClick={() => setFlipY((value) => !value)} />
+        </ToolGrid>
+      </ToolCluster>
+
       <ToolCluster name={t('crop.autoCrop')}>
         <ToolButton variant="ghost" icon="crop_free" label={t('crop.auto')} title={t('crop.autoCrop')} disabled={off} onClick={autoCrop} className="w-full" />
         <ToolSlider icon="tune" min={0} max={60} value={tolerance} title={t('crop.autoCropTip')} onChange={setTolerance} />
@@ -329,11 +354,25 @@ export default function CropTool() {
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerUp}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={imageUrl ?? undefined} alt="" draggable={false} className="absolute pointer-events-none" style={{ left: fit.ox, top: fit.oy, width: fit.dw, height: fit.dh }} />
+      {img && (
+        <img
+          src={imageUrl ?? undefined}
+          alt=""
+          draggable={false}
+          className="absolute pointer-events-none"
+          style={{
+            left: fit.ox,
+            top: fit.oy,
+            width: fit.dw,
+            height: fit.dh,
+            transform: `${flipX ? 'scaleX(-1)' : ''}${flipX && flipY ? ' ' : ''}${flipY ? 'scaleY(-1)' : ''}` || 'none',
+            transformOrigin: 'center center',
+          }}
+        />
+      )}
       <div className="absolute pointer-events-none" style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height, boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }} />
       <div
-        className="absolute border border-[var(--color-primary)] cursor-move"
+        className="absolute border border-(--color-primary) cursor-move"
         style={{ left: screen.left, top: screen.top, width: screen.width, height: screen.height }}
         onPointerDown={(e) => startDrag('move', e)}
       >
@@ -341,6 +380,10 @@ export default function CropTool() {
         <div className={`${handle} -right-1.5 -top-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('ne', e)} />
         <div className={`${handle} -left-1.5 -bottom-1.5 cursor-nesw-resize`} onPointerDown={(e) => startDrag('sw', e)} />
         <div className={`${handle} -right-1.5 -bottom-1.5 cursor-nwse-resize`} onPointerDown={(e) => startDrag('se', e)} />
+        <div className={`${handle} left-1/2 -top-1.5 -translate-x-1/2 cursor-ns-resize`} onPointerDown={(e) => startDrag('n', e)} />
+        <div className={`${handle} left-1/2 -bottom-1.5 -translate-x-1/2 cursor-ns-resize`} onPointerDown={(e) => startDrag('s', e)} />
+        <div className={`${handle} -left-1.5 top-1/2 -translate-y-1/2 cursor-ew-resize`} onPointerDown={(e) => startDrag('w', e)} />
+        <div className={`${handle} -right-1.5 top-1/2 -translate-y-1/2 cursor-ew-resize`} onPointerDown={(e) => startDrag('e', e)} />
       </div>
     </ToolStage>
   )

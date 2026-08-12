@@ -29,7 +29,7 @@ export function useObjectCreation(
     if (edit) setEditingId(obj.id)
   }
 
-  const addImage = (src: string) => {
+  const addImage = (src: string, placement?: { x: number; y: number }) => {
     const image = new window.Image()
     image.crossOrigin = 'anonymous'
     image.src = src
@@ -38,7 +38,7 @@ export function useObjectCreation(
       const ratio = Math.min(1, maxDim / Math.max(image.naturalWidth, image.naturalHeight))
       const w = image.naturalWidth * ratio
       const h = image.naturalHeight * ratio
-      const { cx, cy } = viewCenter()
+      const { cx, cy } = placement ?? viewCenter()
       addObject({ id: uid(), type: 'image', src, x: cx - w / 2, y: cy - h / 2, w, h, rotation: 0, z: nextZ() })
     }
   }

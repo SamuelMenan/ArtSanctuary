@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefObject, Dispatch, SetStateAction } from 'react'
 import { Stage, Layer, Transformer, Line } from 'react-konva'
 import type Konva from 'konva'
@@ -90,6 +90,30 @@ export default function BoardStage({
   setEditingId: Dispatch<SetStateAction<string | null>>
   onUpdateObject: (o: BoardObject) => void
 }) {
+  const ctrlPressedRef = useRef(false)
+  const [keepRatioResize, setKeepRatioResize] = useState(false)
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        ctrlPressedRef.current = true
+        setKeepRatioResize(true)
+      }
+    }
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control' || e.key === 'Meta') {
+        ctrlPressedRef.current = false
+        setKeepRatioResize(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [])
+
   // Handler de edición con identidad ESTABLE (setters de React son estables) →
   // no rompe la memoización de los nodos al panear/zoom.
   const onEditObject = useCallback(
@@ -164,11 +188,20 @@ export default function BoardStage({
             ref={(node) => {
               trRef.current = node;
             }}
+            perfectDrawEnabled={false}
             rotateEnabled
-            keepRatio={false}
+            keepRatio={keepRatioResize}
+            strokeScaleEnabled={false}
             rotationSnapTolerance={4}
             rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
-            ignoreStroke
+            borderStroke="red"
+            borderStrokeWidth={1.5}
+            anchorStroke="white"
+            anchorFill="#333"
+            anchorSize={10}
+            anchorCornerRadius={2}
+            anchorStrokeWidth={1.5}
+            rotateAnchorStroke="white"
             boundBoxFunc={(oldBox, newBox) => {
               // `boundBoxFunc` opera en coords ABSOLUTAS (pantalla): incluyen el
               // scale y la posición del Stage. El imán (`snapVal`) vive en coords

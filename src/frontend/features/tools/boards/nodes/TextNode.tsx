@@ -37,8 +37,8 @@ function TextNode({
       fill={obj.color || '#e8e8e8'}
       align={obj.align || 'left'}
       draggable={draggable}
-      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
-      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
       onDblClick={() => !readOnly && !obj.locked && onEdit(obj.id)}
       onDblTap={() => !readOnly && !obj.locked && onEdit(obj.id)}
       onDragMove={(e) => {

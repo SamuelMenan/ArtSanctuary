@@ -10,32 +10,35 @@
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import IconButton from '@frontend/features/tools/boards/toolbars/IconButton'
 import type { BoardExtSlotProps } from '@frontend/features/tools/boards/extensions/boardExtension'
-import { getCarnavalRule, isLateralView } from '@shared/lib/workspaces/carnaval'
+import { getCarnavalRule } from '@shared/lib/workspaces/carnaval'
 import { useCarnavalBoard } from './context'
 
-export default function CarnavalWorkspaceActions({ workspace, lateralMirrorEnabled, setLateralMirrorEnabled }: BoardExtSlotProps) {
+export default function CarnavalWorkspaceActions({
+  workspace,
+  objects,
+  selectedIds,
+  patchSelected,
+  lateralMirrorEnabled,
+}: BoardExtSlotProps) {
   const { t } = usePreferences()
   const { inspectorOpen, setInspectorOpen, guideOffsets, addGuide, clearGuides } = useCarnavalBoard()
   const rule = workspace.modality ? getCarnavalRule(workspace.modality) : null
   if (!rule) return null
-  const canMirrorLateral = isLateralView(workspace.view)
+
+  const canMirrorLateral =
+    lateralMirrorEnabled && workspace.kind === 'carnaval' && workspace.view === 'lateralDer'
+
+  const hasSelection = selectedIds.length > 0
+  const selectedObjects = selectedIds.map((id) => objects.find((o) => o.id === id)).filter(Boolean)
+  const isMirror = hasSelection && selectedObjects.every((o) => o?.lateralMirror)
+
+  const handleToggleMirror = () => {
+    if (!hasSelection) return
+    patchSelected({ lateralMirror: !isMirror })
+  }
 
   return (
     <>
-      {canMirrorLateral && (
-        <IconButton
-          icon="compare_arrows"
-          label={t('boards.lateralMirrorToggle')}
-          title={
-            lateralMirrorEnabled
-              ? t('boards.lateralMirrorOn')
-              : t('boards.lateralMirrorOff')
-          }
-          active={lateralMirrorEnabled}
-          pressed={lateralMirrorEnabled}
-          onClick={() => setLateralMirrorEnabled(!lateralMirrorEnabled)}
-        />
-      )}
       <IconButton
         icon="fact_check"
         label={t('boards.inspectorTitle')}
@@ -46,6 +49,17 @@ export default function CarnavalWorkspaceActions({ workspace, lateralMirrorEnabl
       <IconButton icon="crop_free" label={t('boards.newGuide')} onClick={addGuide} />
       {guideOffsets.length > 0 && (
         <IconButton icon="layers_clear" label={t('boards.clearGuides')} onClick={clearGuides} />
+      )}
+      {canMirrorLateral && (
+        <IconButton
+          icon="compare_arrows"
+          label={t('boards.lateralMirrorToggle')}
+          title={isMirror ? t('boards.lateralMirrorOn') : t('boards.lateralMirrorOff')}
+          active={isMirror}
+          pressed={isMirror}
+          disabled={!hasSelection}
+          onClick={handleToggleMirror}
+        />
       )}
     </>
   )

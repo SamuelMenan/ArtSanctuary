@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, type DragEvent } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import type Konva from 'konva'
@@ -47,6 +47,7 @@ const isShape = (t: string) => (SHAPE_TYPES as readonly string[]).includes(t)
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
 import { useChrome } from '@frontend/shared/layouts/ChromeProvider'
 import ImageGridModal from './components/ImageGridModal'
+import { uploadBlob } from '@shared/lib/image/canvas'
 
 export default function BoardEditor({ boardId, workspaceId }: { boardId: string; workspaceId?: string }) {
   const { t } = usePreferences()
@@ -98,6 +99,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
   // Encuadre pendiente: imagen entrante por handoff a enmarcar cuando el
   // escenario ya tenga tamaño (las imágenes físicas pueden ser enormes en px).
   const [fitTarget, setFitTarget] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const mirrorWarningShown = useRef(false)
 
   /* ── Tamaño del escenario ── */
   useEffect(() => {
@@ -131,7 +133,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
   /* ── Carga inicial + autosave ── */
   const { loaded, notFound, readOnly, saveState } = useBoardData(boardId, stageRef, trRef, {
-    objects, background, workspace, name, lateralMirrorEnabled, pos, scale,
+    objects, background, workspace, name, lateralMirrorEnabled, mirrorSelectedIds: selectedIds, pos, scale,
     setObjects, setBackground, setName, setLateralMirrorEnabled, setPos, setScale, setFitTarget, setWorkspace, setProjectId,
   })
 
@@ -140,6 +142,18 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
   // documento), regresa al proyecto; si no, a la lista de tableros.
   const ws = workspaceId ?? projectId
   const backHref = ws ? `/dashboard/workspaces/${ws}` : '/dashboard/tools/boards'
+  const lateralMirrorReadonly = workspace.kind === 'carnaval' && lateralMirrorEnabled && workspace.view === 'lateralIzq'
+  const effectiveReadOnly = readOnly || lateralMirrorReadonly
+  const canMirrorLateral = workspace.kind === 'carnaval' && workspace.view === 'lateralDer'
+  const mirrorBadge = lateralMirrorEnabled && workspace.kind === 'carnaval'
+    ? { label: workspace.view === 'lateralDer' ? 'ORIG' : 'COPIA', tone: workspace.view === 'lateralDer' ? 'original' as const : 'copy' as const }
+    : undefined
+
+  const warnMirrorCopy = useCallback(() => {
+    if (!lateralMirrorReadonly || mirrorWarningShown.current) return
+    mirrorWarningShown.current = true
+    window.alert(t('boards.lateralMirrorCopyWarn'))
+  }, [lateralMirrorReadonly, t])
 
   /* ── Extensión de lienzo del workspace (Carnaval u otro tipo) ── */
   const extension = getBoardExtension(workspace.kind)
@@ -159,6 +173,9 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
     toggleLayerVisible, toggleLayerLock, moveLayer,
   } = useObjectActions(objects, selectedIds, setSelectedIds, background, snap, stageSize, pos, scale, mutate, setBackground)
 
+  const toggleFlipX = () => patchSelected((obj) => (obj.type === 'image' ? { flipX: !obj.flipX } : {}))
+  const toggleFlipY = () => patchSelected((obj) => (obj.type === 'image' ? { flipY: !obj.flipY } : {}))
+
   // pantalla → mundo
   const toWorld = (sx: number, sy: number) => ({ x: (sx - pos.x) / scale, y: (sy - pos.y) / scale })
 
@@ -168,7 +185,8 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
   /* ── Atajos de teclado ── */
   useShortcuts(
     {
-      readOnly,
+      readOnly: effectiveReadOnly,
+      onReadOnlyAttempt: warnMirrorCopy,
       hasSelection: selectedIds.length > 0,
       onDelete: deleteSelected,
       onUndo: undo,
@@ -190,7 +208,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
       onNudge: (dx, dy) => nudgeSelected(dx, dy),
       onHelp: () => setHelpOpen((v) => !v),
     },
-    [selectedIds, readOnly, objects, snap, background, scale, pos, stageSize],
+    [selectedIds, effectiveReadOnly, objects, snap, background, scale, pos, stageSize, warnMirrorCopy],
   )
 
   /* ── Creación de objetos (centro de la vista) ── */
@@ -198,12 +216,43 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
     objects, stageSize, pos, scale, mutate, setSelectedIds, setEditingId,
   )
 
+  const handleBoardDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
+    if (effectiveReadOnly) return
+    const files = Array.from(e.dataTransfer.files ?? [])
+    if (files.some((file) => file.type.startsWith('image/'))) {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'copy'
+    }
+  }, [effectiveReadOnly])
+
+  const handleBoardDrop = useCallback(async (e: DragEvent<HTMLDivElement>) => {
+    if (effectiveReadOnly) return
+    const files = Array.from(e.dataTransfer.files ?? []).filter((file) => file.type.startsWith('image/'))
+    if (!files.length) return
+    e.preventDefault()
+
+    const r = e.currentTarget.getBoundingClientRect()
+    const dropX = e.clientX - r.left
+    const dropY = e.clientY - r.top
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      try {
+        const imageUrl = await uploadBlob(file, file.name || `drop-${i + 1}`)
+        const offset = i * 24
+        addImage(imageUrl, toWorld(dropX + offset, dropY + offset))
+      } catch (error) {
+        console.error('Board image drop failed', error)
+      }
+    }
+  }, [effectiveReadOnly, addImage, toWorld])
+
   // Handoff de Canon: si la herramienta dejó una lámina pendiente, insertarla
   // una sola vez cuando el board ya cargó y el stage tiene tamaño (addImage usa
   // el centro de la vista). Ver `canon/lib/boardHandoff.ts`.
   const handoffDone = useRef(false)
   useEffect(() => {
-    if (handoffDone.current || !loaded || readOnly || stageSize.w === 0) return
+    if (handoffDone.current || !loaded || effectiveReadOnly || stageSize.w === 0) return
     const src = takePendingFigure()
     if (!src) {
       handoffDone.current = true
@@ -212,14 +261,14 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
     handoffDone.current = true
     addImage(src)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded, readOnly, stageSize.w])
+  }, [loaded, effectiveReadOnly, stageSize.w])
 
   /* ── Estado del board que se pasa a la extensión del workspace ── */
   const extSlot: BoardExtSlotProps = {
     boardId,
     workspace,
     objects,
-    readOnly,
+    readOnly: effectiveReadOnly,
     scale,
     pos,
     stageSize,
@@ -227,6 +276,8 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
     lateralMirrorEnabled,
     setLateralMirrorEnabled,
     addObject: addExtensionObject,
+    selectedIds,
+    patchSelected,
   }
 
   // Líneas-imán extra de la extensión (px de mundo): bordes de la guía
@@ -320,7 +371,9 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
   /* ── Punteros del escenario: regla + paneo + selección por recuadro ── */
   const { panMode, onStagePointerDown, onStagePointerMove, onStagePointerUp } = useStagePointer({
-    readOnly, tool, spaceHeld, pos, objects, stageRef, toWorld,
+    readOnly: effectiveReadOnly,
+    onReadOnlyAttempt: warnMirrorCopy,
+    tool, spaceHeld, pos, objects, stageRef, toWorld,
     setMeasure, setPos, setSelectedIds, setSelRect, setDragPanning,
     onDrawMove: setTempPoints,
     onDrawComplete,
@@ -361,23 +414,24 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
       <TopBar
         name={name}
         onName={setName}
-        readOnly={readOnly}
+        readOnly={effectiveReadOnly}
         saveState={saveState}
         onUndo={undo}
         onRedo={redo}
         backHref={backHref}
+        mirrorBadge={mirrorBadge}
       />
 
       {/* Panel de formato de texto (texto / nota seleccionados) */}
       <AnimatePresence>
-        {!readOnly && selectedObj && (selectedObj.type === 'text' || selectedObj.type === 'sticky') && (
+        {!effectiveReadOnly && selectedObj && (selectedObj.type === 'text' || selectedObj.type === 'sticky') && (
           <TextFormatBar key="text-format" o={selectedObj} patch={patchSelected} />
         )}
       </AnimatePresence>
 
       {/* Panel de estilo de figuras */}
       <AnimatePresence>
-        {!readOnly && selectedObj && isShape(selectedObj.type) && (
+        {!effectiveReadOnly && selectedObj && isShape(selectedObj.type) && (
           <ShapeStyleBar key="shape-style" o={selectedObj} patch={patchSelected} />
         )}
       </AnimatePresence>
@@ -387,8 +441,10 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
         ref={containerRef}
         // Botón central: evita el auto-scroll del navegador (icono de rueda) al panear.
         onMouseDown={(e) => { if (e.button === 1) e.preventDefault() }}
+        onDragOver={handleBoardDragOver}
+        onDrop={handleBoardDrop}
         onContextMenu={(e) => {
-          if (readOnly) return
+          if (effectiveReadOnly) return
           e.preventDefault()
           const r = e.currentTarget.getBoundingClientRect()
           setCtxMenu({ x: e.clientX - r.left, y: e.clientY - r.top })
@@ -412,7 +468,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
           extension={extension}
           extSlot={extSlot}
           sorted={sorted}
-          readOnly={readOnly}
+          readOnly={effectiveReadOnly}
           selectedIds={selectedIds}
           editingId={editingId}
           tool={tool}
@@ -430,7 +486,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
         />
 
         {/* Isla izquierda: herramientas + creación */}
-        {!readOnly && (
+        {!effectiveReadOnly && (
           <ToolIsland
             tool={tool}
             shiftRight={islandShiftLeft}
@@ -454,12 +510,19 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
           squareCm={background.squareCm}
           snap={snap}
           layersOpen={layersOpen}
-          readOnly={readOnly}
+          readOnly={effectiveReadOnly}
           onToggleLock={toggleLock}
           onDuplicate={duplicateSelection}
           onBringToFront={bringToFront}
           onSendToBack={sendToBack}
           onEditIn={editIn}
+          lateralMirrorEnabled={lateralMirrorEnabled}
+          canMirrorLateral={canMirrorLateral}
+          onToggleLateralMirror={canMirrorLateral ? () => setLateralMirrorEnabled((v) => !v) : undefined}
+          onToggleFlipX={toggleFlipX}
+          onToggleFlipY={toggleFlipY}
+          onToggleGridVisible={() => patchSelected({ gridVisible: selectedObj?.gridVisible === false })}
+          onClearGrid={() => patchSelected({ gridCm: undefined, gridVisible: undefined })}
           onDelete={deleteSelected}
           onToggleBackground={() => setBackground((b) => ({ ...b, type: b.type === 'grid' ? 'plain' : 'grid' }))}
           onToggleSnap={() => setSnap((s) => !s)}
@@ -478,7 +541,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
         {/* Panel de capas (isla flotante) */}
         <AnimatePresence>
-          {!readOnly && layersOpen && (
+          {!effectiveReadOnly && layersOpen && (
             <LayersPanel
               key="layers-panel"
               objects={objects}
@@ -510,7 +573,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
         )}
 
         <AnimatePresence>
-          {loaded && objects.length === 0 && !readOnly && (
+          {loaded && objects.length === 0 && !effectiveReadOnly && (
             <motion.div
               key="empty-state"
               className="absolute inset-0 flex flex-col items-center justify-center gap-4 pointer-events-none text-[var(--color-on-surface-variant)]"
@@ -553,7 +616,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
 
         {/* Menú contextual (clic derecho) */}
         <AnimatePresence>
-          {!readOnly && ctxMenu && (
+          {!effectiveReadOnly && ctxMenu && (
             <ContextMenu
               key="ctx-menu"
               x={ctxMenu.x}
@@ -587,7 +650,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
         objectCount={objects.length}
         selectedCount={selectedIds.length}
         selectedObj={selectedObj}
-        readOnly={readOnly}
+        readOnly={effectiveReadOnly}
         onPatch={patchSelected}
       />
 
@@ -607,7 +670,7 @@ export default function BoardEditor({ boardId, workspaceId }: { boardId: string;
           scaler={scaler}
           name={name}
           onClose={() => setGridModalOpen(false)}
-          onApplyGrid={(gridCm) => { patchSelected({ gridCm }); setGridModalOpen(false) }}
+            onApplyGrid={(gridCm) => { patchSelected({ gridCm, gridVisible: true }); setGridModalOpen(false) }}
         />
       )}
     </div>

@@ -38,6 +38,8 @@ export interface BoardExtSlotProps {
   setLateralMirrorEnabled: (enabled: boolean) => void
   /** Inserta un objeto ya construido por la extensión (el motor pone id/z). */
   addObject: (obj: NewBoardObject) => void
+  selectedIds: string[]
+  patchSelected: (patch: Partial<BoardObject>) => void
 }
 
 /**

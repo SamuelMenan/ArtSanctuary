@@ -15,6 +15,7 @@ interface BoardStateBridge {
   workspace: BoardWorkspace
   name: string
   lateralMirrorEnabled: boolean
+  mirrorSelectedIds: string[]
   pos: Vec
   scale: number
   setObjects: Dispatch<SetStateAction<BoardObject[]>>
@@ -139,6 +140,7 @@ export function useBoardData(
             name: s.name,
             workspace: s.workspace,
             lateralMirrorEnabled: s.lateralMirrorEnabled,
+            mirrorSelectedIds: s.mirrorSelectedIds,
             ...(thumbnailUrl ? { thumbnailUrl } : {}),
           }),
         })
@@ -174,7 +176,7 @@ export function useBoardData(
     }, 800)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.objects, s.background, s.workspace, s.name, s.lateralMirrorEnabled, loaded, readOnly, boardId])
+  }, [s.objects, s.background, s.workspace, s.name, s.lateralMirrorEnabled, s.mirrorSelectedIds, loaded, readOnly, boardId])
 
   /* ── Autosave de VIEWPORT (pan/zoom) ──
      Ligero: solo persiste el encuadre, sin miniatura ni indicador de guardado.

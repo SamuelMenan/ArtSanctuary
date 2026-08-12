@@ -57,6 +57,27 @@ export function cropCanvas(
   return out
 }
 
+/** Builds a canvas by transforming an existing source (e.g. flipping). */
+export const buildTransformedCanvas = (
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  flipX: boolean,
+  flipY: boolean,
+): HTMLCanvasElement => {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('No 2D context')
+  ctx.save()
+  ctx.translate(width / 2, height / 2)
+  ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
+  ctx.drawImage(source, -width / 2, -height / 2, width, height)
+  ctx.restore()
+  return canvas
+}
+
 /** Canvas → Blob (PNG by default, preserves alpha). */
 export function canvasToBlob(canvas: HTMLCanvasElement, type = 'image/png', quality?: number): Promise<Blob> {
   return new Promise((resolve, reject) => {

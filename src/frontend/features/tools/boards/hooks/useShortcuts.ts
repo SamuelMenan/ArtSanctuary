@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 
 export interface ShortcutHandlers {
   readOnly: boolean
+  onReadOnlyAttempt?: () => void
   /** Hay selección (para el guard de Supr/Backspace). */
   hasSelection: boolean
   onDelete: () => void
@@ -35,7 +36,10 @@ export interface ShortcutHandlers {
 export function useShortcuts(h: ShortcutHandlers, deps: unknown[]) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (h.readOnly) return
+      if (h.readOnly) {
+        h.onReadOnlyAttempt?.()
+        return
+      }
       const tag = (e.target as HTMLElement)?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
       const mod = e.ctrlKey || e.metaKey

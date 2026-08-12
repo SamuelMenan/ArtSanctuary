@@ -30,6 +30,8 @@ export type BoardObject = {
   src?: string
   /** Imagen: volteo horizontal sin alterar caja/medidas. */
   flipX?: boolean
+  /** Imagen: volteo vertical sin alterar caja/medidas. */
+  flipY?: boolean
   text?: string
   fontSize?: number
   fontFamily?: string
@@ -46,6 +48,12 @@ export type BoardObject = {
   /** Imagen: tamaño de celda (cm) de la cuadrícula superpuesta (método de
    *  cuadrícula para ampliar). `undefined`/0 = sin cuadrícula. */
   gridCm?: number
+  /** Imagen: visibilidad de la cuadrícula superpuesta. `false` la oculta. */
+  gridVisible?: boolean
+  /** Origen de un objeto espejado (ID del objeto original). */
+  mirroredFrom?: string
+  /** Activa el espejado para este objeto. */
+  lateralMirror?: boolean
 }
 
 /** Available fonts (web-safe system fonts: Konva renders them on canvas). */

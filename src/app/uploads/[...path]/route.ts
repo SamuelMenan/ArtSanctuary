@@ -5,7 +5,10 @@ import fs from "fs";
 
 export const runtime = "nodejs";
 
-const UPLOADS_DIR = path.join(process.cwd(), "storage", "uploads");
+const UPLOADS_DIRS = [
+  path.join(process.cwd(), "public", "uploads"),
+  path.join(process.cwd(), "storage", "uploads"),
+];
 
 export async function GET(
   request: NextRequest,
@@ -22,10 +25,10 @@ export async function GET(
     // Prevenir path traversal (ej. ../../)
     const safePath = path.normalize(pathArray.join("/")).replace(/^(\.\.(\/|\\|$))+/, "");
     
-    // Construir la ruta absoluta apuntando a storage/uploads/...
-    const abs = path.join(UPLOADS_DIR, safePath);
+    // Buscar primero en public/uploads (fallback local actual) y luego en el layout legado storage/uploads.
+    const abs = UPLOADS_DIRS.map((base) => path.join(base, safePath)).find((candidate) => fs.existsSync(candidate));
 
-    if (!fs.existsSync(abs)) {
+    if (!abs) {
       return new NextResponse("Not Found", { status: 404 });
     }
 

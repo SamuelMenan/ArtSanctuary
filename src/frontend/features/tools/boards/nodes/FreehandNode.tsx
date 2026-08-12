@@ -25,8 +25,8 @@ function FreehandNode({ obj, onSelect, onChange, readOnly, snap, snapDrag, dragg
       opacity={(obj.opacity ?? 100) / 100}
       visible={obj.visible !== false}
       draggable={draggable}
-      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
-      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey)}
+      onClick={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
+      onTap={(e) => !readOnly && onSelect(obj.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey)}
       onDragMove={(e) => {
         if (snap) {
           e.target.x(snapDrag(e.target.x() - cx, obj.w) + cx)
@@ -45,7 +45,7 @@ function FreehandNode({ obj, onSelect, onChange, readOnly, snap, snapDrag, dragg
         const h = Math.max(5, obj.h * scaleY)
 
         // Escalar los puntos internos para que coincidan con la nueva escala del bounding box
-        let scaledPoints = obj.points ? [...obj.points] : []
+        const scaledPoints = obj.points ? [...obj.points] : []
         if (obj.points) {
           for (let i = 0; i < obj.points.length; i += 2) {
             scaledPoints[i] = obj.points[i] * scaleX

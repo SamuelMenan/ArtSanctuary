@@ -65,6 +65,9 @@ export const PATCH = withErrorHandler("PATCH /api/boards/[id]", async (req: Next
   if (typeof body.isPrivate === "boolean") update.isPrivate = body.isPrivate;
   if (typeof body.lateralMirrorEnabled === "boolean") update.lateralMirrorEnabled = body.lateralMirrorEnabled;
   if (typeof body.thumbnailUrl === "string") update.thumbnailUrl = body.thumbnailUrl;
+  const mirrorSelectedIds = Array.isArray(body.mirrorSelectedIds)
+    ? body.mirrorSelectedIds.filter((value): value is string => typeof value === "string")
+    : undefined;
 
   if (Object.keys(update).length === 0) {
     return apiError("VALIDATION_ERROR", "Nada que actualizar");
@@ -74,7 +77,7 @@ export const PATCH = withErrorHandler("PATCH /api/boards/[id]", async (req: Next
   if (!board) return apiError("NOT_FOUND", "No encontrado");
 
   if (isBoardObjectArray(update.objects)) {
-    await syncCarnavalLateralMirror(session.user.id, board, update.objects);
+    await syncCarnavalLateralMirror(session.user.id, board, update.objects, mirrorSelectedIds);
   }
 
   return NextResponse.json({ board });

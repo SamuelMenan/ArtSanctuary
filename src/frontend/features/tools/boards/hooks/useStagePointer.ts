@@ -46,8 +46,8 @@ function simplifyRDP(points: number[], epsilon: number): number[] {
 function getSqSegDist(px: number, py: number, ax: number, ay: number, bx: number, by: number) {
   let x = ax
   let y = ay
-  let dx = bx - ax
-  let dy = by - ay
+  const dx = bx - ax
+  const dy = by - ay
 
   if (dx !== 0 || dy !== 0) {
     const t = ((px - x) * dx + (py - y) * dy) / (dx * dx + dy * dy)
@@ -67,6 +67,7 @@ function getSqSegDist(px: number, py: number, ax: number, ay: number, bx: number
 
 interface StagePointerDeps {
   readOnly: boolean
+  onReadOnlyAttempt?: () => void
   tool: 'select' | 'hand' | 'measure' | 'draw'
   spaceHeld: boolean
   pos: Vec
@@ -101,7 +102,10 @@ export function useStagePointer(d: StagePointerDeps) {
   const panMode = d.spaceHeld || d.tool === 'hand'
 
   const onStagePointerDown = (e: Konva.KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (d.readOnly) return
+    if (d.readOnly) {
+      d.onReadOnlyAttempt?.()
+      return
+    }
     const p = d.stageRef.current?.getPointerPosition()
     if (!p) return
     const isMiddle = 'button' in e.evt && e.evt.button === 1
@@ -132,7 +136,7 @@ export function useStagePointer(d: StagePointerDeps) {
     }
     // Selección por recuadro: solo sobre lienzo vacío.
     if (e.target !== e.target.getStage()) return
-    const additive = 'shiftKey' in e.evt ? e.evt.shiftKey : false
+    const additive = 'shiftKey' in e.evt ? e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey : false
     selStart.current = { x: p.x, y: p.y, additive }
     if (!additive) d.setSelectedIds([])
     d.setSelRect({ x: p.x, y: p.y, w: 0, h: 0 })

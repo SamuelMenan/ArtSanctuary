@@ -10,7 +10,6 @@ import {
   getCarnavalRule,
   carnavalGridSquareCm,
   isCarnavalModality,
-  isLateralView,
   lateralMirrorTarget,
   mirrorBoardObjectsForLateral,
   type CarnavalModality,
@@ -102,39 +101,50 @@ export async function updateBoard(
 }
 
 type MirrorSourceBoard = {
+  _id: string;
   projectId?: string;
-  lateralMirrorEnabled?: boolean;
   workspace?: { kind?: string; view?: string };
+  objects: BoardObject[];
 };
 
 /**
- * Si el board pertenece a un proyecto Carnaval y su plano es lateral, actualiza
- * automáticamente el plano lateral opuesto con los mismos objetos en espejo.
+ * Si el board pertenece a un proyecto Carnaval, es lateral derecho y el espejo
+ * está activo, actualiza automáticamente el plano lateral izquierdo con las
+ * imágenes seleccionadas en espejo.
  */
-export async function syncCarnavalLateralMirror(
-  ownerId: string,
-  sourceBoard: MirrorSourceBoard,
-  objects: BoardObject[],
-) {
+export async function syncCarnavalLateralMirror(ownerId: string, sourceBoard: MirrorSourceBoard) {
   if (!sourceBoard.projectId) return;
-  if (!sourceBoard.lateralMirrorEnabled) return;
-  if (sourceBoard.workspace?.kind !== "carnaval") return;
-  if (!isLateralView(sourceBoard.workspace?.view)) return;
+  if (sourceBoard.workspace?.kind !== 'carnaval') return;
+  if (sourceBoard.workspace?.view !== 'lateralDer') return;
 
   const targetView = lateralMirrorTarget(sourceBoard.workspace.view);
   if (!targetView) return;
 
   await connectDB();
-  await Board.findOneAndUpdate(
-    {
-      projectId: sourceBoard.projectId,
-      owner: ownerId,
-      "workspace.kind": "carnaval",
-      "workspace.view": targetView,
-    },
-    { $set: { objects: mirrorBoardObjectsForLateral(objects) } },
-    { returnDocument: "after" },
-  ).lean();
+
+  // Find the target board (e.g., 'lateralIzq')
+  const targetBoard = await Board.findOne({
+    projectId: sourceBoard.projectId,
+    owner: ownerId,
+    'workspace.kind': 'carnaval',
+    'workspace.view': targetView,
+  }).lean();
+
+  if (!targetBoard) return;
+
+  // Generate new mirrored objects from the source board's selection
+  const objectsToMirror = sourceBoard.objects.filter((o) => o.lateralMirror);
+  const newMirroredObjects = mirrorBoardObjectsForLateral(objectsToMirror);
+
+  // Get existing objects from the target board, excluding any that were previously mirrored
+  const existingObjects = (targetBoard.objects as BoardObject[]) || [];
+  const nonMirroredObjects = existingObjects.filter((obj) => !obj.mirroredFrom);
+
+  // Combine the non-mirrored objects with the newly generated mirrored ones
+  const finalObjects = [...nonMirroredObjects, ...newMirroredObjects];
+
+  // Update the target board with the merged set of objects
+  await Board.findByIdAndUpdate(targetBoard._id, { $set: { objects: finalObjects } }).lean();
 }
 
 /** Borra el board si el usuario es el propietario. `true` si se borró. */

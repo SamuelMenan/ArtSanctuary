@@ -33,6 +33,12 @@ export default function RightRail({
   onBringToFront,
   onSendToBack,
   onEditIn,
+  canMirrorLateral,
+  onToggleObjectMirror,
+  onToggleFlipX,
+  onToggleFlipY,
+  onToggleGridVisible,
+  onClearGrid,
   onDelete,
   onToggleBackground,
   onToggleSnap,
@@ -54,6 +60,12 @@ export default function RightRail({
   onBringToFront: () => void
   onSendToBack: () => void
   onEditIn: (dest: 'crop' | 'grid') => void
+  canMirrorLateral: boolean
+  onToggleObjectMirror?: () => void
+  onToggleFlipX: () => void
+  onToggleFlipY: () => void
+  onToggleGridVisible: () => void
+  onClearGrid: () => void
   onDelete: () => void
   onToggleBackground: () => void
   onToggleSnap: () => void
@@ -71,6 +83,7 @@ export default function RightRail({
   const allLocked = selectedIds.every((id) => objects.find((o) => o.id === id)?.locked)
   const isGrid = backgroundType === 'grid'
   const hasSel = selectedIds.length > 0
+  const selectionContainsImgs = selectedIds.some((id) => objects.find((o) => o.id === id)?.type === 'image')
 
   return (
     <motion.div
@@ -105,9 +118,49 @@ export default function RightRail({
                 <IconButton icon="content_copy" label={t('boards.duplicateTip')} onClick={onDuplicate} />
                 <IconButton icon="flip_to_front" label={t('boards.bringToFrontTip')} onClick={onBringToFront} />
                 <IconButton icon="flip_to_back" label={t('boards.sendToBackTip')} onClick={onSendToBack} />
+                {selectionContainsImgs && (
+                  <>
+                    <IconButton
+                      icon="swap_horiz"
+                      label={t('crop.flipHorizontal')}
+                      active={!!selectedObj?.flipX}
+                      onClick={onToggleFlipX}
+                    />
+                    <IconButton
+                      icon="swap_vert"
+                      label={t('crop.flipVertical')}
+                      active={!!selectedObj?.flipY}
+                      onClick={onToggleFlipY}
+                    />
+                  </>
+                )}
                 {selectedObj?.type === 'image' && (
                   <>
+                    {canMirrorLateral && onToggleObjectMirror && (
+                      <IconButton
+                        icon="compare_arrows"
+                        label={t('boards.lateralMirrorToggle')}
+                        title={selectedObj?.lateralMirror ? t('boards.lateralMirrorOn') : t('boards.lateralMirrorOff')}
+                        active={selectedObj?.lateralMirror}
+                        pressed={selectedObj?.lateralMirror}
+                        onClick={onToggleObjectMirror}
+                      />
+                    )}
                     <IconButton icon="crop" label={t('boards.editCropTip')} onClick={() => onEditIn('crop')} />
+                    <IconButton
+                      icon={selectedObj.gridVisible === false ? 'visibility_off' : 'visibility'}
+                      label={selectedObj.gridVisible === false ? t('boards.showGridTip') : t('boards.hideGridTip')}
+                      active={selectedObj.gridCm != null && selectedObj.gridCm > 0 && selectedObj.gridVisible !== false}
+                      pressed={selectedObj.gridCm != null && selectedObj.gridCm > 0 && selectedObj.gridVisible !== false}
+                      disabled={!(selectedObj.gridCm && selectedObj.gridCm > 0)}
+                      onClick={onToggleGridVisible}
+                    />
+                    <IconButton
+                      icon="grid_off"
+                      label={t('boards.clearGridTip')}
+                      disabled={!(selectedObj.gridCm && selectedObj.gridCm > 0)}
+                      onClick={onClearGrid}
+                    />
                     <IconButton icon="download" label={t('boards.imageToolTip')} onClick={onOpenImageTool} />
                   </>
                 )}

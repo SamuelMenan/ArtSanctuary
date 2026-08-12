@@ -18,6 +18,7 @@ export default function TopBar({
   onUndo,
   onRedo,
   backHref,
+  mirrorBadge,
 }: {
   name: string
   onName: (v: string) => void
@@ -27,8 +28,14 @@ export default function TopBar({
   onRedo: () => void
   /** Destino del botón "volver": workspace si es plano Carnaval, lista de tableros si no. */
   backHref: string
+  mirrorBadge?: { label: string; tone: 'original' | 'copy' }
 }) {
   const { t } = usePreferences()
+  const badgeClass = mirrorBadge
+    ? mirrorBadge.tone === 'copy'
+      ? 'border-red-500/30 bg-red-500/10 text-red-500'
+      : 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+    : ''
   return (
     <motion.div
       // Barra de tool sobre lienzo → superficie sólida (más contraste); el resto
@@ -46,6 +53,11 @@ export default function TopBar({
         className="bg-transparent font-sans font-semibold text-[var(--color-primary)] border-b border-transparent hover:border-[var(--color-outline-variant)] focus:border-[var(--color-primary)] outline-none px-1 py-0.5 min-w-[120px] max-w-[320px]"
       />
       <div className="flex-1" />
+      {mirrorBadge && (
+        <span className={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] ${badgeClass}`}>
+          {mirrorBadge.label}
+        </span>
+      )}
       <span role="status" aria-live="polite" className={`${appBarLabel} shrink-0`}>
         {readOnly ? t('boards.readOnly') : saveState === 'saving' ? t('boards.saving') : saveState === 'saved' ? t('boards.saved') : ''}
       </span>
