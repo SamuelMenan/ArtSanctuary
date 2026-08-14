@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import ImageSourceModal from '@frontend/features/tools/shared/ImageSourceModal'
 import { usePreferences } from '@frontend/shared/providers/AppPreferencesProvider'
-import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob } from '@shared/lib/image/canvas'
+import { loadImage, imageToCanvas, cropCanvas, canvasToBlob, downloadBlob, uploadBlob, buildTransformedCanvas } from '@shared/lib/image/canvas'
 import { computeContentBounds, padBounds, type Bounds } from '@shared/lib/image/autocrop'
 import { setHandoff, takeHandoff } from '@shared/lib/tools/handoff'
 import { cmOf, applyScale, formatCm, formatScaled } from '@shared/lib/measure'
@@ -21,20 +21,6 @@ import SendActions from '@frontend/features/tools/shared/workspace/SendActions'
 import MeasureBar from '@frontend/features/tools/shared/workspace/MeasureBar'
 
 type DragMode = 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e' | null
-
-const buildTransformedCanvas = (source: CanvasImageSource, width: number, height: number, flipX: boolean, flipY: boolean) => {
-  const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('No 2D context')
-  ctx.save()
-  ctx.translate(width / 2, height / 2)
-  ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
-  ctx.drawImage(source, -width / 2, -height / 2, width, height)
-  ctx.restore()
-  return canvas
-}
 
 const ASPECTS: { label: string; value: number | null }[] = [
   { label: 'Libre', value: null },

@@ -33,9 +33,17 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI as string, {
-      bufferCommands: false,
-    });
+    // El catch que resetea la promesa es obligatorio: sin él, una primera
+    // conexión fallida (Atlas caído, DNS, IP fuera del allowlist) deja la
+    // promesa RECHAZADA cacheada en `global._mongoose`, y todas las peticiones
+    // siguientes de ese proceso hacen `await` sobre ella → 500 perpetuos hasta
+    // reiniciar la lambda, aunque la DB ya se haya recuperado.
+    cached.promise = mongoose
+      .connect(MONGODB_URI as string, { bufferCommands: false })
+      .catch((err) => {
+        cached.promise = null;
+        throw err;
+      });
   }
 
   cached.conn = await cached.promise;

@@ -12,6 +12,7 @@ import {
   isCarnavalModality,
   lateralMirrorTarget,
   mirrorBoardObjectsForLateral,
+  mirrorSelectedImagesForLateral,
   type CarnavalModality,
 } from "@shared/lib/workspaces/carnaval";
 import type { BoardObject } from "@shared/lib/boards/types";
@@ -112,7 +113,12 @@ type MirrorSourceBoard = {
  * está activo, actualiza automáticamente el plano lateral izquierdo con las
  * imágenes seleccionadas en espejo.
  */
-export async function syncCarnavalLateralMirror(ownerId: string, sourceBoard: MirrorSourceBoard) {
+export async function syncCarnavalLateralMirror(
+  ownerId: string,
+  sourceBoard: MirrorSourceBoard,
+  objects?: BoardObject[],
+  selectedIds?: string[],
+) {
   if (!sourceBoard.projectId) return;
   if (sourceBoard.workspace?.kind !== 'carnaval') return;
   if (sourceBoard.workspace?.view !== 'lateralDer') return;
@@ -132,9 +138,14 @@ export async function syncCarnavalLateralMirror(ownerId: string, sourceBoard: Mi
 
   if (!targetBoard) return;
 
-  // Generate new mirrored objects from the source board's selection
-  const objectsToMirror = sourceBoard.objects.filter((o) => o.lateralMirror);
-  const newMirroredObjects = mirrorBoardObjectsForLateral(objectsToMirror);
+  // Dos criterios de selección, según lo que llegue del cliente:
+  //  - `selectedIds` → espeja SOLO las imágenes seleccionadas ahora mismo.
+  //  - sin ellos → cae al flag `lateralMirror` del propio objeto ("espejar
+  //    siempre"), que es el comportamiento por defecto.
+  const source = objects ?? sourceBoard.objects;
+  const newMirroredObjects = selectedIds
+    ? mirrorSelectedImagesForLateral(source, selectedIds)
+    : mirrorBoardObjectsForLateral(source.filter((o) => o.lateralMirror));
 
   // Get existing objects from the target board, excluding any that were previously mirrored
   const existingObjects = (targetBoard.objects as BoardObject[]) || [];

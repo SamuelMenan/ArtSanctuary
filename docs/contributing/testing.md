@@ -11,19 +11,12 @@ owner: TBD
 Vitest. **19 archivos `*.test.ts`** a fecha 2026-08-13, todos lógica pura —
 cero tests de componentes React, cero tests de endpoints API.
 
-> ⚠️ **Estado real verificado 2026-08-13, no asumido:** `npm test` falla hoy
-> — dos motivos independientes, ninguno relacionado con esta auditoría de
-> documentación:
-> 1. `i18n:scan` encuentra 3 strings hardcodeados (`AuthAside.tsx:27`,
->    `ImageSourceModal.tsx:172`, `CollectionActions.tsx:55`) y aborta antes
->    de llegar a Vitest (ver más abajo).
-> 2. Corriendo `vitest run` directo (saltándose el scan): **18/19 archivos
->    pasan, `lateralMirror.test.ts` falla con 2 tests rotos** —
->    `mirrorSelectedImagesForLateral is not a function` y un mismatch de
->    `id`/`mirroredFrom` en los fixtures. Coincide con el feature de "modo
->    espejo" del commit más reciente del repo — probablemente tests
->    desincronizados de una implementación en curso, no verificado a fondo
->    (fuera de alcance de esta auditoría de documentación).
+> ✅ **Estado verificado 2026-08-14: `npm test` pasa limpio** (19 archivos,
+> 141 tests) y `npx tsc --noEmit` sale con 0 errores.
+>
+> Hasta esa fecha fallaba por dos motivos, ambos ya resueltos: 3 strings
+> hardcodeados que abortaban el gate de `i18n:scan`, y 2 tests rotos de
+> `lateralMirror` que importaban una función que nunca se implementó.
 
 ## Correr los tests
 
@@ -90,5 +83,4 @@ probar manualmente contra `npm run dev` antes de dar por hecho que funciona.
 - Fecha: 2026-08-13
 - Commit: HEAD
 - Conteo de `*.test.ts`: 19 (verificado con `Glob`, sin `*.test.tsx` ni `*.spec.ts`)
-- `npm test` corrido realmente: falla en el gate de `i18n:scan`. `npx vitest run`
-  corrido por separado: 18/19 archivos, 139/141 tests pasan. Ver aviso arriba.
+- `npm test` corrido realmente: **19/19 archivos, 141/141 tests, exit 0**.

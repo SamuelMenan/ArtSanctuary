@@ -89,6 +89,8 @@ export const en = {
   common: {
     all: 'All',
     authorUnknown: 'Unknown author',
+    collectionNameLabel: 'Collection name',
+    optimization: 'Optimization',
     back: 'Back',
     cancel: 'Cancel',
     clear: 'Clear',
@@ -418,6 +420,7 @@ export const en = {
 
   },
   auth: {
+    asideTagline: 'v0.1.0 · PASTO, NARIÑO',
     artistName: 'Artist name',
     artistNameHint: 'Your artist name',
     registerError: 'Registration error',

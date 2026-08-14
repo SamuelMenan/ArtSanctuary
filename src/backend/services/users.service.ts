@@ -6,6 +6,7 @@
 import "server-only";
 import { connectDB } from "@backend/db/mongoose";
 import { deleteAvatarFile } from "@backend/upload/avatar";
+import { deleteImage } from "@backend/upload/storage";
 import User from "@backend/models/User";
 import Artwork from "@backend/models/Artwork";
 import Collection from "@backend/models/Collection";
@@ -32,6 +33,20 @@ export async function isEmailTaken(email: string, excludeUserId: string) {
  */
 export async function deleteAccountCascade(userId: string, avatarUrl?: string | null) {
   await connectDB();
+
+  // Borrar los blobs ANTES que los documentos: una vez borrado el Artwork ya no
+  // hay forma de saber qué imágenes le pertenecían y quedarían huérfanas para
+  // siempre en Vercel Blob / public/uploads.
+  const artworks = await Artwork.find({ artistId: userId }).select("imageUrl").lean();
+  const collections = await Collection.find({ owner: userId }).select("references").lean();
+  const imageUrls = [
+    ...artworks.map((a) => a.imageUrl),
+    ...collections.flatMap((c) => (c.references ?? []).map((r) => r.imageUrl)),
+  ].filter((url): url is string => Boolean(url));
+  // Best-effort e individual: `deleteImage` ya traga sus errores, y un fallo de
+  // storage no debe impedir que la cuenta se borre.
+  await Promise.all(imageUrls.map((url) => deleteImage(url)));
+
   await Artwork.deleteMany({ artistId: userId });
   await Collection.deleteMany({ owner: userId });
   await Notification.deleteMany({ $or: [{ recipientId: userId }, { actorId: userId }] });
@@ -63,16 +78,26 @@ export async function getPublicProfile(username: string) {
     .lean();
   if (!user) return null;
 
-  const artworks = await Artwork.find({ author: user._id, isPublic: true })
-    .sort({ createdAt: -1 })
-    .select("title imageUrl thumbnailUrl category technique year createdAt")
+  // El modelo Artwork usa `artistId` y `visibility`, no `author`/`isPublic`.
+  // Mongoose no valida campos desconocidos en un filtro de lectura, así que la
+  // versión anterior devolvía [] siempre, en silencio.
+  const artworks = await Artwork.find({ artistId: user._id, visibility: "public" })
+    .sort({ uploadDate: -1 })
+    .select("title imageUrl thumbnails category technique creationDate uploadDate")
     .lean();
 
   return { user, artworks };
 }
 
-/** Sigue a un usuario (idempotente) + crea notificación. `null` si no existe. */
+/**
+ * Sigue a un usuario (idempotente) + crea notificación. `null` si no existe o
+ * si es un intento de auto-follow.
+ */
 export async function followUser(followerId: string, followingId: string) {
+  // Sin esto, followUser(x, x) era válido y generaba una notificación de que
+  // te sigues a ti mismo.
+  if (followerId === followingId) return null;
+
   await connectDB();
   const userToFollow = await User.findByIdAndUpdate(
     followingId,
@@ -88,7 +113,9 @@ export async function followUser(followerId: string, followingId: string) {
     await Notification.create({ recipientId: followingId, actorId: followerId, type: "follow" });
   }
 
-  return { followersCount: userToFollow.followers?.length || 1 };
+  // `?? 0` y no `|| 1`: el fallback anterior mentía diciendo 1 seguidor cuando
+  // el array venía vacío.
+  return { followersCount: userToFollow.followers?.length ?? 0 };
 }
 
 /** Deja de seguir + elimina la notificación de follow. `null` si no existe. */

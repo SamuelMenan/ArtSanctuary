@@ -38,8 +38,10 @@ ArtSanctuary es una aplicación orientada al aprendizaje, estructuración y gene
   contra el código (campos de modelo, métodos HTTP, existencia de ficheros,
   `'use client'`). Si cambias un modelo o una ruta, córrelo — falla con exit 1
   si dejaste la doc desincronizada.
-- **Los tests no están todos verdes**: `npm test` falla hoy. Ver
-  `docs/contributing/testing.md` antes de asumir que rompiste algo.
+- **`npm test` pasa limpio** (19 archivos, 141 tests) y `tsc --noEmit` da 0
+  errores. Si algo falla tras tu cambio, lo rompiste tú. Ojo: el gate corre
+  `i18n:scan` **antes** que los tests, así que un string hardcodeado aborta
+  todo sin que veas ningún test rojo — ver `docs/contributing/testing.md`.
 
 ## Enrutamiento Siguiente
 👉 **Para cualquier tarea, ve inmediatamente a `docs/INDEX.md` y busca la ruta exacta del dominio a modificar.**

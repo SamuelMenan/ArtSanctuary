@@ -24,7 +24,7 @@ export default function AuthAside({ t }: AuthAsideProps) {
         </p>
       </div>
       <div className="absolute bottom-[var(--spacing-container-padding)] left-[var(--spacing-container-padding)]">
-        <p className="font-mono text-label-sm text-[var(--color-outline-variant)]">v0.1.0 · PASTO, NARIÑO</p>
+        <p className="font-mono text-label-sm text-[var(--color-outline-variant)]">{t('auth.asideTagline')}</p>
       </div>
     </div>
   )

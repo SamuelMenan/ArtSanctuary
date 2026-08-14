@@ -38,7 +38,11 @@ export function useObjectCreation(
       const ratio = Math.min(1, maxDim / Math.max(image.naturalWidth, image.naturalHeight))
       const w = image.naturalWidth * ratio
       const h = image.naturalHeight * ratio
-      const { cx, cy } = placement ?? viewCenter()
+      // `placement` viene de `toWorld()` como {x,y}; `viewCenter()` devuelve
+      // {cx,cy}. Sin normalizar, al soltar una imagen en el lienzo cx/cy salían
+      // `undefined` → coordenadas NaN, y un NaN en coordenadas tumba el árbol
+      // de React con pantalla en blanco (ver ADR-0005).
+      const { cx, cy } = placement ? { cx: placement.x, cy: placement.y } : viewCenter()
       addObject({ id: uid(), type: 'image', src, x: cx - w / 2, y: cy - h / 2, w, h, rotation: 0, z: nextZ() })
     }
   }

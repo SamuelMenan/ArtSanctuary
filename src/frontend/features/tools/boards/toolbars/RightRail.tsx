@@ -46,6 +46,8 @@ export default function RightRail({
   onToggleLayers,
   onOpenImageTool,
   workspaceSlot,
+  lateralMirrorEnabled,
+  onToggleLateralMirror,
 }: {
   selectedIds: string[]
   objects: BoardObject[]
@@ -62,6 +64,9 @@ export default function RightRail({
   onEditIn: (dest: 'crop' | 'grid') => void
   canMirrorLateral: boolean
   onToggleObjectMirror?: () => void
+  /** Espejo lateral activo a nivel de tablero (`Board.lateralMirrorEnabled`). */
+  lateralMirrorEnabled?: boolean
+  onToggleLateralMirror?: () => void
   onToggleFlipX: () => void
   onToggleFlipY: () => void
   onToggleGridVisible: () => void
@@ -181,6 +186,19 @@ export default function RightRail({
               onSetSquareCm={onSetSquareCm}
             />
           </Popover>
+
+          {/* Espejo lateral a nivel de TABLERO (distinto del toggle por objeto,
+              que vive en la sección de objeto seleccionado). Solo en el plano
+              lateral derecho, que es el único origen del espejo. */}
+          {canMirrorLateral && onToggleLateralMirror && (
+            <IconButton
+              icon="flip"
+              label={t('boards.lateralMirrorToggle')}
+              active={lateralMirrorEnabled}
+              pressed={lateralMirrorEnabled}
+              onClick={onToggleLateralMirror}
+            />
+          )}
 
           {/* 3 · Capas */}
           <span className={islandSep} />

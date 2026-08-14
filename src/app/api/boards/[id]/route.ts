@@ -65,8 +65,10 @@ export const PATCH = withErrorHandler("PATCH /api/boards/[id]", async (req: Next
   if (typeof body.isPrivate === "boolean") update.isPrivate = body.isPrivate;
   if (typeof body.lateralMirrorEnabled === "boolean") update.lateralMirrorEnabled = body.lateralMirrorEnabled;
   if (typeof body.thumbnailUrl === "string") update.thumbnailUrl = body.thumbnailUrl;
-  const mirrorSelectedIds = Array.isArray(body.mirrorSelectedIds)
-    ? body.mirrorSelectedIds.filter((value): value is string => typeof value === "string")
+  const mirrorSelectedIds: string[] | undefined = Array.isArray(body.mirrorSelectedIds)
+    ? (body.mirrorSelectedIds as unknown[]).filter(
+        (value): value is string => typeof value === "string",
+      )
     : undefined;
 
   if (Object.keys(update).length === 0) {

@@ -46,21 +46,32 @@ describe('lateral mirror', () => {
       },
     ]
 
+    // El objeto espejado recibe un `id` NUEVO y guarda el original en
+    // `mirroredFrom`. Es load-bearing: `syncCarnavalLateralMirror` usa
+    // `!obj.mirroredFrom` para distinguir los espejos viejos (que reemplaza)
+    // de los objetos propios del plano destino (que conserva). Como `uid()` no
+    // es determinista, se comprueba la forma, no el valor exacto.
     expect(mirrorBoardObjectsForLateral(objects)).toEqual([
       {
         ...objects[0],
+        id: expect.any(String),
+        mirroredFrom: 'txt',
         x: -70,
         rotation: -15,
         align: 'right',
       },
       {
         ...objects[1],
+        id: expect.any(String),
+        mirroredFrom: 'line',
         x: -10,
         rotation: 30,
         points: [20, 0, 0, 8],
       },
       {
         ...objects[2],
+        id: expect.any(String),
+        mirroredFrom: 'img',
         x: -105,
         rotation: 0,
         flipX: true,
@@ -104,9 +115,12 @@ describe('lateral mirror', () => {
       },
     ]
 
+    // 'txt' está seleccionado pero no es imagen → se descarta.
     expect(mirrorSelectedImagesForLateral(objects, ['img-b', 'txt'])).toEqual([
       {
         ...objects[2],
+        id: expect.any(String),
+        mirroredFrom: 'img-b',
         x: -75,
         rotation: 0,
         flipX: true,

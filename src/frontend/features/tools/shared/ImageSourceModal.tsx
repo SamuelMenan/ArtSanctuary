@@ -169,7 +169,7 @@ export default function ImageSourceModal({ onClose, onSelect }: Props) {
               </label>
               {compressionInfo && (
                 <div className="p-3 bg-[var(--color-surface-container)] rounded-sm border border-[var(--color-outline-variant)] space-y-1">
-                  <p className="text-xs font-mono text-[var(--color-on-surface-variant)] uppercase tracking-wider">Optimización</p>
+                  <p className="text-xs font-mono text-[var(--color-on-surface-variant)] uppercase tracking-wider">{t('common.optimization')}</p>
                   <div className="flex justify-between text-xs text-[var(--color-on-surface-variant)]">
                     <span>Original: {(compressionInfo.original / 1024 / 1024).toFixed(2)} MB</span>
                     <span>Optimizada: {(compressionInfo.compressed / 1024 / 1024).toFixed(2)} MB</span>

@@ -80,4 +80,26 @@ export function mirrorBoardObjectsForLateral(objects: BoardObject[]): BoardObjec
   return objects.map(mirrorBoardObject)
 }
 
+/**
+ * Espeja SOLO las imágenes que estén seleccionadas. El filtro es un AND: hay
+ * que estar en `selectedIds` **y** ser `type: 'image'` — el resto de tipos
+ * (texto, líneas, formas) se descartan aunque estén seleccionados, porque
+ * espejar texto en un plano lateral lo deja ilegible.
+ *
+ * Ojo: no es lo mismo que el filtro de `syncCarnavalLateralMirror`
+ * (`boards.service.ts`), que selecciona por el flag `lateralMirror` del propio
+ * objeto. Son dos criterios distintos y deliberados: uno es "lo que el usuario
+ * marcó para espejar siempre", este es "lo que el usuario tiene seleccionado
+ * ahora".
+ */
+export function mirrorSelectedImagesForLateral(
+  objects: BoardObject[],
+  selectedIds: string[],
+): BoardObject[] {
+  const selected = new Set(selectedIds)
+  return objects
+    .filter((obj) => selected.has(obj.id) && obj.type === 'image')
+    .map(mirrorBoardObject)
+}
+
 

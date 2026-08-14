@@ -8,96 +8,35 @@ owner: TBD
 
 # Bugs conocidos
 
-Defectos **reales de código** encontrados durante la auditoría de documentación
-de 2026-08-13/14. Están aquí documentados a propósito y **sin arreglar**: la
-prioridad acordada era dejar primero la arquitectura documental sólida, y
-resolver el código después. Este registro existe para que no se pierdan.
+Defectos **reales de código** que siguen sin resolver. Se encontraron durante
+la auditoría de documentación de 2026-08-13/14, casi todos *de casualidad* al
+verificar otra cosa — así que asumir que hay más.
 
-Casi todos se encontraron *de casualidad*, verificando otra cosa. Asumir que
-hay más.
+**Cómo cerrar uno:** arreglarlo y borrar su entrada en el mismo commit. No se
+dejan entradas "resueltas": para eso está el historial de git.
 
-**Cómo cerrar uno:** arreglarlo, y borrar su entrada de este archivo en el
-mismo commit. No dejar entradas "resueltas" — para eso está el historial de git.
+> **Los 7 restantes son decisiones de producto, no descuidos.** Implementar un
+> "trending" real o el grid híbrido es construir una feature, no reparar algo
+> roto. Los dos de contrato (imports load-bearing, ruta muerta) son trampas
+> documentadas a propósito para que nadie las "limpie" sin querer.
 
----
+### Resueltos el 2026-08-14
 
-## 1. 🔴 La galería de todo perfil público está vacía
+Se arreglaron en la misma sesión y ya no están listados: la galería vacía de
+todo perfil público (`getPublicProfile` consultaba campos inexistentes), la
+promesa de conexión rechazada que se cacheaba para siempre, la fuga de blobs
+al borrar cuenta, el auto-follow, `buildTransformedCanvas` duplicado y los
+tests rotos de `lateralMirror`. Detalle en `git log`.
 
-**Dónde:** `src/backend/services/users.service.ts` → `getPublicProfile()`
-
-```ts
-const artworks = await Artwork.find({ author: user._id, isPublic: true })
-```
-
-**El modelo `Artwork` no tiene `author` ni `isPublic`** — tiene `artistId` y
-`visibility: 'public'|'unlisted'|'private'` (ver
-[`../architecture/data-model.md#artwork`](../architecture/data-model.md#artwork)).
-Mongoose no valida campos desconocidos en un filtro de lectura, así que la
-query **no lanza: devuelve `[]` siempre, en silencio**.
-
-**Impacto:** `GET /api/users/[username]` responde 200 con el perfil correcto y
-la galería del artista vacía. Sin error en logs. Afecta a todos los perfiles
-públicos.
-
-El mismo repo lo hace bien en `explore.service.ts` (`{ visibility: "public" }`)
-y el índice del modelo es `{ artistId: 1, visibility: 1 }`.
-
-**Extra:** el `.select()` de esa misma query pide tres campos que tampoco
-existen (`thumbnailUrl` — es `thumbnails{}`; `year`; y ordena por `createdAt`
-mientras el resto del código usa `uploadDate`).
+**Uno de los "bugs" registrados resultó falso:** se afirmaba que `getUserById`
+filtraba `passwordHash`. Al ir a arreglarlo se comprobó que el schema ya lo
+declara `select: false`, así que nunca se devolvía. Lo había anotado un agente
+de exploración y se registró sin verificar — recordatorio de que este archivo
+también necesita verificación antes de actuar sobre él.
 
 ---
 
-## 2. 🔴 Una conexión fallida a Mongo deja el proceso muerto
-
-**Dónde:** `src/backend/db/mongoose.ts` → `connectDB()`
-
-```ts
-if (!cached.promise) {
-  cached.promise = mongoose.connect(MONGODB_URI as string, { bufferCommands: false });
-}
-cached.conn = await cached.promise;
-```
-
-**Falta el `catch` que resetee `cached.promise = null` si la conexión falla** —
-es la omisión clásica respecto al patrón canónico de Next.js. Si la primera
-conexión falla (Atlas caído, DNS, IP fuera del allowlist), la promesa rechazada
-queda cacheada en `global._mongoose` y **todas** las peticiones siguientes de
-ese proceso hacen `await` sobre la misma promesa rechazada → 500 perpetuos
-hasta reiniciar la lambda, aunque la DB ya se haya recuperado.
-
----
-
-## 3. 🟠 Fuga de almacenamiento al borrar una cuenta
-
-**Dónde:** `src/backend/services/users.service.ts` → `deleteAccountCascade()`
-
-La cascada borra los **documentos** `Artwork` (paso 1) pero **nunca sus blobs**.
-Las imágenes quedan huérfanas en Vercel Blob / `public/uploads` para siempre.
-Solo se borra el avatar, y únicamente si el caller pasa la URL.
-
-Lo mismo aplica a cualquier imagen de portada de `Collection`.
-
-**Extra:** el `User.deleteOne` es el **penúltimo** paso, así que si el paso 4
-(`$pull` sobre followers, potencialmente costoso) falla, el usuario queda
-parcialmente destruido pero **aún logueable**.
-
----
-
-## 4. 🟠 `getUserById` devuelve `passwordHash`
-
-**Dónde:** `src/backend/services/users.service.ts:53`
-
-`User.findById(id).lean()` **sin `.select()`** → devuelve el documento completo,
-incluido `passwordHash` y `email`. Depende de que cada caller recorte. Merece
-auditar los consumidores antes de que uno lo serialice a un RSC o al cliente.
-
-Relacionado, menor: `isUsernameTaken`/`isEmailTaken` también traen el documento
-entero (con `passwordHash`) solo para calcular un booleano.
-
----
-
-## 5. 🟠 La capa de grid híbrido de Carnaval está desactivada de facto
+## 1. 🟠 La capa de grid híbrido de Carnaval está desactivada de facto
 
 **Dónde:** `src/shared/lib/workspaces/carnaval/rules.ts`
 
@@ -114,7 +53,7 @@ nada lo indique.
 
 ---
 
-## 6. 🟠 `explore.service.ts` son dos stubs disfrazados de feature
+## 2. 🟠 `explore.service.ts` son dos stubs disfrazados de feature
 
 **Dónde:** `src/backend/services/explore.service.ts` → `getExploreTrending()`
 
@@ -132,34 +71,7 @@ sirve igual durante 60s.
 
 ---
 
-## 7. 🟡 `mirrorSelectedImagesForLateral` no existe pero el test la importa
-
-**Dónde:** `src/shared/lib/workspaces/carnaval/lateralMirror.ts` +
-`lateralMirror.test.ts`
-
-Los 2 tests rotos que documenta
-[`../contributing/testing.md`](../contributing/testing.md). Diagnóstico preciso:
-
-- **La matemática del espejo es correcta** — verificada a mano contra las
-  expectativas del test (posición, rotación, `points`, `align`, `flipX`).
-- El test 3 falla porque `mirrorSelectedImagesForLateral` **nunca se
-  implementó** (no existe en ningún archivo del repo).
-- El test 2 falla por las expectativas de `id`/`mirroredFrom`, no por el
-  algoritmo: espera conservar el `id` original, pero `mirrorBoardObject` genera
-  uno nuevo y marca `mirroredFrom`.
-
-> ⚠️ **No "arreglar" el test quitando `mirroredFrom`.** Ese campo es la marca
-> que `syncCarnavalLateralMirror` (`boards.service.ts`) usa para distinguir los
-> espejos viejos de los objetos propios del plano izquierdo al reconciliar.
-> Quitarlo rompe el servicio en silencio.
-
-Nota: `boards.service.ts` ya filtra a mano por el flag `o.lateralMirror`, pero
-**no** por `type === 'image'`, mientras el test sí espera ese filtro. Hay que
-decidir cuál es la semántica correcta antes de implementar la función.
-
----
-
-## 8. 🟡 Imports "sin usar" que sostienen producción
+## 3. 🟡 Imports "sin usar" que sostienen producción
 
 **Dónde:** `src/backend/services/notifications.service.ts`
 
@@ -175,21 +87,7 @@ producción en frío** sin fallar en local.
 
 ---
 
-## 9. 🟡 `followUser` permite seguirse a uno mismo
-
-**Dónde:** `src/backend/services/users.service.ts:75`
-
-No hay comprobación de `followerId !== followingId` → `followUser(x, x)` es
-válido y crea una notificación de que te sigues a ti mismo. Tampoco respeta
-`privacySettings.allowFollow` (ese flag solo se lee en `getFollowConnections`).
-
-Además el retorno usa `followers?.length || 1` — un fallback que **miente** si
-el array viene vacío. Y sin transacción: si el segundo `$addToSet` falla, queda
-el follower registrado sin el following.
-
----
-
-## 10. 🟡 `uploads/[...path]/route.ts` es código muerto con defensa frágil
+## 4. 🟡 `uploads/[...path]/route.ts` es código muerto con defensa frágil
 
 **Dónde:** `src/app/uploads/[...path]/route.ts`
 
@@ -210,16 +108,7 @@ Candidato claro a borrado.
 
 ---
 
-## 11. 🟢 `buildTransformedCanvas` duplicado
-
-**Dónde:** `src/frontend/features/tools/crop/CropTool.tsx:25`
-
-Define su propia copia local en vez de importar la compartida de
-`@shared/lib/image/canvas` — que además ya importa en la línea 7.
-
----
-
-## 12. 🟢 Otros desajustes de contrato menores
+## 5. 🟢 Otros desajustes de contrato menores
 
 - **`markNotificationRead` no usa `.lean()`** pese a que su docstring dice
   "POJO o null" y la cabecera del fichero dice "Solo DB (POJOs)". Devuelve un
@@ -243,15 +132,16 @@ Define su propia copia local en vez de importar la compartida de
 ## Cómo se encontraron
 
 Ninguno salió de una búsqueda dirigida de bugs: todos aparecieron leyendo
-código para verificar afirmaciones de la documentación. Los checks de
-`npm run docs:verify` cubren ahora la clase de desajuste **documentación ↔
-contrato**, pero **no** detectan lógica incorrecta como la del punto 1 — para
-eso no hay sustituto de leer el código o de tener tests.
+código para verificar afirmaciones de la documentación. `npm run docs:verify`
+cubre la clase **documentación ↔ contrato**, pero **no** detecta lógica
+incorrecta — la galería vacía de perfil público pasaba todos los checks
+automáticos porque los nombres de campo eran sintácticamente válidos, solo que
+de otro modelo. Para eso no hay sustituto de leer el código o de tener tests.
 
 ## Última verificación
 
 - Fecha: 2026-08-14
 - Commit: HEAD
-- Puntos 1, 2 y 5 verificados leyendo el código directamente. El resto proviene
-  de exploración sistemática de `src/backend/services/`, `src/shared/lib/` y
-  `src/frontend/features/workspaces/`; no todos se re-verificaron uno por uno.
+- Cada entrada restante se verificó leyendo el código. `npm test` (i18n:scan +
+  19 archivos, 141 tests) y `npx tsc --noEmit` pasan limpios tras la ronda de
+  arreglos.
