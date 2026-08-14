@@ -39,7 +39,7 @@ export default function CanonComparePanel({
   const { t } = usePreferences()
 
   return (
-    <div className="flex h-full min-w-0 flex-1 flex-col items-center overflow-auto">
+    <div className="flex h-full min-w-0 flex-1 flex-col items-center overflow-auto custom-scrollbar">
       <div className="mb-3 flex flex-wrap items-center justify-center gap-2 shrink-0">
         {edit ? (
           <>

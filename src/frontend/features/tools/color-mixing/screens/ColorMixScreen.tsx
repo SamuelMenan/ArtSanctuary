@@ -51,7 +51,7 @@ export default function ColorMixScreen() {
         />
 
         {/* Workspace */}
-        <div className={`flex-1 bg-[var(--color-surface-container-lowest)] flex flex-col overflow-y-auto relative min-h-0 ${textureBg}`}>
+        <div className={`flex-1 bg-[var(--color-surface-container-lowest)] flex flex-col overflow-y-auto custom-scrollbar relative min-h-0 ${textureBg}`}>
           {/* Result + Pigments area */}
           <div className="flex-1 flex flex-col lg:flex-row gap-8 p-8 items-center justify-center min-h-[420px]">
             {/* Pigments stack */}

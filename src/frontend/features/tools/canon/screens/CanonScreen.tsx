@@ -64,7 +64,7 @@ export default function CanonPage() {
   )
 
   const stageInner = compare ? (
-    <div className="flex-1 min-h-0 flex flex-col sm:flex-row items-stretch gap-4 p-4 bg-[var(--color-surface-dim)] overflow-auto">
+    <div className="flex-1 min-h-0 flex flex-col sm:flex-row items-stretch gap-4 p-4 bg-[var(--color-surface-dim)] overflow-auto custom-scrollbar">
       <CanonComparePanel figure={figure} view={view} unit={unit} layers={layers} />
       <CanonComparePanel
         figure={figureB}

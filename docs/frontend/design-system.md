@@ -157,6 +157,28 @@ Reglas no escritas que se han establecido:
    estética catálogo museo.
 6. **Eyebrow `—`** consistente en cada bloque.
 
+## Scrollbars
+
+Todo contenedor con scroll interno lleva la clase **`custom-scrollbar`**,
+definida en `src/app/globals.css` (capa `utilities`). Barra fina de 8px, pista
+transparente y thumb en `--color-outline-variant` que pasa a `--color-outline`
+al hacer hover sobre el contenedor. Cubre WebKit (`::-webkit-scrollbar-*`) y
+Firefox (`scrollbar-width` / `scrollbar-color`).
+
+La barra principal de la ventana recibe el mismo tratamiento en la capa `base`
+(regla sobre `html`, 10px). Como el tema se aplica con `html.light` / `html.dark`
+y esas clases **redefinen los tokens en el propio `html`**, la barra sigue al
+tema sin necesidad de reglas separadas por tema.
+
+Dos contenedores **ocultan la barra a propósito** y no deben llevar la clase:
+`CanonMeasuresPanel` y `ToolActiveLayout`, ambos con
+`[scrollbar-width:none] [&::-webkit-scrollbar]:hidden`.
+
+> Aviso: durante meses `custom-scrollbar` se usó en 14 componentes **sin estar
+> definida en ninguna parte** — era una clase muerta, y esos paneles mostraban
+> la barra por defecto del navegador. Se implementó el 2026-08-14. Si una clase
+> `custom-*` no aparece en `globals.css`, no existe.
+
 ## Movimiento / Motion
 
 La UI debe transmitir calidad con **animaciones suaves, sutiles, sin saturar**, que

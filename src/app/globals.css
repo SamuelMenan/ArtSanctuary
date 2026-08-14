@@ -164,6 +164,31 @@ html.light {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* La barra principal de la ventana usa el mismo tratamiento que los paneles
+     internos (`.custom-scrollbar`), para que no quede la única con el estilo
+     del sistema. Va en `base` para que cualquier utilidad pueda pisarla. */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-outline-variant) transparent;
+  }
+  html::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html::-webkit-scrollbar-thumb {
+    background: var(--color-outline-variant);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  html::-webkit-scrollbar-thumb:hover {
+    background: var(--color-outline);
+    background-clip: padding-box;
+  }
 }
 
 @layer utilities {
@@ -243,6 +268,37 @@ html.light {
   }
   .custom-range:focus {
       outline: none;
+  }
+
+  /* Scrollbar discreta para paneles y modales con scroll interno.
+     Se aplica con la clase `custom-scrollbar`. Los colores salen de tokens,
+     así que sigue al tema claro/oscuro sin reglas aparte. */
+  .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-outline-variant) transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--color-outline-variant);
+      border-radius: 4px;
+      /* El borde transparente + background-clip deja el thumb más fino que la
+         pista, sin necesidad de un ancho distinto al del área de scroll. */
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      transition: background-color .15s ease;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+      background: var(--color-outline);
+      background-clip: padding-box;
+  }
+  .custom-scrollbar::-webkit-scrollbar-corner {
+      background: transparent;
   }
 }
 

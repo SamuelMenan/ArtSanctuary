@@ -48,7 +48,7 @@ export default function MobileMenu({
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="md:hidden fixed inset-0 top-[73px] bg-[var(--color-surface-container)] z-40 overflow-y-auto flex flex-col">
+        <div className="md:hidden fixed inset-0 top-[73px] bg-[var(--color-surface-container)] z-40 overflow-y-auto custom-scrollbar flex flex-col">
           <ul className="flex flex-col gap-2 p-6 flex-grow">
             {[
               { label: t('nav.home'), href: '/', icon: 'home' },

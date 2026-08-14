@@ -52,7 +52,7 @@ export default function ShortcutsHelp({ onClose }: { onClose: () => void }) {
       transition={transition.fast}
     >
       <motion.div
-        className="w-full max-w-md max-h-[80%] overflow-auto rounded-2xl bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow-2xl p-5"
+        className="w-full max-w-md max-h-[80%] overflow-auto custom-scrollbar rounded-2xl bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] shadow-2xl p-5"
         variants={scaleIn}
         initial="initial"
         animate="animate"

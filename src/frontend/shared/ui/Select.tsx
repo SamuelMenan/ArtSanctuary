@@ -90,7 +90,7 @@ export default function Select({
             animate="animate"
             exit="exit"
             style={{ transformOrigin: 'top' }}
-            className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-64 overflow-y-auto rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-high)] p-1 shadow-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-64 overflow-y-auto custom-scrollbar rounded-lg border border-[var(--color-outline-variant)] bg-[var(--color-surface-container-high)] p-1 shadow-xl [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             <motion.div variants={staggerParent} initial="initial" animate="animate">
               {placeholder !== undefined && (

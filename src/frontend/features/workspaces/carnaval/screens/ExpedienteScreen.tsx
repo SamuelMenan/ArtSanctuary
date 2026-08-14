@@ -65,11 +65,11 @@ export default function ExpedienteScreen({ projectId }: { projectId: string }) {
   }, [projectId])
 
   if (loading) {
-    return <div className="h-full overflow-y-auto flex items-center justify-center bg-white text-zinc-500 font-mono text-sm">Cargando expediente…</div>
+    return <div className="h-full overflow-y-auto custom-scrollbar flex items-center justify-center bg-white text-zinc-500 font-mono text-sm">Cargando expediente…</div>
   }
   if (notFound || !project) {
     return (
-      <div className="h-full overflow-y-auto flex flex-col items-center justify-center gap-3 bg-white text-zinc-600">
+      <div className="h-full overflow-y-auto custom-scrollbar flex flex-col items-center justify-center gap-3 bg-white text-zinc-600">
         <p className="font-sans">{'Proyecto no encontrado.'}</p>
         <Link href="/dashboard/workspaces" className="font-mono text-xs uppercase tracking-widest text-blue-600 hover:underline">← Workspace</Link>
       </div>
@@ -85,7 +85,7 @@ export default function ExpedienteScreen({ projectId }: { projectId: string }) {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-zinc-100 print:bg-white py-8 print:py-0">
+    <div className="h-full overflow-y-auto custom-scrollbar bg-zinc-100 print:bg-white py-8 print:py-0">
       {/* Barra de acciones (oculta al imprimir) */}
       <div className="print:hidden max-w-[820px] mx-auto mb-4 flex items-center justify-between px-4">
         <Link href={`/dashboard/workspaces/${projectId}`} className="font-mono text-xs uppercase tracking-widest text-blue-600 hover:underline">← Proyecto</Link>

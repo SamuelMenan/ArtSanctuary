@@ -119,7 +119,7 @@ export function FollowListModal({ open, userId, kind, title, emptyMessage, t, on
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-2">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
           {error ? (
             <div className="text-center py-10 font-mono text-xs uppercase tracking-widest text-[var(--color-error)]">
               {error}
