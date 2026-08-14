@@ -31,6 +31,7 @@ owner: TBD
 - [`architecture/data-model.md`](architecture/data-model.md) — modelos Mongoose. ⚠️ Mismo aviso de rutas.
 - [`architecture/auth.md`](architecture/auth.md) — NextAuth JWT, `tokenVersion`, logout-all. ⚠️ Mismo aviso de rutas.
 - [`architecture/routing.md`](architecture/routing.md) — mapa App Router. ⚠️ Mismo aviso de rutas.
+- [`architecture/services.md`](architecture/services.md) — inventario de `src/backend/services/` (el núcleo real de lógica de negocio, nunca documentado hasta 2026-08-14).
 - [`architecture/auditoria-estructura.md`](architecture/auditoria-estructura.md) — auditoría de higiene del repo (2026-06-02).
 
 **Diagramas (Mermaid, `architecture/diagramas/`)** — verificados y vigentes,
@@ -66,18 +67,25 @@ el mejor material de onboarding visual del repo:
 ### Features
 - [`features/profile.md`](features/profile.md) — perfil propio y público.
 - [`features/settings.md`](features/settings.md) — 6 secciones de ajustes.
+- [`features/auth-ui.md`](features/auth-ui.md) — UI de login/registro (`AuthFlow`).
 - [`features/follow.md`](features/follow.md) — seguir + listas.
 - [`features/upload.md`](features/upload.md) — subida de obras.
+- [`features/navigation-screens.md`](features/navigation-screens.md) — Home, Explore, Gallery, Collections.
 - **Workspaces**:
   - [`features/workspaces/libre.md`](features/workspaces/libre.md) — espacios creativos estándar.
   - [`features/workspaces/carnaval.md`](features/workspaces/carnaval.md) — módulo de acreditación Corpocarnaval (Fases 1-11).
 - **Herramientas de Estudio**:
   - [`features/tools/boards.md`](features/tools/boards.md) — tableros infinitos Konva.
+  - [`features/tools/canon.md`](features/tools/canon.md) — atlas de proporción anatómica. La herramienta más compleja del repo.
   - [`features/tools/grid.md`](features/tools/grid.md) — cuadrícula de referencia.
-  - [`features/tools/crop.md`](features/tools/crop.md) — recorte y extracción.
+  - [`features/tools/crop.md`](features/tools/crop.md) — recorte **y** extracción (2 rutas independientes: `/crop`, `/cutout`).
+  - [`features/tools/color-mixing.md`](features/tools/color-mixing.md) — simulador de mezcla de pigmentos.
   - [`features/tools/escala-medicion.md`](features/tools/escala-medicion.md) — escala global de medidas.
   - ~~[`features/tools/artist-microtools.md`](features/tools/artist-microtools.md)~~ (obsoleto).
-- **Propuestas futuras, no implementadas** (sin código correspondiente, verificado 2026-08-13):
+- **Herramientas con ruta real pero sin funcionalidad** (prototipos visuales, verificado 2026-08-14 — no confundir con "no implementadas", *tienen* ruta y aparecen en el sidebar):
+  - [`features/tools/gesture.md`](features/tools/gesture.md) — timer y copy son estáticos, sin lógica real.
+  - [`features/tools/notan.md`](features/tools/notan.md) — el "procesamiento" es un filtro CSS sobre una imagen fija, no hay upload ni canvas.
+- **Propuestas futuras, no implementadas** (sin ninguna ruta ni código, verificado 2026-08-13):
   - [`features/tools/pencil-geometric.md`](features/tools/pencil-geometric.md) — lápiz con reconocimiento geométrico asistido.
   - [`features/tools/pencil-magnetic.md`](features/tools/pencil-magnetic.md) — lápiz magnético a bordes de imagen.
   - [`features/tools/pencil-polyline.md`](features/tools/pencil-polyline.md) — modo pluma / polilíneas punto a punto.

@@ -11,6 +11,25 @@ owner: TBD
 Convenciones obligatorias para endpoints bajo `src/app/api/`. Garantizan que el cliente
 trate cualquier respuesta de error con el mismo handler genérico.
 
+## Wrapper de errores — `withErrorHandler`
+
+Todo handler exportado se envuelve con `withErrorHandler`
+(`src/backend/http/handler.ts`) — verificado en el 100% de las rutas
+revisadas (settings, collections, auth/register):
+
+```ts
+import { withErrorHandler } from '@backend/http/handler'
+
+export const POST = withErrorHandler('POST /api/collections', async (req: NextRequest) => {
+  // cualquier excepción no capturada aquí dentro → log con el tag + 500 apiError('INTERNAL_ERROR', ...)
+  // los handlers siguen devolviendo explícito 401/403/404/etc con apiError
+})
+```
+
+El primer argumento (`tag`) es solo para el `console.error` — no afecta la
+respuesta. Esto reemplaza lo que `historical/plan-api-error-handler.md`
+proponía como plan; ya está implementado, no es trabajo pendiente.
+
 ## Auth
 
 Endpoints autenticados:

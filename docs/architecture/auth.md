@@ -162,11 +162,15 @@ Discriminated union fuerza al caller a manejar error.
 
 ## Registro
 
-`POST /api/auth/register`:
+`POST /api/auth/register` (envuelto en `withErrorHandler`) delega en
+`registerUser()` de `src/backend/services/auth.service.ts`:
 
-1. Validación campos (`username`, `email`, `password`; password ≥ 6).
-2. Check duplicado `{ $or: [{ email }, { username }] }`.
-3. `bcrypt.hash(password, 12)`.
+1. Validación campos (`username`, `email`, `password`; password ≥ 8 +
+   **mayúscula + número** — política reforzada, no solo longitud. Duplicada
+   en el cliente en `src/frontend/features/auth/components/validation.ts`
+   con el comentario explícito de mantenerla sincronizada).
+2. Check duplicado `{ $or: [{ email }, { username }] }` (dentro del servicio).
+3. `bcrypt.hash(password, 12)` (dentro del servicio).
 4. `User.create({ username, email, passwordHash, displayName: username })`.
 5. `{ user: { id, username, email, plan } }` status 201.
 

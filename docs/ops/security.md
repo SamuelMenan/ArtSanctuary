@@ -2,7 +2,7 @@
 title: Security & threat model
 audience: ops
 status: stable
-updated: 2026-08-13
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -16,12 +16,12 @@ Estado actual del prototipo. Honesto sobre lo que está cubierto y lo que falta.
 |---|---|
 | Password leak en logs | `passwordHash` con `select: false`. `bcrypt.hash(pwd, 12)` siempre |
 | Session hijacking básico | JWT firmado con `AUTH_SECRET`. Cookie `HttpOnly` + `SameSite=Lax` |
-| Token replay tras rotación | `tokenVersion` revalidado en cada request. Ver [ADR-0001](../adr/0001-jwt-tokenversion.md) |
+| Token replay tras rotación | `tokenVersion` revalidado **cada 5 min** (throttle, no en cada request — corregido 2026-08-14, ver [`../architecture/auth.md`](../architecture/auth.md#callbacks)). Ver [ADR-0001](../adr/0001-jwt-tokenversion.md) |
 | Login con cuenta eliminada | `status='deleted'` rechazado en `authorize()` |
 | Path traversal en MCP `write_file` | `safeResolve` bloquea `..`, paths absolutos |
 | Path traversal en avatar | UUID-like filename generado, no usa input usuario |
 | MIME spoofing en upload | Validación servidor: `file.type` ∈ whitelist + `file.size ≤ 3MB` |
-| Mass assignment | Endpoints aplican campo a campo, no `Object.assign(user, body)` |
+| Mass assignment — Boards, Collections, Carnaval Projects, Artworks | Ruta construye un `update` **allowlisted** campo a campo antes de llamar al servicio (verificado en `PATCH /api/boards/[id]`, `PATCH /api/carnaval-projects/[id]`, y `PUT /api/artworks/[id]` — este último arreglado 2026-08-14, ver nota abajo) |
 | Username enum | Mensaje genérico "Email o contraseña incorrectos" en login |
 | XSS desde DB | React escapa por default; no `dangerouslySetInnerHTML` con user input |
 | User enum por avatar URL | Filename incluye userId — acepta el trade-off (avatar ya es público) |
@@ -85,7 +85,10 @@ con purge worker.
 ### Headers de seguridad
 
 Sin CSP, HSTS, X-Frame-Options custom. Next.js + Vercel aportan defaults
-moderados pero no estrictos.
+moderados pero no estrictos. Verificado 2026-08-14: `next.config.ts` **sí**
+tiene un `headers()`, pero es COOP/COEP acotado a `/dashboard/tools/crop`
+(necesario para `SharedArrayBuffer` en la IA de recorte de fondo) — no
+headers de seguridad generales. No confundir uno con el otro.
 
 **Mitigación pendiente**: `next.config.ts` con `headers()`:
 
@@ -114,6 +117,16 @@ para auditoría posterior.
 
 **Mitigación pendiente**: colección `audit_log` con `{ userId, action, timestamp, ip, ua }`.
 
+### Mass assignment en Carnaval Projects (`accreditationStatus`) — sin arreglar
+
+`PATCH /api/carnaval-projects/[id]` filtra en la ruta, pero permite setear
+`accreditationStatus: 'ready'` directamente con solo una validación de
+enum — sin verificar que exista una versión/snapshot final real detrás. No
+se profundizó si esto importa de verdad para el flujo de acreditación ante
+Corpocarnaval (puede que la validación real viva en otro punto del
+proceso de jurados, fuera de la app). Pendiente de decisión, no de código —
+no se tocó.
+
 ## Threats explícitamente fuera de scope
 
 - **DDoS a nivel red**: responsabilidad del proveedor (Vercel/Cloudflare).
@@ -141,5 +154,10 @@ grep -r "console.log" src/                # debug residual
 
 ## Última verificación
 
-- Fecha: 2026-08-13
+- Fecha: 2026-08-14
 - Commit: HEAD
+- Reverificado contra código real (no solo contra lo que el doc ya decía):
+  `tokenVersion` throttle corregido, mass assignment revisado en Boards/
+  Collections/Carnaval Projects/Artworks (1 hallazgo real en Artwork, ver
+  arriba). No reverificado en esta pasada: rate-limiting (se asume que la
+  lista de endpoints sigue vigente), CSRF, headers de seguridad, backup.

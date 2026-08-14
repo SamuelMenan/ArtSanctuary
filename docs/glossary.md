@@ -32,8 +32,9 @@ Relación social bidireccional: A sigue a B **y** B sigue a A. Visible como chip
 "Te sigue" en perfiles. Ver `src/app/profile/[id]/page.tsx`.
 
 **Notan**
-Técnica de simplificación tonal en arte. Una de las herramientas en
-`/dashboard/tools/notan`.
+Técnica de simplificación tonal en arte. Su herramienta en
+`/dashboard/tools/notan` es hoy un prototipo visual sin procesamiento real
+— ver [`features/tools/notan.md`](features/tools/notan.md).
 
 **EXIF**
 Metadatos embebidos en imágenes (cámara, fecha, GPS). Extraídos en flujo de

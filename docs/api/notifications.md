@@ -84,7 +84,14 @@ en otros endpoints:
 | `POST /api/users/[id]/follow` | `follow` |
 | `POST /api/artworks/[id]/interact` action=like | `like` |
 | `POST /api/artworks/[id]/interact` action=comment | `comment` |
-| `POST /api/collections/[id]/artworks` | `save` |
+| `POST /api/artworks/[id]/interact` action=save | `save` |
+
+Corregido 2026-08-14: la tabla original atribuía `save` a
+`POST /api/collections/[id]/artworks` (añadir obra a una colección
+nombrada) — verificado leyendo `collections.service.ts` completo, ese
+endpoint **no** crea notificación. El `save` real es el bookmark global vía
+`interact` (afecta `Artwork.savedBy`), no la colección. Ver
+[`collections.md`](collections.md).
 
 ---
 

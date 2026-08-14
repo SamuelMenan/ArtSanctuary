@@ -8,16 +8,18 @@ owner: TBD
 
 # API `/api/collections`
 
-Colecciones curadas por usuario. Endpoints legacy (no `apiError` estructurado).
+Colecciones curadas por usuario. Ya usa `withErrorHandler`/`apiError`
+(verificado 2026-08-14) — **excepto** el límite de plan free en `POST`, que
+responde `{ error: string }` inline en vez de `apiError`.
 
 ## Resumen
 
 | Método | Ruta | Auth | Propósito |
 |---|---|---|---|
 | GET | `/api/collections` | requerida | Colecciones del usuario actual |
-| POST | `/api/collections` | requerida | Crear |
-| GET | `/api/collections/[id]` | público (si `isPublic`) | Detalle |
-| PATCH | `/api/collections/[id]` | requerida (owner) | Editar |
+| POST | `/api/collections` | requerida | Crear (máx. `MAX_FREE_COLLECTIONS = 3` en plan free) |
+| GET | `/api/collections/[id]` | público (si `!isPrivate`) | Detalle |
+| PUT | `/api/collections/[id]` | requerida (owner) | Renombrar (**no** `PATCH`, y **solo** `name` — no "editar metadata" en general) |
 | DELETE | `/api/collections/[id]` | requerida (owner) | Eliminar |
 | POST | `/api/collections/[id]/artworks` | requerida (owner) | Añadir obra |
 | DELETE | `/api/collections/[id]/artworks` | requerida (owner) | Quitar obra |
@@ -43,26 +45,36 @@ Crear colección.
 {
   name: string
   description?: string
-  isPublic?: boolean
-  coverArtworkId?: string
+  isPrivate?: boolean   // default false. NO es `isPublic` — verificar antes de usar.
 }
 ```
 
-**Side effects:** `Collection.create({ ...body, owner: currentUserId, artworks: [] })`.
+`coverArtworkId` **no** se acepta en create pese a que `data-model.md` lo
+lista como campo del modelo — no verificado si hay otro endpoint que lo
+setee.
+
+**Side effects:** `createCollection(userId, { name, description, isPrivate })`
+→ `Collection.create(...)`. Antes de crear, chequea
+`countUserCollections(userId) >= MAX_FREE_COLLECTIONS` → 403 con
+`{ error: string }` (no `apiError`, inconsistente con el resto del archivo).
 
 ---
 
 ## GET `/api/collections/[id]`
 
-Detalle. Si `isPublic === false` y viewer ≠ owner → 403.
+Detalle. Si `collection.isPrivate` y viewer ≠ owner → `apiError('FORBIDDEN', ...)`.
 
 **Response:** `{ collection: {..., artworks: [Artwork...]} }`.
 
 ---
 
-## PATCH `/api/collections/[id]`
+## PUT `/api/collections/[id]`
 
-Editar metadata. Owner-only.
+Renombrar. Owner-only (chequeado dentro de `renameCollection`, no antes).
+
+**Body:** `{ name: string }` — solo renombra, no toca `description`/`isPrivate`.
+
+**Response:** `{ success: true, collection }`.
 
 ---
 
@@ -81,9 +93,14 @@ Añadir obra a la colección.
 
 **Body:** `{ artworkId: string }`.
 
-**Side effects:** `Collection.artworks.$addToSet(artworkId)`.
+**Side effects:** `Collection.artworks.$addToSet(artworkId)` +
+`Artwork.savedBy.$addToSet(ownerId)`.
 
-**Notificación:** crear `Notification { type: 'save', recipientId: artwork.artistId, actorId, entityId: artworkId }` si la obra no es del owner de la colección.
+**Notificación: NO se crea.** Verificado 2026-08-14 leyendo
+`addArtworkToCollection()` completo (`collections.service.ts`) — no hay
+`Notification.create` en absoluto. La afirmación anterior de este doc (y la
+tabla de `api/notifications.md`) de que esto dispara un `save` era
+incorrecta; corregir también allá.
 
 ---
 
@@ -91,9 +108,11 @@ Añadir obra a la colección.
 
 Quitar obra.
 
-**Body:** `{ artworkId: string }`.
+**Body:** ninguno — `artworkId` va en **query string**
+(`?artworkId=...`), no en el body JSON.
 
-**Side effects:** `Collection.artworks.pull(artworkId)`.
+**Side effects:** `Collection.artworks.pull(artworkId)` (vía
+`removeArtworkFromCollection`).
 
 ---
 
@@ -106,11 +125,12 @@ Quitar obra.
 
 ## Pendiente
 
-- Migrar a `apiOk`/`apiError`.
-- Documentar shape exacta de `coverArtworkId` populate.
+- Unificar el error del límite de plan free a `apiError` (hoy es el único inline).
+- `coverArtworkId` no tiene endpoint que lo setee — confirmar si es campo muerto en el modelo o falta implementar.
 - Endpoint para reordenar obras dentro de colección.
 
 ## Última verificación
 
-- Fecha: 2026-08-13
+- Fecha: 2026-08-14
 - Commit: HEAD
+- Verificado leyendo los 3 `route.ts` completos + `collections.service.ts` completo, no solo por nombre.

@@ -2,23 +2,27 @@
 title: Crop & Cutout Tools (Recorte y Extracción)
 audience: frontend, architecture
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 owner: TBD
 ---
 
 # Crop & Cutout Tools (Recorte y Extracción)
 
-> **Ubicación:** `src/frontend/features/tools/crop/`
+> **Ubicación:** `src/frontend/features/tools/crop/` — comparten carpeta de
+> feature, pero son **2 herramientas y 2 rutas independientes** desde
+> `historical/plan-cutout-tool-split.md` (verificado 2026-08-14):
+> `/dashboard/tools/crop` → `CropScreen`, `/dashboard/tools/cutout` →
+> `CutoutScreen`. No son pestañas de una sola pantalla.
 
 Estas herramientas permiten preparar imágenes para el **BoardEditor** o la **Reference Grid** de manera precisa y aislada.
 
-## CropTool
+## CropTool (`/dashboard/tools/crop`)
 
 La herramienta general de recorte permite delimitar exactamente qué porción de una imagen se enviará a otra herramienta. Mantiene un flujo de handoff (ver `src/shared/lib/tools/handoff.ts`) y puede recibir medidas físicas (escaladas) de referencia.
 
-## CutoutTool
+## CutoutTool (`/dashboard/tools/cutout`)
 
-La herramienta de Extracción (`CutoutTool`) facilita recortar formas irregulares o limpiar fondos indeseados.
+La herramienta de Extracción (`CutoutTool`) facilita recortar formas irregulares o limpiar fondos indeseados. Entrada propia en el sidebar de herramientas, separada de Crop.
 
 ### Componentes
 
