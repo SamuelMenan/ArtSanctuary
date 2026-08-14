@@ -12,7 +12,8 @@
     "doctor": "npx react-doctor@latest",
     "test": "npm run i18n:scan && vitest run",
     "test:watch": "vitest",
-    "i18n:scan": "node scripts/find-hardcoded-strings.mjs"
+    "i18n:scan": "node scripts/find-hardcoded-strings.mjs",
+    "docs:check": "node scripts/check-docs-refs.mjs"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",

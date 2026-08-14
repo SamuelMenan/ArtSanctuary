@@ -50,13 +50,11 @@ next-env.d.ts
 /.vscode
 /.claude
 
-# tooling y docs: solo local, fuera del repo
+# tooling: solo local, fuera del repo (mcp/ arrastra su propio node_modules)
 /mcp
-/docs
 /scripts/reset_social.js
 
 # editor/agent + screenshots
-.agents/
 .trae/
 
 .vercel

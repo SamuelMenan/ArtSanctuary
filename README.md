@@ -24,6 +24,10 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 La documentación técnica completa se encuentra en el directorio `/docs`.
 Para empezar, revisa el [Índice de Documentación](docs/README.md).
 
+**¿Eres un agente IA?** Empieza por [`.agents/AGENTS.md`](.agents/AGENTS.md)
+— reglas obligatorias sobre cómo navegar `/docs` sin gastar contexto
+innecesario.
+
 ## Tecnologías Principales
 
 - **Framework**: Next.js (App Router)
