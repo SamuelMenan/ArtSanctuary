@@ -40,6 +40,10 @@ Si modificas lógica base de librerías externas o canvas, lee los ADRs pertinen
 - Vercel Blob para almacenamiento de imágenes (supersede a 0002): `docs/adr/0021-vercel-blob-image-storage.md`
 - `docs/` y `.agents/` trackeados en git: `docs/adr/0022-docs-agents-tracked-in-git.md`
 
+## 🧩 Workspaces y extensiones del lienzo
+Antes de tocar Carnaval, Libre o el motor de boards:
+- Los 3 registros, los 7 slots de `BoardExtension` e invariantes: `docs/architecture/workspaces-plugins.md`
+
 ## 🎨 UI, Frontend y Diseño
 Para desarrollar componentes, maquetación visual y flujos del cliente:
 - Sistema de diseño (Color/Tema): `docs/frontend/design-system.md`
@@ -52,6 +56,10 @@ Para desarrollar componentes, maquetación visual y flujos del cliente:
 ## 🧪 Testing
 Antes de asumir que algo tiene cobertura automática:
 - Qué corre `npm test`, qué está cubierto (lógica pura) y qué no (routes, componentes, E2E): `docs/contributing/testing.md`
+
+## 🐛 Bugs conocidos (leer antes de tocar backend)
+- Defectos reales sin resolver, con su ubicación exacta: `docs/ops/known-issues.md`
+  (incluye uno crítico: la galería de todo perfil público devuelve vacío).
 
 ## 🚀 Despliegue, Infraestructura y Seguridad (Ops)
 Para configuraciones del entorno de producción:

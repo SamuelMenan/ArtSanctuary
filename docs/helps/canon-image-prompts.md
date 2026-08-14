@@ -1,3 +1,11 @@
+---
+title: "Prompts de generación — láminas Canon (masculino)"
+audience: non-technical
+status: reference
+updated: 2026-08-14
+owner: TBD
+---
+
 # Prompts para generar las láminas de Canon (IA)
 
 Generar láminas en el **mismo estilo y encuadre** que la heroica, con máxima

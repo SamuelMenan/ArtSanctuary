@@ -1,3 +1,11 @@
+---
+title: "ArtSanctuary — AI Context (resumen ejecutivo)"
+audience: ai-agent
+status: stable
+updated: 2026-08-14
+owner: TBD
+---
+
 # ArtSanctuary - AI Context (Resumen Ejecutivo)
 
 > ⚠️ **ATENCIÓN AGENTES IA:** Este es el contexto maestro de ArtSanctuary. NO leas toda la carpeta `docs`. Después de leer esto, dirígete a `docs/INDEX.md` para encontrar lo que necesites.

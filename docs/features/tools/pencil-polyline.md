@@ -1,3 +1,11 @@
+---
+title: "Propuesta: lápiz de polilíneas (modo pluma)"
+audience: product
+status: proposed
+updated: 2026-08-14
+owner: TBD
+---
+
 # Diseño Futuro: Lápiz de Polilíneas y Curvas Punto a Punto (Modo Pluma)
 
 Este documento detalla el diseño conceptual y técnico de la futura herramienta de **Polilínea / Pluma** para el lienzo de ArtSanctuary, diseñada para integrarse sin fricciones con el sistema de dibujo libre.

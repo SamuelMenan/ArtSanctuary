@@ -1,3 +1,11 @@
+---
+title: "Arquitectura del mapeo muscular de Canon"
+audience: dev
+status: stable
+updated: 2026-08-14
+owner: TBD
+---
+
 # Arquitectura — Mapeo de músculos clicables (Canon · `partHits.ts`)
 
 **Fecha:** 2026-06-18 · **Tipo:** documento de arquitectura (sub-sistema del umbrella `importantes/canon`).

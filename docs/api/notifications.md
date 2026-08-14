@@ -14,9 +14,12 @@ Notificaciones del usuario actual.
 
 | Método | Ruta | Auth | Propósito |
 |---|---|---|---|
-| GET | `/api/notifications` | requerida | List notif del usuario actual |
-| POST | `/api/notifications/[id]/read` | requerida | Marcar individual leída |
-| POST | `/api/notifications/read-all` | requerida | Marcar todas leídas |
+| GET | `/api/notifications` | requerida | List notif del usuario actual (capado a 20, sin paginación) |
+| PATCH | `/api/notifications/[id]/read` | requerida | Marcar individual leída |
+| PATCH | `/api/notifications/read-all` | requerida | Marcar todas leídas |
+
+> **Corregido 2026-08-14:** ambos endpoints de marcado se documentaban como
+> `POST`; el código exporta `PATCH`. Detectado por `npm run docs:verify`.
 
 ---
 
@@ -46,7 +49,7 @@ Ordenado por `createdAt: -1`.
 
 ---
 
-## POST `/api/notifications/[id]/read`
+## PATCH `/api/notifications/[id]/read`
 
 Marcar una notificación como leída.
 
@@ -57,7 +60,7 @@ match.
 
 ---
 
-## POST `/api/notifications/read-all`
+## PATCH `/api/notifications/read-all`
 
 Marcar todas las del usuario como leídas.
 

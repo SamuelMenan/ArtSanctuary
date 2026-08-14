@@ -1,3 +1,11 @@
+---
+title: "Contexto y modelo de negocio"
+audience: non-technical
+status: stable
+updated: 2026-08-14
+owner: TBD
+---
+
 # Contexto y Negocio — ArtSanctuary
 
 > **Audiencia de este documento:** Desarrolladores nuevos en el proyecto, colaboradores y stakeholders técnicos que necesitan entender *por qué* existe ArtSanctuary antes de tocar el código.

@@ -1,3 +1,11 @@
+---
+title: "Comunicado 003 de Corpocarnaval (2026-05-12)"
+audience: non-technical
+status: reference
+updated: 2026-08-14
+owner: TBD
+---
+
 # Comunicado 003-12-05-2026
 
 ## Página 1

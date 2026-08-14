@@ -49,9 +49,10 @@ Crear colección.
 }
 ```
 
-`coverArtworkId` **no** se acepta en create pese a que `data-model.md` lo
-lista como campo del modelo — no verificado si hay otro endpoint que lo
-setee.
+**Corregido 2026-08-14:** `coverArtworkId` no se acepta en create porque **el
+campo no existe en el modelo** (`docs:verify` lo detectó). La nota anterior de
+este doc, que lo daba por existente y solo dudaba de qué endpoint lo seteaba,
+era incorrecta.
 
 **Side effects:** `createCollection(userId, { name, description, isPrivate })`
 → `Collection.create(...)`. Antes de crear, chequea
@@ -126,7 +127,7 @@ Quitar obra.
 ## Pendiente
 
 - Unificar el error del límite de plan free a `apiError` (hoy es el único inline).
-- `coverArtworkId` no tiene endpoint que lo setee — confirmar si es campo muerto en el modelo o falta implementar.
+- El campo `references` del modelo (imágenes sueltas de la colección) no tiene endpoint que lo gestione.
 - Endpoint para reordenar obras dentro de colección.
 
 ## Última verificación

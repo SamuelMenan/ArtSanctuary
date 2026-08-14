@@ -1,3 +1,11 @@
+---
+title: "Escala global de medición (Referencia / Final)"
+audience: frontend
+status: stable
+updated: 2026-08-14
+owner: TBD
+---
+
 # Escala global de medición (Referencia / Final)
 
 Las herramientas de medición (Grid, Boards, Crop, Cutout) comparten una única

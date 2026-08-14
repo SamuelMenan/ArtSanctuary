@@ -1,3 +1,11 @@
+---
+title: "Propuesta: lápiz de reconocimiento geométrico"
+audience: product
+status: proposed
+updated: 2026-08-14
+owner: TBD
+---
+
 # Diseño Futuro: Lápiz de Reconocimiento Geométrico Asistido
 
 Este documento especifica cómo se puede extender el sistema de dibujo libre en ArtSanctuary para reconocer y transformar trazos a mano alzada imperfectos en figuras geométricas perfectas.

@@ -117,7 +117,13 @@ Ver [`../api/carnaval-projects.md`](../api/carnaval-projects.md).
 |---|---|---|
 | PATCH | `/api/preferences` | Theme/locale. Único endpoint de preferencias existente hoy — `/api/settings/preferences` no está implementado |
 | POST | `/api/upload` | Upload de obra (no avatar) |
-| GET | `/api/explore/trending` | Trending feed |
+| GET | `/api/explore/trending` | Trending feed. ⚠️ 2 de sus 4 campos son stubs, ver [`services.md`](services.md) |
+
+### Ruta legacy fuera de `/api`
+
+| Método | Ruta | Notas |
+|---|---|---|
+| GET | `/uploads/[...path]` | `src/app/uploads/[...path]/route.ts`. Sirve ficheros desde `public/uploads` y `storage/uploads`. **Efectivamente código muerto** (`storage/` no existe y Next sirve `public/` antes de llegar al handler) y con defensa de path traversal no canónica. Nunca estuvo en esta tabla hasta 2026-08-14. Ver [`../ops/known-issues.md`](../ops/known-issues.md#10). |
 
 ## Layout / loading / error
 

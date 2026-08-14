@@ -1,3 +1,11 @@
+---
+title: "ArtSanctuary Carnaval Suite — visión de producto"
+audience: non-technical
+status: stable
+updated: 2026-08-14
+owner: TBD
+---
+
 # ArtSanctuary Carnaval Suite
 
 ## Sistema Digital de Diseño, Validación y Documentación para Artesanos del Carnaval de Negros y Blancos

@@ -1,3 +1,11 @@
+---
+title: "Prompts de generación — láminas Canon (femenino)"
+audience: non-technical
+status: reference
+updated: 2026-08-14
+owner: TBD
+---
+
 # Prompts para generar las láminas de Canon FEMENINO (IA)
 
 Segundo eje del sistema: la **figura femenina adulta**. Misma lógica que el masculino

@@ -1,3 +1,11 @@
+---
+title: "Propuesta: lápiz magnético a bordes"
+audience: product
+status: proposed
+updated: 2026-08-14
+owner: TBD
+---
+
 # Diseño Futuro: Lápiz Magnético (Adherencia a Bordes de Imagen)
 
 Este documento describe la arquitectura conceptual para dotar al lápiz de una funcionalidad magnética que se adhiera automáticamente a los contornos de las imágenes de referencia cargadas en el fondo del tablero.

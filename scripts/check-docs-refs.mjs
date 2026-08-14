@@ -9,9 +9,14 @@
  *    `resultados-verificacion.md` — registro histórico/point-in-time, las
  *    rutas viejas ahí son la descripción correcta de lo que fue cierto en
  *    su momento, no un bug.
- *  - Docs que declaran una `Ubicación:`/base al inicio y luego usan rutas
- *    relativas cortas (ej. `boards.md`, `crop.md`) — el checker no entiende
- *    ese contexto y las marca igual. Triage humano, no auto-fix ciego.
+ *  - Docs que declaran una `Ubicación:` base al inicio y luego usan rutas
+ *    relativas cortas (`components/`, `lib/`). Desde 2026-08-14 se detectan y
+ *    se saltan automáticamente: sin eso el ruido crecía hasta 30 hits y un
+ *    checker con 30 falsos positivos es un checker que nadie corre.
+ *
+ * Complemento: `npm run docs:verify` (verify-docs-contracts.mjs) compara
+ * contratos reales (campos de modelo, métodos HTTP, existencia de ficheros)
+ * en vez de patrones de texto.
  *
  * Uso: node scripts/check-docs-refs.mjs
  */
@@ -52,11 +57,28 @@ const files = []
   }
 })(ROOT)
 
+/**
+ * Un doc que declara su base (`> **Ubicación:** src/…`) usa después rutas
+ * relativas a ella. Marcar esas rutas como "pre-refactor" es un falso positivo
+ * sistemático, así que se salta el archivo entero para STALE_ROOT_PATH.
+ */
+const DECLARES_BASE = /^>?\s*\*\*Ubicaci[óo]n:?\*\*/m
+
+/**
+ * Los planes de `pr/` y el material de `helps/` están acotados a una feature y
+ * escriben rutas relativas a ella (`components/Foo.tsx` = dentro de esa
+ * feature). Mismo falso positivo que los docs con `Ubicación:` declarada.
+ */
+const SCOPED_DIR = /[\\/](pr|helps)[\\/]/
+
 let hits = 0
 for (const file of files) {
-  const lines = readFileSync(file, 'utf8').split('\n')
+  const body = readFileSync(file, 'utf8')
+  const relativeToBase = DECLARES_BASE.test(body) || SCOPED_DIR.test(file)
+  const lines = body.split('\n')
   lines.forEach((line, i) => {
-    for (const re of [STALE_ROOT_PATH, PHANTOM_TOOL_RE]) {
+    const active = relativeToBase ? [PHANTOM_TOOL_RE] : [STALE_ROOT_PATH, PHANTOM_TOOL_RE]
+    for (const re of active) {
       re.lastIndex = 0
       let m
       while ((m = re.exec(line))) {

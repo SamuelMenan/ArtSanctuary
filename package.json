@@ -13,7 +13,8 @@
     "test": "npm run i18n:scan && vitest run",
     "test:watch": "vitest",
     "i18n:scan": "node scripts/find-hardcoded-strings.mjs",
-    "docs:check": "node scripts/check-docs-refs.mjs"
+    "docs:check": "node scripts/check-docs-refs.mjs",
+    "docs:verify": "node scripts/verify-docs-contracts.mjs"
   },
   "dependencies": {
     "@imgly/background-removal": "^1.7.0",

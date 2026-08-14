@@ -54,14 +54,45 @@ que a fecha 2026-08-14 tiene **2 tests rotos** (ver
 (hoy sin doc de API dedicado, solo una línea en
 [`routing.md`](routing.md)).
 
+No es una función normal: es un **`unstable_cache`** con
+`revalidate: 60` y tag `artworks`, así que la respuesta se sirve cacheada hasta
+60s o hasta que se invalide el tag.
+
+⚠️ Dos de sus cuatro campos son **stubs**: `trendingTags` es un array literal
+hardcodeado y `featuredArtists` son los 4 primeros usuarios sin `sort`. Ver
+[`../ops/known-issues.md`](../ops/known-issues.md#6).
+
 ### `notifications.service.ts`
 `getUserNotifications`, `markNotificationRead`, `markAllNotificationsRead`.
+
+⚠️ Los `import "@backend/models/User"` sin usar al principio del archivo **son
+load-bearing**: registran los schemas para que `.populate()` no lance en
+arranque en frío. Un linter que "limpie imports" rompe producción. `getUserNotifications`
+está capado a 20 sin paginación. Ver [`../ops/known-issues.md`](../ops/known-issues.md#8).
 
 ### `users.service.ts`
 `isUsernameTaken`, `isEmailTaken`, `deleteAccountCascade` (la cascada de
 [ADR-0004](../adr/0004-hard-delete-sin-tx.md)), `updateUserPreferences`,
 `getUserById`, `getPublicProfile`, `followUser`, `unfollowUser`,
 `getFollowConnections`.
+
+Comportamiento que no se deduce de la firma:
+
+- **`followUser` crea una `Notification` de forma idempotente**: solo si no
+  existe ya una `{recipientId, actorId, type:'follow'}`. Un re-follow meses
+  después **no** vuelve a notificar. `unfollowUser` borra esa notificación
+  aunque ya se hubiera leído.
+- **`deleteAccountCascade` — orden exacto**, secuencial y sin transacción:
+  `Artwork.deleteMany` → `Collection.deleteMany` → `Notification.deleteMany` →
+  `$pull` de following/followers en el resto de usuarios → `User.deleteOne` →
+  `deleteAvatarFile`. El borrado del usuario es el **penúltimo** paso.
+- **`getFollowConnections` devuelve la lista completa junto al flag
+  `allowFollow`** y delega la decisión de acceso al controlador: si un caller
+  olvida mirarlo, filtra. Sin paginación.
+
+⚠️ Este servicio concentra 4 de los bugs conocidos, incluido el más grave
+(`getPublicProfile` devuelve siempre `artworks: []`). Leer
+[`../ops/known-issues.md`](../ops/known-issues.md) antes de tocarlo.
 
 ### `workspaces/carnaval/carnaval-projects.service.ts`
 `getUserProjects`, `countUserProjects`, `createCarnivalProject`,

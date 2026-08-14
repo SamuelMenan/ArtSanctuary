@@ -32,6 +32,8 @@ owner: TBD
 - [`architecture/auth.md`](architecture/auth.md) — NextAuth JWT, `tokenVersion`, logout-all. ⚠️ Mismo aviso de rutas.
 - [`architecture/routing.md`](architecture/routing.md) — mapa App Router. ⚠️ Mismo aviso de rutas.
 - [`architecture/services.md`](architecture/services.md) — inventario de `src/backend/services/` (el núcleo real de lógica de negocio, nunca documentado hasta 2026-08-14).
+- [`architecture/workspaces-plugins.md`](architecture/workspaces-plugins.md) — cómo Libre/Carnaval extienden el editor de tableros. **3 registros distintos** e invariantes que rompen en silencio.
+- [`architecture/shared-lib.md`](architecture/shared-lib.md) — utilidades de `src/shared/lib/` (handoff, autocrop, floodfill, mediums, reglamento Carnaval) y su comportamiento no obvio.
 - [`architecture/auditoria-estructura.md`](architecture/auditoria-estructura.md) — auditoría de higiene del repo (2026-06-02).
 
 **Diagramas (Mermaid, `architecture/diagramas/`)** — verificados y vigentes,
@@ -94,6 +96,7 @@ el mejor material de onboarding visual del repo:
 - [`ops/env.md`](ops/env.md) — variables de entorno.
 - [`ops/deployment.md`](ops/deployment.md) — despliegue.
 - [`ops/security.md`](ops/security.md) — amenazas.
+- [`ops/known-issues.md`](ops/known-issues.md) — **bugs reales sin resolver**, encontrados durante la auditoría. Leer antes de tocar servicios o Carnaval.
 
 ### Rendimiento
 - [`performance/01-optimizacion-servidor-rsc.md`](performance/01-optimizacion-servidor-rsc.md)

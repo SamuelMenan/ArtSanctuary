@@ -2,7 +2,7 @@
 title: Compresión de imágenes (Upload)
 audience: frontend, architecture, ops
 status: stable
-updated: 2026-06-07
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -36,6 +36,15 @@ Centralizado en `src/shared/lib/image/canvas.ts`:
 | `uploadCompressedBlob(blob, name)` | Sube a `/api/upload` **sin** recomprimir. Deriva extensión del `type`. |
 | `uploadBlob(blob, name)` | `compressImage` + `uploadCompressedBlob`. Atajo para callers que no necesitan métricas. |
 
+El módulo exporta además 6 helpers de canvas que no son parte del pipeline de
+compresión pero se usan en todo el resto de herramientas de imagen:
+`loadImage`, `imageToCanvas`, `cropCanvas`, `buildTransformedCanvas`,
+`canvasToBlob`, `downloadBlob`.
+
+⚠️ **`loadImage` fuerza `img.crossOrigin = 'anonymous'`** — invariante crítico:
+sin eso el canvas queda *tainted* y `getImageData`/`toBlob` lanzan. Es la causa
+raíz del bug relatado en [ADR-0006](../adr/0006-vercel-blob-konva-transformer.md).
+
 ### Parámetros de calidad
 
 | Caso | Formato / calidad | Razón |
@@ -56,7 +65,14 @@ el WebP sale más grande, conserva el original).
 - `ReferenceGridScreen` → boards (`renderGridBlob` ya emite WebP capado + `uploadCompressedBlob`)
 - `useUploadArtwork` (vía `uploadBlob`)
 
-`useBoardExport` solo descarga (`toDataURL`), no sube → no interviene.
+**Corregido 2026-08-14:** este doc afirmaba que `useBoardExport` "solo descarga
+(`toDataURL`), no sube → no interviene". **Es falso**: importa `uploadBlob` y lo
+llama al hacer handoff de una imagen volteada hacia otra herramienta. Sí pasa
+por el pipeline.
+
+Nota aparte: `CropTool.tsx` define su **propia copia local** de
+`buildTransformedCanvas` en vez de importar la compartida — ver
+[`../ops/known-issues.md`](../ops/known-issues.md#11).
 
 ---
 
@@ -101,5 +117,9 @@ npm run build && npm run start   # NODE_ENV=production → compresión activa
 
 ## Última verificación
 
-- Fecha: 2026-06-07
-- `tsc --noEmit`: limpio
+- Fecha: 2026-08-14
+- Commit: HEAD
+- Constantes (`MAX_UPLOAD_DIM=4096`, `WEBP_QUALITY=0.75`,
+  `WEBP_ALPHA_QUALITY=0.95`, `COMPRESS_SKIP_BELOW=500KB`), el passthrough de GIF
+  y el gate de `NODE_ENV` verificados uno por uno contra `canvas.ts`. Todo
+  correcto salvo la afirmación sobre `useBoardExport`, ya corregida arriba.

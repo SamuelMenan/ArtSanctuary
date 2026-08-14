@@ -78,7 +78,7 @@ Para mantener el rendimiento y la organización, los agentes y desarrolladores d
 
 ### Escenario A: Carga Inicial de Página (Velocidad Máxima)
 1. Usuario entra a `/dashboard`.
-2. `src/app/dashboard/page.tsx` (RSC) inicia en el servidor.
+2. `src/app/dashboard/tools/boards/page.tsx` (RSC) inicia en el servidor.
 3. El RSC invoca directamente `getUserBoards()` desde `backend/services/`.
 4. El RSC renderiza la UI base (HTML pregenerado) y pasa los *boards* al componente interactivo en `frontend/features/boards/`.
 5. **Resultado:** 0 requests HTTP internos. TTFB (Time to First Byte) mínimo.

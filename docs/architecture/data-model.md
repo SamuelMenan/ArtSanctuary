@@ -193,9 +193,13 @@ Bidireccional manual: follow actualiza ambos arrays. Ver
 | `name` | `String` | required |
 | `owner` | `ObjectId` ref `User` | required, FK |
 | `description` | `String` | |
-| `coverArtworkId` | `ObjectId` ref `Artwork` | |
 | `isPrivate` | `Boolean` | default `false` — **no** `isPublic`, verificado 2026-08-14 contra `Collection.ts`. Antes documentado al revés. |
-| `artworks` | `ObjectId[]` ref `Artwork` | |
+| `artworks` | `ObjectId[]` ref `Artwork` | IDs, no documentos poblados |
+| `references` | `IReference[]` | `{ imageUrl, caption, addedAt }`. **No estaba documentado** — detectado por `npm run docs:verify` el 2026-08-14. Imágenes de referencia sueltas de la colección, distintas de `artworks`. |
+
+> **`coverArtworkId` no existe.** Se documentaba como campo del modelo hasta
+> 2026-08-14; no está ni en la interfaz ni en el schema. Si se necesita una
+> portada, hay que añadirla — no asumir que ya está.
 
 **Índice:** `{ owner: 1 }`.
 

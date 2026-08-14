@@ -1,3 +1,11 @@
+---
+title: "Prompts de generación — láminas Canon (partes)"
+audience: non-technical
+status: reference
+updated: 2026-08-14
+owner: TBD
+---
+
 # Prompts para generar las láminas de PARTES anatómicas (Bloque D)
 
 Alimentan la **ficha de parte** (`CanonPartPanel`, A4/A5 de

@@ -42,17 +42,28 @@ si vas a tocar algo no trivial.
    - `partHits.ts` — regiones clicables **por canon-vista** (path SVG que sigue el contorno real, nunca cajas — decisión P9 / ADR-0013). Mientras un canon-vista no esté trazado, esa vista simplemente no es interactiva.
    - `muscleColors.ts` — paleta del mapa de músculos.
 
-2. **Presentación — `components/`** (14 archivos): `ReferenceFigure` (lámina
-   PNG limpia + fallback) + `ProportionChart` (interfaz dibujada por código:
-   landmarks, líneas, medidas, posicionada por `frac` medido — no por
-   coordenadas a ojo) + overlays (`FigureOverlays`, `GhostFigure`,
-   `LoomisOverlay`, `MuscleMapLayer`, `PartHitLayer`).
+2. **Presentación — `components/`** (19 archivos), por responsabilidad:
 
-3. **Interacción — `hooks/` + `screens/CanonScreen.tsx`**: `useCanonTool.ts`
-   centraliza todo el estado (canon, altura, vista, unidad, capas activas,
-   comparación A/B, parte seleccionada, presets, medición manual vía
-   `useTraceMeasure.ts`) y expone handlers. `CanonScreen.tsx` es composición
-   pura — sin lógica propia.
+   | Grupo | Componentes | Qué hace |
+   |---|---|---|
+   | Lámina base | `ReferenceFigure`, `ZoomPanViewport` | Pinta el PNG del canon con fallback y gestiona zoom/pan. |
+   | Interfaz medida | `ProportionChart`, `ChartAxis`, `LandmarkLabel`, `ChartCrossfade` | Dibuja por código lo que la lámina no trae: landmarks, líneas y cotas, posicionados por `frac` **medido**, nunca a ojo. |
+   | Overlays anatómicos | `FigureOverlays`, `GhostFigure`, `LoomisOverlay`, `MuscleMapLayer`, `PartHitLayer` | Capas conmutables sobre la lámina (comparación fantasma, cajas de Loomis, mapa muscular, zonas clicables). |
+   | Paneles | `CanonMeasuresPanel`, `CanonPartPanel`, `CanonComparePanel` | Árbol de medidas, ficha de la parte seleccionada, vista A/B. |
+   | Controles | `CanonControls`, `CanonLayersRail`, `CanonExportRail`, `RailButton`, `SourceBadge` | Selectores, raíles de capas y export, y la insignia de procedencia del dato. |
+
+3. **Interacción — `hooks/` + `lib/` + `screens/CanonScreen.tsx`**:
+   `useCanonTool.ts` centraliza **todo** el estado (canon, altura, vista,
+   unidad, capas, comparación A/B, parte seleccionada, presets) y expone
+   handlers; `useTraceMeasure.ts` gestiona la medición manual sobre la lámina.
+   `CanonScreen.tsx` es composición pura, sin lógica propia.
+
+   `lib/` (8 archivos) es el pegamento **específico de la UI**, distinto del
+   motor puro de `shared/lib/canon/`: `figureMeta` (rutas y dims intrínsecas de
+   cada lámina + fallback a heroico), `chartLayers` (qué capas existen y sus
+   defaults), `figureGeom`, `joints`, `overlays` (assets por capa),
+   `presets` (localStorage), `exportChart` (redibuja en `<canvas>` con la misma
+   matemática para PNG/PDF) y `boardHandoff` (enviar la lámina a Boards).
 
 ## Assets
 
@@ -105,3 +116,6 @@ componentes — ver [`../../contributing/testing.md`](../../contributing/testing
 - Fecha: 2026-08-14
 - Commit: HEAD
 - Verificado: `CanonScreen.tsx`, `useCanonTool.ts`, `canons.ts`, `figureMeta.ts`, `partHits.ts` leídos directamente. Confirmado sin llamadas a `fetch`/`/api/` en todo `tools/canon/` (`grep` sin resultados) — 100% cliente.
+- Los 19 componentes y 8 libs verificados con `ls` (la versión anterior decía
+  "14 archivos" en `components/`). El conteo de 14 regiones del mapa muscular
+  frontal contrastado contra `partHits.ts` — coincide.

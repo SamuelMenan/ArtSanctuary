@@ -26,6 +26,9 @@ erDiagram
     USER ||--o{ NOTIFICATION : receives
     USER ||--o{ NOTIFICATION : triggers
     USER }o--o{ USER : follows
+    USER ||--o{ CARNIVAL_PROJECT : owns
+    CARNIVAL_PROJECT ||--o{ BOARD : "planos (Board.projectId)"
+    CARNIVAL_PROJECT ||--o{ CARNIVAL_PROJECT_VERSION : "snapshots"
 
     USER {
         ObjectId _id PK
@@ -55,6 +58,36 @@ erDiagram
         ObjectId _id PK
         String name
         ObjectId owner FK
+        ObjectId projectId FK
+        Object workspace
         Object viewport
+    }
+
+    NOTIFICATION {
+        ObjectId _id PK
+        ObjectId recipientId FK
+        ObjectId actorId FK
+        ObjectId artworkId FK
+        String type
+        Boolean read
+    }
+
+    CARNIVAL_PROJECT {
+        ObjectId _id PK
+        String kind "libre | carnaval"
+        String name
+        String modality
+        Number year
+        String accreditationStatus
+        ObjectId owner FK
+    }
+
+    CARNIVAL_PROJECT_VERSION {
+        ObjectId _id PK
+        ObjectId projectId FK
+        ObjectId owner FK
+        String label
+        Boolean isFinal
+        Array planos "snapshot inmutable"
     }
 ```

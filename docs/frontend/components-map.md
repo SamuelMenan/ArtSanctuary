@@ -55,7 +55,7 @@ Inventario de `src/frontend/`.
 |---|---|---|---|
 | `ArtworkGrid.tsx` | **server** | — | Corregido 2026-08-14 — sin `'use client'`, doc anterior decía client. Grid masonry-like de obras + modal integrado |
 | `ArtworkModal.tsx` | client | `/api/artworks/[id]/interact`, `/api/artworks/[id]` | Ya no es un solo archivo — composición sobre `artwork-modal/` (ver abajo) |
-| `ArtworkLightbox.tsx` | client | — | Visor a pantalla completa, usado por `ArtworkGrid` |
+| `ArtworkLightbox.tsx` | **server** | — | Corregido 2026-08-14 por `docs:verify`. Visor a pantalla completa, usado por `ArtworkGrid` |
 | `Button.tsx` | server | — | Botón con variants |
 | `CollectionActions.tsx` | client | `/api/collections/[id]` | CRUD botones |
 | `FollowButton.tsx` | client | `/api/users/[id]/follow` | Toggle follow optimista |
@@ -79,7 +79,7 @@ anterior.
 | `Toggle.tsx` | client | — | Switch `role=switch` |
 | `AvatarUploader.tsx` | client | `POST/DELETE /api/settings/avatar` | Preview + upload + delete |
 | `ProfileForm.tsx` | client | `PATCH /api/settings/profile` | Diff dirty + validación |
-| `AccountForm.tsx` | client | `PATCH /api/settings/account/{email,password}`, `DELETE .../sessions` | Email + password + logout-all |
+| `AccountForm.tsx` | **server** | `PATCH /api/settings/account/{email,password}`, `DELETE .../sessions` | Corregido 2026-08-14 por `docs:verify`: es un composer sin `'use client'`; las 4 secciones que agrupa (`account/*Section.tsx`) sí son client |
 | `AppearanceForm.tsx` | client | `usePreferences()` → `/api/preferences` | Theme + locale |
 | `NotificationsForm.tsx` | client | `PATCH /api/settings/notifications` | 5 toggles |
 | `PrivacyForm.tsx` | client | `PATCH /api/settings/privacy` | 4 toggles |

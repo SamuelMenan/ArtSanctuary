@@ -1,3 +1,11 @@
+---
+title: "Resultados de verificación de código (2026-06-02)"
+audience: dev
+status: historical
+updated: 2026-08-14
+owner: TBD
+---
+
 # Resultados de verificación — Fases 0, 1, 2, 3 y 4
 
 > Fecha: 2026-06-02 · Base: [plan-verificacion-codigo.md](../pr/completos/plan-verificacion-codigo.md)

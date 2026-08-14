@@ -1,3 +1,11 @@
+---
+title: "Auditoría de estructura del repo (2026-06-02)"
+audience: dev
+status: historical
+updated: 2026-08-14
+owner: TBD
+---
+
 # Auditoría de estructura — ArtSanctuary
 
 > Fecha: 2026-06-02 · Objetivo: árbol completo del repo, detectar obsoletos, recolocar archivos exiliados, eliminar código muerto y proponer reestructuración. Norte: **código simple, rápido y organizado.**
