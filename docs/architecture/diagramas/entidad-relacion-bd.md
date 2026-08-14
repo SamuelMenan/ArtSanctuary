@@ -2,7 +2,7 @@
 title: "Modelo de Entidad-Relación (Base de Datos)"
 audience: backend, dev
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Modelo de Entidad-Relación (Base de Datos)

@@ -2,7 +2,7 @@
 title: Animaciones y movimiento
 audience: frontend
 status: stable
-updated: 2026-06-04
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -55,8 +55,18 @@ Importar siempre desde ahí; no hardcodear duraciones/easings sueltos.
 | `popIn` | opacity + scale(0.8→1) | Confirmación de campo válido |
 | `cardSwap(dir)` | opacity + x(±16px) | Transición login ⟷ registro |
 | `shake` | x `[0,-4,4,-4,4,0]` | Error de envío |
+| `scaleIn` | escala + opacity | Entrada de elementos puntuales |
+| `staggerParent` | orquesta hijos en cascada | Listas y grids |
+| `lineDraw` | trazo progresivo | Líneas de cota / guías |
+| `growX` | ancho progresivo | Barras de progreso |
+
+> Los 4 últimos existen y se usan, pero faltaban en esta tabla — añadidos
+> 2026-08-14 tras verificar `tokens.ts`. Todos los tokens documentados aquí
+> existen con ese nombre y valor.
 
 Límites: duración ≤ 0.32s, desplazamiento ≤ 16px (≤ 8px en mensajes), sin `spring`
+<br>_(Nota: la cabecera de `tokens.ts` enuncia ≤8px como norma general; el
+único token que llega a 16px es `cardSwap`. Discrepancia menor sin resolver.)_
 con rebote alto.
 
 ## Cuándo animar / cuándo NO

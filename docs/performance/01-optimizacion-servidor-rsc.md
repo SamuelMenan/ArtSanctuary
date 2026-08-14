@@ -2,10 +2,24 @@
 title: "Estrategia de Rendimiento 1: Optimización de Servidor y RSC"
 audience: dev
 status: implemented
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Optimización de Servidor: React Server Components y Servicios Puros
+
+> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14). La estrategia es real
+> y se aplica, pero:
+> - **No son los `page.tsx` quienes invocan servicios** — son las Screens en
+>   `src/frontend/features/*/screens/`. Ver
+>   [`../architecture/estructura-optimizada.md`](../architecture/estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
+>   El ejemplo `DashboardPage` con `getUserBoards(userId)` **no existe**.
+> - **"0 requests HTTP internos" aplica solo a 6 Screens**, no a toda la app:
+>   `BoardsListScreen` y `ExploreScreen` son `'use client'` y leen por `fetch`.
+> - Omite `unstable_cache`, que sí se usa (`getPublicGallery`,
+>   `getExploreTrending`) y es parte de la estrategia real de rendimiento.
+>
+> Verificado correcto: `.lean()` en los 9 servicios (37 usos) y cero imports
+> de `next/server` en `backend/services/`.
 
 Este documento detalla la estrategia implementada en el lado del servidor (Node.js/Next.js) para reducir drásticamente el **TTFB (Time To First Byte)** y eliminar los cuellos de botella de red.
 

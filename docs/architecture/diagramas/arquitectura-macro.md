@@ -2,10 +2,18 @@
 title: "Arquitectura Macro (Capas del Sistema)"
 audience: dev
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Arquitectura Macro (Capas del Sistema)
+
+> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14). La forma general es
+> válida; estas afirmaciones concretas no:
+> - Ubica los Server Components en `src/app/` — viven en
+>   `src/frontend/features/*/screens/`. Ver
+>   [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
+> - La arista `SVC --> Auth` está **invertida**: ningún servicio importa
+>   `@backend/auth`; es `requireUser()` quien se llama desde los `route.ts`.
 
 Una vista a alto nivel (10,000 pies de altura) que ilustra la arquitectura de Clean Architecture (Patrón Controlador-Servicio) aplicada en ArtSanctuary.
 

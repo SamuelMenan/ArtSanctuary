@@ -2,7 +2,7 @@
 title: "Modelo C4 - Nivel 1: Contexto del Sistema"
 audience: dev, architect
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Modelo C4 - Nivel 1: Contexto del Sistema

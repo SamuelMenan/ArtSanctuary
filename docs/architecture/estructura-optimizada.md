@@ -2,7 +2,7 @@
 title: "Arquitectura de Carpetas Optimizada (Rendimiento y Patrón Servicio)"
 audience: dev, ai-agent
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -14,39 +14,79 @@ Este documento define la estructura final de carpetas de **ArtSanctuary** (`src/
 
 ## Árbol de Directorios Principal
 
+> ⚠️ **Corregido 2026-08-14.** El árbol anterior colgaba i18n y las utilidades
+> compartidas de `src/frontend/shared/` cuando viven en `src/shared/`, ponía
+> las herramientas directamente bajo `features/` en vez de `features/tools/`,
+> y citaba un `dashboard/page.tsx` que no existe. Este árbol sí se verificó
+> contra el repo.
+
 ```text
 src/
-├── app/                        # Capa de Enrutamiento y Controladores (Next.js)
+├── app/                        # Capa de Enrutamiento (Next.js)
 │   ├── api/                    # 1. Controladores HTTP (REST)
-│   │   ├── artworks/route.ts   # Wrappers finos que extraen req/auth y llaman a services
-│   │   └── boards/route.ts     
-│   ├── dashboard/              # 2. Rutas de la UI (Páginas)
-│   │   └── page.tsx            # React Server Components (RSC). Llaman a services DIRECTO.
-│   └── layout.tsx              # Carga inicial de i18n optimizada y Providers
+│   │   └── <dominio>/route.ts  # Extraen req/auth y llaman a services
+│   ├── dashboard/              # 2. Rutas de la UI
+│   │   ├── layout.tsx          # chrome persistente (no se re-monta al navegar)
+│   │   ├── template.tsx        # SÍ se re-monta: aporta el fade de entrada
+│   │   ├── tools/              # boards, canon, color-mixing, crop, cutout,
+│   │   │                       #   gesture, grid, notan
+│   │   └── workspaces/[id]/    # expediente, recursos, boards, tools
+│   ├── layout.tsx              # Providers + resolución inicial de i18n/tema
+│   └── (gallery, explore, profile, settings, login, register, upload, collections)
+│                               # page.tsx = re-export fino de su Screen
 │
 ├── backend/                    # Capa de Lógica de Negocio y Datos
-│   ├── services/               # 3. SERVICIOS (El núcleo de la aplicación)
-│   │   ├── artworks.service.ts # Lógica pura, interactúa con BD, retorna POJOs (.lean())
-│   │   └── boards.service.ts   # Prohibido importar tipos de HTTP aquí.
-│   ├── models/                 # Esquemas de Mongoose (BD)
-│   ├── auth/                   # Lógica de sesión y NextAuth
-│   └── http/                   # Utilidades de mapeo de errores globales
+│   ├── services/               # 3. SERVICIOS (el núcleo). 9 archivos.
+│   ├── models/                 # Esquemas de Mongoose (7, incl. workspaces/carnaval/)
+│   ├── auth/                   # NextAuth + requireUser
+│   ├── db/                     # conexión Mongoose cacheada
+│   ├── http/                   # apiError/apiOk + withErrorHandler
+│   ├── upload/                 # avatar + storage (Blob / FS local)
+│   └── requestPreferences.ts   # lectura SSR de cookies locale/theme
 │
 ├── frontend/                   # Capa de Presentación (UI)
-│   ├── features/               # 4. Dominios Funcionales (Agrupados por feature)
-│   │   ├── boards/             # UI de Tableros (Client Components aislados, lazy loading)
-│   │   ├── grid/               # UI de Cuadrícula de Referencia
-│   │   ├── crop/               # UI de Herramientas de Recorte
-│   │   └── explore/            # UI de Exploración
-│   └── shared/                 # 5. Código Compartido de UI
-│       ├── i18n/               # Diccionarios de idiomas e inicialización
-│       ├── ui/                 # Componentes base (Botones, Modales, Inputs)
-│       └── lib/                # Utilidades puras de frontend
+│   ├── features/               # 4. Dominios funcionales
+│   │   ├── tools/              # boards, canon, crop, grid, color-mixing,
+│   │   │                       #   gesture, notan + shared/ (kit común)
+│   │   ├── workspaces/         # plugins Libre/Carnaval (ver workspaces-plugins.md)
+│   │   └── artwork, auth, collections, explore, gallery, home, profile, settings
+│   │       └── screens/        # composición de pantalla — la entrada real del feature
+│   └── shared/                 # 5. UI compartida
+│       ├── layouts/  providers/  ui/  hooks/  motion/
 │
-└── shared/                     # Código Isomórfico (Opcional, utilidades globales)
+└── shared/                     # Código isomórfico (NO opcional)
+    ├── i18n/                   # diccionarios es/en + createTranslator
+    └── lib/                    # canon, boards, workspaces, image, tools, validation
 ```
 
 ---
+
+## ⚠️ El malentendido más caro: dónde vive el Server Component
+
+Documentado el 2026-08-14 porque invalidaba afirmaciones en 4 diagramas y en
+`performance/01` a la vez.
+
+**Los `page.tsx` de `src/app/` NO son los Server Components que cargan datos.**
+Son re-exports de una línea:
+
+```ts
+// src/app/gallery/page.tsx
+export { default } from '@frontend/features/gallery/screens/GalleryScreen'
+```
+
+El Server Component real —el que llama a los servicios— vive en
+`src/frontend/features/<dominio>/screens/`. **Ningún `page.tsx` importa
+`@backend/services`**; los 6 que sí lo hacen son Screens: `GalleryScreen`,
+`HomeScreen`, `ProfileScreen`, `ProfileDetailScreen`, `CollectionDetailScreen`,
+`SettingsScreen`.
+
+Dos consecuencias que rompen las reglas tal como suelen enunciarse:
+
+1. **`src/frontend` sí importa de `src/backend`, y es correcto.** La frontera
+   real que no se cruza es `@backend/models` (0 violaciones), no `@backend/*`.
+2. **No todas las lecturas son RSC.** `BoardsListScreen` y `ExploreScreen` son
+   `'use client'` y leen por `fetch('/api/...')`. El "0 requests HTTP internos"
+   aplica a las 6 Screens de servidor, no a toda la app.
 
 ## Reglas de Arquitectura por Carpeta (Guardarraíles)
 
@@ -62,10 +102,17 @@ Para mantener el rendimiento y la organización, los agentes y desarrolladores d
 - **Prohibido:** No hacer consultas de base de datos directas (`Model.find()`).
 - **Flujo:** Extraer token/sesión ➔ Extraer body/params ➔ Invocar función de `backend/services/` ➔ Mapear el retorno a `apiOk()` o `apiError()`.
 
-### 3. `src/app/(rutas)/page.tsx` (Server Components)
-- **Regla:** Estas son las páginas que se renderizan en el servidor. Obtienen datos de forma directa y ultrarrápida.
-- **Prohibido:** Hacer `fetch('/api/...')` a rutas internas.
-- **Rendimiento:** Para obtener datos, deben importar la función del servicio (`await getArtworks()`) e inyectar el resultado como *props* hacia la vista en `frontend/`. Esto elimina las "cascadas de red" (network waterfalls).
+### 3. `src/frontend/features/*/screens/` (Server Components)
+- **Regla:** Aquí —no en `page.tsx`— viven los componentes que se renderizan en
+  servidor y obtienen datos. El `page.tsx` correspondiente es un re-export fino.
+- **Prohibido en un Screen de servidor:** hacer `fetch('/api/...')` a rutas
+  internas (cascada de red evitable).
+- **Rendimiento:** importar la función del servicio (`await getGalleryArtworks()`)
+  e inyectar el resultado como props hacia los componentes de cliente.
+- **Excepción real y aceptada:** las pantallas cuya interacción es
+  client-driven (`BoardsListScreen`, `ExploreScreen`) sí son `'use client'` y
+  leen por `fetch`. No es una violación: es que su lectura depende de estado de
+  UI (búsqueda, filtros).
 
 ### 4. `src/frontend/` (Capa de Cliente y Vistas)
 - **Regla:** La interactividad y las librerías pesadas deben estar aisladas.
@@ -77,11 +124,20 @@ Para mantener el rendimiento y la organización, los agentes y desarrolladores d
 ## Secuencia de Flujo de Datos (Data Flow)
 
 ### Escenario A: Carga Inicial de Página (Velocidad Máxima)
-1. Usuario entra a `/dashboard`.
-2. `src/app/dashboard/tools/boards/page.tsx` (RSC) inicia en el servidor.
-3. El RSC invoca directamente `getUserBoards()` desde `backend/services/`.
-4. El RSC renderiza la UI base (HTML pregenerado) y pasa los *boards* al componente interactivo en `frontend/features/boards/`.
-5. **Resultado:** 0 requests HTTP internos. TTFB (Time to First Byte) mínimo.
+
+Ejemplo **real** (el anterior citaba boards, que precisamente no funciona así):
+
+1. Usuario entra a `/gallery`.
+2. `src/app/gallery/page.tsx` re-exporta `GalleryScreen`.
+3. `GalleryScreen` (Server Component, en `frontend/features/gallery/screens/`)
+   invoca `getGalleryArtworks(category)` de `backend/services/` **directamente
+   en memoria**.
+4. Renderiza el HTML y pasa las obras al `ArtworkGrid`.
+5. **Resultado:** 0 requests HTTP internos. TTFB mínimo.
+
+Aplica igual a `HomeScreen`, `ProfileScreen`, `ProfileDetailScreen`,
+`CollectionDetailScreen` y `SettingsScreen`. **No** aplica a boards: su lista
+es `'use client'` y lee por `fetch('/api/boards')`.
 
 ### Escenario B: Mutación desde el Cliente (Ej: Crear un nuevo Board)
 1. El usuario hace click en "Nuevo Tablero" en el cliente.

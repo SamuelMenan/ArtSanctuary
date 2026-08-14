@@ -2,10 +2,22 @@
 title: "Flujo de Datos: RSC vs. Mutaciones del Cliente"
 audience: dev
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Flujo de Datos: RSC vs. Mutaciones del Cliente
+
+> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
+> - El participante `Server Component (app/page.tsx)` está mal ubicado: vive
+>   en `src/frontend/features/*/screens/`. Ver
+>   [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
+> - **El ejemplo concreto es falso**: `GET /dashboard` → `getUserBoards()` no
+>   ocurre. `dashboard/tools/boards/page.tsx` es `'use client'` y los boards se
+>   cargan con `fetch('/api/boards/:id')` desde el cliente. `getUserBoards`
+>   solo se invoca desde `src/app/api/boards/route.ts`.
+> - Falta el flujo de **lectura vía cliente**, que es el que usan boards,
+>   notifications, explore y search.
+> - No aparece el caché (`unstable_cache` + tag `artworks`).
 
 Este diagrama ilustra la diferencia fundamental en cómo se obtienen y envían los datos en la arquitectura actual. Está diseñado para aprovechar los React Server Components (RSC) y reducir la carga sobre el cliente.
 

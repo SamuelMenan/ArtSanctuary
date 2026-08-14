@@ -2,10 +2,25 @@
 title: "Flujo de Handoff entre Herramientas de Estudio"
 audience: frontend, dev
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Flujo de Handoff entre Herramientas de Estudio
+
+> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
+> - **No se transporta base64.** El payload lleva `imageUrl` (URL persistente
+>   vía `/api/upload`); el propio `handoff.ts` lo comenta explícitamente.
+> - No son "ancho y alto originales" en píxeles: son medidas **físicas en cm**
+>   (`widthCm`/`heightCm`, más las escaladas y `squareCm`).
+> - El flujo **no es unidireccional**: soporta round-trip de vuelta a Boards
+>   (`boardId`, `objectId`, `workspaceId`), y Boards puede ser **origen**
+>   (`ToolSource` incluye `'boards'` y `'upload'`).
+> - `takeHandoff()` consume el payload; `peekHandoff()` no. La distinción
+>   importa y no aparece.
+> - Falta un **segundo canal** independiente: `boardHandoff.ts` de Canon
+>   (`takePendingFigure`), usado por `BoardEditor`.
+>
+> Contrato completo: [`../shared-lib.md`](../shared-lib.md).
 
 Este diagrama describe cómo una imagen transita a través del ecosistema de herramientas para artistas (`CropTool`, `ReferenceGridScreen`, `BoardEditor`).
 

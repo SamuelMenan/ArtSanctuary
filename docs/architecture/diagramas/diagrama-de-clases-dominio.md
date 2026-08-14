@@ -1,11 +1,32 @@
 ---
 title: "Diagrama de Clases (Modelos de Dominio y Servicios)"
 audience: backend, dev
-status: stable
-updated: 2026-06-01
+status: deprecated
+updated: 2026-08-14
 ---
 
 # Diagrama de Clases (Dominio y Servicios)
+
+> 🛑 **DIAGRAMA INCORRECTO — no seguirlo.** Verificado el 2026-08-14.
+>
+> - **No existen las clases `UserService`/`BoardService`/`ArtworkService`.**
+>   Los servicios son **módulos con funciones sueltas**, no clases. El
+>   estereotipo `<<Service>>` no corresponde a ningún símbolo real.
+> - Casi ningún método existe con ese nombre: `getUserProfile()` →
+>   `getPublicProfile()`/`getUserById()`; `updateSettings()` →
+>   `updateUserPreferences()`; `updateViewport()` → `updateBoard()`;
+>   `uploadArtwork()` → `createArtwork()`; `likeArtwork()` →
+>   `interactWithArtwork()`. **`deactivateAccount()` no existe en ningún
+>   servicio** — esa lógica está inline en el controlador.
+> - `User.preferences: Settings` no existe: son campos separados
+>   (`notificationSettings`, `privacySettings`, `theme`, `locale`, `plan`).
+> - Faltan `Collection`, `Notification`, `CarnivalProject`,
+>   `CarnivalProjectVersion` y los 2 servicios de workspace; y a `Board` le
+>   faltan `workspace`, `projectId`, `isPrivate`, `lateralMirrorEnabled`.
+>
+> Fuentes correctas: [`../data-model.md`](../data-model.md) (modelos,
+> verificados campo por campo) y [`../services.md`](../services.md)
+> (firmas reales).
 
 Este diagrama UML muestra la estructura interna de las clases, interfaces y servicios principales del backend, reforzando la separación entre la capa de datos (Modelos) y la capa lógica (Servicios).
 

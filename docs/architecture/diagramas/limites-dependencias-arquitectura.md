@@ -1,11 +1,33 @@
 ---
 title: "Reglas de Importación y Fronteras Arquitectónicas"
 audience: ai-agent, dev
-status: stable
-updated: 2026-06-01
+status: deprecated
+updated: 2026-08-14
 ---
 
 # Reglas de Importación y Fronteras (Límites Arquitectónicos)
+
+> 🛑 **La regla principal de este diagrama es falsa.** Verificado el
+> 2026-08-14. Igual que el de la máquina de estados, es peligroso porque
+> pretende dictarle restricciones a una IA.
+>
+> - **Regla 1 — "`src/frontend` jamás debe importar nada de `src/backend`":
+>   incorrecta.** 6 archivos de `src/frontend` importan `@backend/services` y
+>   `@backend/auth` — y es **correcto que lo hagan**: son los Server
+>   Components reales (`GalleryScreen`, `HomeScreen`, `ProfileScreen`,
+>   `ProfileDetailScreen`, `CollectionDetailScreen`, `SettingsScreen`).
+>   La restricción real y vigente es solo sobre **`@backend/models`**
+>   (0 violaciones hoy).
+> - **Regla 2 — "las API routes son tontas": se cumple a medias.** Ninguna
+>   importa modelos, pero varias mutan estado directamente:
+>   `settings/account/{deactivate,password,email,sessions}/route.ts` tocan
+>   `user.status`/`user.tokenVersion` en el controlador.
+> - **Regla 3 — "servicios = funciones puras": con matiz.** `unstable_cache`
+>   de `next/cache` en `explore.service.ts` y `artworks.service.ts` los acopla
+>   al runtime de Next.
+> - Falta `src/shared/` (i18n, lib) como zona neutra que importan ambos lados.
+>
+> Fuente correcta: [`../estructura-optimizada.md`](../estructura-optimizada.md).
 
 Para una IA (o cualquier herramienta de linting), entender el problema a veces es menos importante que **entender lo que NO se debe hacer**. Este diagrama traza las reglas estrictas de acoplamiento de la base de código.
 

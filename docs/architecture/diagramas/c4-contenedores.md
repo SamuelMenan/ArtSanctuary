@@ -2,10 +2,19 @@
 title: "Modelo C4 - Nivel 2: Contenedores"
 audience: dev, architect
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Modelo C4 - Nivel 2: Contenedores
+
+> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
+> - "El cliente llama a la API **para mutar** datos" — también la usa para
+>   **leer** (boards, explore, notifications, search).
+> - "Servicios totalmente aislados de HTTP y de React" — el aislamiento de
+>   HTTP se cumple, pero `unstable_cache` de `next/cache` en
+>   `explore.service.ts` y `artworks.service.ts` los acopla al runtime de Next.
+> - Falta el contenedor real donde viven los Server Components:
+>   `src/frontend/features/*/screens/`, no el router de `src/app/`.
 
 Este diagrama amplía el sistema `ArtSanctuary` para revelar los contenedores principales (aplicaciones web, APIs, capas lógicas y bases de datos) que componen la plataforma.
 

@@ -2,7 +2,7 @@
 title: Reference Grid Screen (Cuadrícula de Referencia)
 audience: frontend, architecture
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -23,7 +23,7 @@ La herramienta Cuadrícula de Referencia ha sido refactorizada para separar su g
 - **Lib (`lib/`)**: Lógica pura y testeable.
   - `colLabel.ts`: Función de ayuda para etiquetar columnas al estilo de hojas de cálculo (A, B, C...).
   - `gridGeometry.ts`: `computeGridGeometry`, `snapToSquare`, etc. Calcula medidas y proporciones exactas.
-  - `renderGridBlob.ts`: Exportación de la cuadrícula y su configuración directamente a un PNG mediante un `<canvas>`.
+  - `renderGridBlob.ts`: Exportación de la cuadrícula y su configuración mediante un `<canvas>`. **WebP en producción, PNG solo en dev** (corregido 2026-08-14; el doc decía PNG siempre). Ver [`../image-compression.md`](../image-compression.md).
 
 ## Integración con otras herramientas
 

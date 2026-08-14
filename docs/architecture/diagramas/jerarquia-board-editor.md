@@ -2,10 +2,25 @@
 title: "Jerarquía y Estado de BoardEditor"
 audience: frontend, dev
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Jerarquía y Estado de BoardEditor
+
+> ⚠️ **Parcialmente incorrecto e incompleto** (verificado 2026-08-14):
+> - **No existe una "Background Layer".** `BoardStage` monta `GridLayer`,
+>   `BoardExtLayers`, la capa de objetos y `MeasureLayer`. El fondo lo dibuja
+>   el propio `GridLayer` (`type: 'grid'|'dots'|'plain'`).
+> - `DimensionLabel` **no vive dentro de `MeasureLayer`**: está en `overlays/`
+>   y se renderiza como HTML desde `BoardEditor`.
+> - **Omite el sistema de extensiones** (`extensions/`), que es un eje
+>   estructural del editor — ver
+>   [`../workspaces-plugins.md`](../workspaces-plugins.md).
+> - Faltan 8 de los 12 hooks y buena parte de las islas de UI (`RightRail`,
+>   `ZoomIsland`, `DimensionsFooter`, `TextFormatBar`, `ShapeStyleBar`,
+>   `LayersPanel`, `ContextMenu`).
+>
+> Vista actualizada: [`../../features/tools/boards.md`](../../features/tools/boards.md).
 
 Este diagrama documenta la compleja estructura del Tablero Infinito interactivo, separando las responsabilidades de estado (Hooks) de la presentación visual (Konva y React).
 

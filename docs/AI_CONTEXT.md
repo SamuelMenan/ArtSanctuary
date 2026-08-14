@@ -26,5 +26,20 @@ ArtSanctuary es una aplicación orientada al aprendizaje, estructuración y gene
 3. **Konva & React-Konva:** Para cualquier elemento dibujable en el canvas, usa primitivas de React-Konva y controla la gestión de memoria evitando instanciar imágenes en ciclos infinitos.
 4. **Diseño Visual:** Todo diseño debe usar las variables de color del `design-system.md` (ej. `var(--color-primary)`) y seguir el esquema de Dark Mode.
 
+## Antes de tocar código — lo que no se deduce leyendo el repo
+
+- **Hay bugs conocidos sin resolver**, documentados con su ubicación exacta en
+  `docs/ops/known-issues.md`. Uno es crítico (la galería de todo perfil público
+  devuelve vacío). Consúltalo antes de trabajar en servicios o Carnaval, para
+  no "descubrir" un bug ya registrado ni construir encima de él.
+- **Workspaces tiene 3 registros independientes** (dominio, UI, extensión de
+  lienzo) e invariantes que rompen en silencio: `docs/architecture/workspaces-plugins.md`.
+- **Verificación automática**: `npm run docs:verify` compara la documentación
+  contra el código (campos de modelo, métodos HTTP, existencia de ficheros,
+  `'use client'`). Si cambias un modelo o una ruta, córrelo — falla con exit 1
+  si dejaste la doc desincronizada.
+- **Los tests no están todos verdes**: `npm test` falla hoy. Ver
+  `docs/contributing/testing.md` antes de asumir que rompiste algo.
+
 ## Enrutamiento Siguiente
 👉 **Para cualquier tarea, ve inmediatamente a `docs/INDEX.md` y busca la ruta exacta del dominio a modificar.**

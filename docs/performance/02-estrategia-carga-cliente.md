@@ -2,10 +2,23 @@
 title: "Estrategia de Rendimiento 2: Reducción del Bundle de Cliente"
 audience: dev
 status: implemented
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Reducción del Bundle de Cliente (Client-Side Optimization)
+
+> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
+> - **Ruta del ejemplo inexistente**: el `dynamic()` real apunta a
+>   `@frontend/features/tools/boards/BoardEditor`, no a
+>   `@frontend/features/boards/BoardStage`. `BoardStage` existe pero **no** se
+>   carga con `next/dynamic`.
+> - **"Evitamos `'use client'` en páginas completas": incumplido.** 8 de 26
+>   `page.tsx` lo llevan, incluidos los de boards — precisamente los que más
+>   pesan.
+> - **El lazy loading de Recorte no usa `next/dynamic`**: `CropScreen` importa
+>   `CropTool` estáticamente. Lo que sí es diferido es el modelo de IA
+>   (`@imgly/background-removal`) con un `import()` nativo dentro de
+>   `useCutoutEditor.ts`.
 
 El peso de JavaScript es el enemigo número uno del **TTI (Time to Interactive)**. En ArtSanctuary, usamos herramientas extremadamente pesadas como `konva` para la edición gráfica. Esta estrategia documenta cómo evitamos que la aplicación sea lenta en su carga inicial.
 

@@ -2,10 +2,23 @@
 title: "Estrategia de Rendimiento 3: Optimización del Diccionario i18n"
 audience: dev
 status: implemented
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Optimización del Diccionario i18n
+
+> 🛑 **DESACTUALIZADO — describe una implementación que no existe** (verificado
+> 2026-08-14). La conclusión de fondo sigue siendo cierta (**al cliente solo
+> viaja un idioma, no los dos**), pero el mecanismo descrito es otro:
+>
+> | Dice el doc | Realidad |
+> |---|---|
+> | Un `middleware.ts` intercepta la petición e inyecta la configuración | **No existe `middleware.ts`** en el repo. El idioma se resuelve en `src/app/layout.tsx` con `getRequestLocale()` (cookies) y, si hay sesión, se sobrescribe leyendo `User`. |
+> | `i18n.ts` con `import('./locales/en.json')` asíncrono | Es `src/shared/i18n/dictionaries.ts`, `server-only`, con imports **estáticos** de `./messages/{es,en}.ts` (son `.ts`, no `.json`; no hay carpeta `locales/`), y `getDictionary()` es **síncrono**. |
+> | "Al cliente solo llega el String 'Settings', no todo el archivo" | **Falso.** `layout.tsx` pasa el diccionario **completo** del idioma activo como prop a `AppPreferencesProvider`, y viaja entero en el payload RSC. |
+>
+> La carga asíncrona real (`loadDictionary`, en `src/shared/i18n/index.ts`)
+> solo se usa al **cambiar de idioma** en cliente.
 
 La internacionalización (i18n) en aplicaciones grandes a menudo introduce un problema silencioso: **el cliente descarga todos los idiomas disponibles** antes de poder pintar la pantalla. 
 

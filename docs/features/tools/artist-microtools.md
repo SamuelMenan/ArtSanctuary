@@ -2,15 +2,21 @@
 title: Micro-herramientas de Asistencia Rápida
 audience: all
 status: deprecated
-updated: 2026-06-01
+updated: 2026-08-14
 owner: TBD
 ---
 
-> **NOTA:** Esta documentación está **obsoleta**. Las herramientas han sido refactorizadas y divididas en módulos individuales bajo `src/frontend/features/tools/`.
-> Consulta la nueva documentación en:
-> - `docs/features/tools/boards.md`
-> - `docs/features/tools/grid.md`
-> - `docs/features/tools/crop.md`
+> **NOTA:** Esta documentación está **obsoleta**. Las herramientas se
+> refactorizaron en módulos individuales bajo `src/frontend/features/tools/`.
+> Doc vigente por herramienta (lista completada 2026-08-14):
+> - [`boards.md`](boards.md) · [`canon.md`](canon.md) · [`grid.md`](grid.md)
+> - [`crop.md`](crop.md) (cubre Recorte **y** Cutout, hoy 2 rutas separadas)
+> - [`color-mixing.md`](color-mixing.md)
+> - [`gesture.md`](gesture.md) y [`notan.md`](notan.md) — ⚠️ prototipos
+>   visuales sin lógica real, no features terminadas.
+>
+> El contenido de abajo se conserva solo como registro de la intención
+> original del módulo; no describe el código actual.
 
 > **Módulo:** `systems/artist-microtools`  
 > **Ubicación en la app:** `/dashboard/tools`  

@@ -2,7 +2,7 @@
 title: "Errores Comunes: Tailwind v4 y Variables CSS"
 audience: frontend, dev, ai-agent
 status: stable
-updated: 2026-06-01
+updated: 2026-08-14
 ---
 
 # Errores Comunes de Tailwind v4
