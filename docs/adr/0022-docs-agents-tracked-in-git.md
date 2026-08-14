@@ -47,6 +47,25 @@ desarrollo separada, no documentación ni reglas de comportamiento.
 - ❌ Contenido de negocio/anuncios (`.plans/business/`, `.plans/business/comunicados/`)
   y prompts de generación de imagen (`.plans/helps/`) quedan públicos si el
   repo lo es — revisar visibilidad del repo si esto importa.
+- ❌ **Rompió el build de CSS, y hubo que acotar el escaneo de Tailwind.** La
+  detección automática de contenido de Tailwind v4 excluye lo que ignore
+  `.gitignore`; al dejar de ignorar `docs/`, Tailwind empezó a escanear los
+  `.md` y a tomar por clases reales los ejemplos citados en prosa. El propio
+  ADR-0011 cita un comodín con asterisco para prohibirlo, y eso generaba
+  `color: var(--text-*)` — CSS inválido, build caído. Resuelto en
+  `src/app/globals.css` con `source(none)` + un `@source` explícito a `src/`.
+
+## Trampa: el `@source` de `globals.css` es load-bearing
+
+`src/app/globals.css` abre con `@import "tailwindcss" source(none);` seguido de
+`@source "../../src";`. **No es redundante y no se puede simplificar a un
+`@import` normal**: sin ello Tailwind vuelve a escanear todo el repo excepto lo
+ignorado, la documentación incluida, y basta con que un `.md` mencione una
+clase malformada para tumbar el build. La restricción a `src/` es válida porque
+todo el JSX del proyecto vive ahí (verificado: `git ls-files '*.tsx' '*.jsx'`
+no devuelve nada fuera de `src/`). Si algún día se añaden componentes fuera de
+`src/`, hay que registrar esa ruta con otro `@source` o dejarán de generarse
+sus clases — un fallo silencioso, sin error de build.
 
 ## Notas
 

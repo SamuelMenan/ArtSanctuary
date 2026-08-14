@@ -1,4 +1,12 @@
-@import "tailwindcss";
+/* `source(none)` desactiva la detección automática de contenido de Tailwind v4 y
+   deja el escaneo acotado a `src/`, donde vive todo el JSX del proyecto.
+   Sin esto, Tailwind escanea todo el repo salvo lo que ignore .gitignore — y al
+   pasar a versionar la documentación (ADR-0022) empezó a leer los .md, tomando
+   los ejemplos de clases citados en prosa por clases reales. El ADR-0011 cita
+   `text-[var(--text-*)]` para prohibirlo, y ese asterisco generaba
+   `color: var(--text-*)`, CSS inválido que rompía el build. */
+@import "tailwindcss" source(none);
+@source "../../src";
 
 @theme {
   /* Obsidian Gallery Color Palette */

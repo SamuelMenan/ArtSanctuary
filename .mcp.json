@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "artsanctuary": {
+      "command": "npx",
+      "args": ["tsx", "C:/Users/Admin/Documents/ArtSanctuary/mcp/index.ts"]
+    }
+  }
+}
