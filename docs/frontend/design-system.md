@@ -170,8 +170,8 @@ La barra principal de la ventana recibe el mismo tratamiento en la capa `base`
 y esas clases **redefinen los tokens en el propio `html`**, la barra sigue al
 tema sin necesidad de reglas separadas por tema.
 
-Dos contenedores **ocultan la barra a propósito** y no deben llevar la clase:
-`CanonMeasuresPanel` y `ToolActiveLayout`, ambos con
+Tres contenedores **ocultan la barra a propósito** y no deben llevar la clase:
+`CanonMeasuresPanel`, `ToolActiveLayout` y `Select`, todos con
 `[scrollbar-width:none] [&::-webkit-scrollbar]:hidden`.
 
 > Aviso: durante meses `custom-scrollbar` se usó en 14 componentes **sin estar
