@@ -6,6 +6,22 @@ updated: 2026-06-01
 owner: TBD
 ---
 
+> ⚠️ **Verificado 2026-08-14 — el estado `completed` ya no refleja la
+> realidad en 2 de las 4 métricas de éxito:**
+> - `npm run i18n:scan` → **hoy da 3, no 0** (`AuthAside.tsx:27`,
+>   `ImageSourceModal.tsx:172`, `CollectionActions.tsx:55` — verificado
+>   corriendo el comando). Regresión posterior al cierre de F5, no detectada
+>   porque nada la bloquea (ver punto siguiente).
+> - **CI que falle si reaparece copy hardcodeado: no existe.** El repo no
+>   tiene pipeline CI/CD (`ops/deployment.md`) — la Parte C.2 de este plan
+>   nunca se implementó pese a que el plan de cierre lo daba por hecho.
+> - Sí implementado y verificado: `react/jsx-no-literals` en `warn` está
+>   configurado en `eslint.config.mjs` (Parte C.1).
+> - No verificado en esta pasada: paridad de claves es/en (Parte D).
+>
+> No se corrigieron los 3 hits ni se montó CI — documentado para resolución
+> futura, no arreglado en esta pasada.
+
 # Plan i18n F5 — Barrido a 0 + guardarraíl
 
 > Fase 5 (cierre) del [`plan-i18n-maestro.md`](./plan-i18n-maestro.md). **Autocontenido.**

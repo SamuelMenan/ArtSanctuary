@@ -1,10 +1,20 @@
 ---
 title: "Plan i18n F4: migrar screens y UI compartida a i18n"
 audience: dev, ai-agent
-status: draft
-updated: 2026-06-01
+status: done
+updated: 2026-08-14
 owner: TBD
 ---
+
+> ✅ **Implementado en su mayoría — corregido de `draft` a `done` el
+> 2026-08-14.** Verificado con `grep`: `HomeScreen.tsx` usa `t('home.*')`,
+> `Navbar`/`Sidebar` usan `t('nav.*')`/`t('sidebar.*')`. **Excepción:**
+> Color Mixing no usa el sistema `t()` estándar — tiene su propio helper
+> bilingüe (`getMixLabels(locale === 'es')` en `colorMixHelpers.ts`), un
+> mecanismo paralelo no contemplado por este plan. No verificado si eso
+> importa para el objetivo del guardarraíl (ver
+> [`plan-i18n-f5-guardarrail.md`](plan-i18n-f5-guardarrail.md)) o si es una
+> implementación alternativa igualmente válida.
 
 # Plan i18n F4 — Screens varios + shared/ui
 

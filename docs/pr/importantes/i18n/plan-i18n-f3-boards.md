@@ -1,10 +1,17 @@
 ---
 title: "Plan i18n F3: migrar Boards a i18n"
 audience: dev, ai-agent
-status: draft
-updated: 2026-06-01
+status: done
+updated: 2026-08-14
 owner: TBD
 ---
+
+> ✅ **Implementado — corregido de `draft` a `done` el 2026-08-14.**
+> Verificado con `grep`: 16 archivos bajo `tools/boards/` usan `t('boards.*')`
+> (`BoardEditor.tsx`, `RightRail.tsx`, `TopBar.tsx`, `LayersPanel.tsx`, etc.),
+> y `messages/es.ts`/`en.ts` tienen el namespace `boards` con las claves que
+> el plan pedía (ej. `boards.saving`). No se verificó cobertura al 100% ni
+> paridad exacta de claves — solo que la migración claramente ocurrió.
 
 # Plan i18n F3 — Boards (lienzo infinito)
 

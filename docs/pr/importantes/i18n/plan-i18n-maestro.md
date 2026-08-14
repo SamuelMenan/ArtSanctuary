@@ -6,6 +6,19 @@ updated: 2026-06-01
 owner: TBD
 ---
 
+> ⚠️ **Verificado 2026-08-14:**
+> - La "Métrica de éxito" de **0 hits** ya no se sostiene — ver la nota en
+>   [`plan-i18n-f5-guardarrail.md`](plan-i18n-f5-guardarrail.md) (hoy da 3,
+>   sin CI que lo bloquee). No corregido en esta pasada, solo documentado.
+> - **`plan-fusion-app-backend.md`** (referenciado 3 veces abajo como plan
+>   dependiente) **no existe en el repo** — no se encontró con `Glob` en
+>   ninguna carpeta, ni en `historical/`. El trabajo que le atribuye (capa
+>   `backend/services` + adelgazar `route.ts`) **sí está hecho** — ver
+>   [`../../../architecture/services.md`](../../../architecture/services.md)
+>   — pero **no vía Server Actions** como sugiere el texto: el proyecto no
+>   usa `"use server"` en ningún archivo (verificado con `grep`), usa rutas
+>   `route.ts` delgadas + servicios, patrón Controlador-Servicio normal.
+
 # Plan maestro de idioma — app 100 % bilingüe, código 100 % inglés
 
 > **Documentación Estratégica:** Para comprender cómo el diseño de i18n no destruye el bundle del cliente, revisa previamente [`../performance/03-optimizacion-diccionarios-i18n.md`](../performance/03-optimizacion-diccionarios-i18n.md).
