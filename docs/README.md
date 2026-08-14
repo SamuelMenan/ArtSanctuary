@@ -2,7 +2,7 @@
 title: ArtSanctuary — Documentación técnica
 audience: all
 status: stable
-updated: 2026-08-13
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -27,17 +27,16 @@ owner: TBD
 
 ### Arquitectura
 - [`architecture/estructura-optimizada.md`](architecture/estructura-optimizada.md) — **estructura de carpetas vigente** (`src/app`, `src/backend`, `src/frontend`, `src/shared`). Leer primero.
-- [`architecture/overview.md`](architecture/overview.md) — capas y flujo de request. ⚠️ Rutas de archivo desactualizadas (pre-refactor a `src/`) — el contenido conceptual sigue siendo válido.
-- [`architecture/data-model.md`](architecture/data-model.md) — modelos Mongoose. ⚠️ Mismo aviso de rutas.
-- [`architecture/auth.md`](architecture/auth.md) — NextAuth JWT, `tokenVersion`, logout-all. ⚠️ Mismo aviso de rutas.
-- [`architecture/routing.md`](architecture/routing.md) — mapa App Router. ⚠️ Mismo aviso de rutas.
-- [`architecture/services.md`](architecture/services.md) — inventario de `src/backend/services/` (el núcleo real de lógica de negocio, nunca documentado hasta 2026-08-14).
+- [`architecture/overview.md`](architecture/overview.md) — capas y flujo de request.
+- [`architecture/data-model.md`](architecture/data-model.md) — los 7 modelos Mongoose, verificados campo por campo.
+- [`architecture/auth.md`](architecture/auth.md) — NextAuth JWT, `tokenVersion`, logout-all.
+- [`architecture/routing.md`](architecture/routing.md) — mapa App Router.
+- [`architecture/services.md`](architecture/services.md) — inventario de `src/backend/services/`, el núcleo real de lógica de negocio.
 - [`architecture/workspaces-plugins.md`](architecture/workspaces-plugins.md) — cómo Libre/Carnaval extienden el editor de tableros. **3 registros distintos** e invariantes que rompen en silencio.
 - [`architecture/shared-lib.md`](architecture/shared-lib.md) — utilidades de `src/shared/lib/` (handoff, autocrop, floodfill, mediums, reglamento Carnaval) y su comportamiento no obvio.
-- [`architecture/auditoria-estructura.md`](architecture/auditoria-estructura.md) — auditoría de higiene del repo (2026-06-02).
 
-**Diagramas (Mermaid, `architecture/diagramas/`)** — verificados y vigentes,
-el mejor material de onboarding visual del repo:
+**Diagramas (Mermaid, `architecture/diagramas/`)** — todos contrastados contra
+el código el 2026-08-14 (3 se reconstruyeron desde cero por estar mal de raíz):
 - [`c4-contexto-sistema.md`](architecture/diagramas/c4-contexto-sistema.md) — C4 nivel 1, contexto del sistema.
 - [`c4-contenedores.md`](architecture/diagramas/c4-contenedores.md) — C4 nivel 2, contenedores.
 - [`arquitectura-macro.md`](architecture/diagramas/arquitectura-macro.md) — capas del sistema, vista de 10,000 pies.
@@ -83,7 +82,6 @@ el mejor material de onboarding visual del repo:
   - [`features/tools/crop.md`](features/tools/crop.md) — recorte **y** extracción (2 rutas independientes: `/crop`, `/cutout`).
   - [`features/tools/color-mixing.md`](features/tools/color-mixing.md) — simulador de mezcla de pigmentos.
   - [`features/tools/escala-medicion.md`](features/tools/escala-medicion.md) — escala global de medidas.
-  - ~~[`features/tools/artist-microtools.md`](features/tools/artist-microtools.md)~~ (obsoleto).
 - **Herramientas con ruta real pero sin funcionalidad** (prototipos visuales, verificado 2026-08-14 — no confundir con "no implementadas", *tienen* ruta y aparecen en el sidebar):
   - [`features/tools/gesture.md`](features/tools/gesture.md) — timer y copy son estáticos, sin lógica real.
   - [`features/tools/notan.md`](features/tools/notan.md) — el "procesamiento" es un filtro CSS sobre una imagen fija, no hay upload ni canvas.
@@ -138,15 +136,23 @@ resolución de bugs, más largas que el resto, pero ya con metadata estándar.
 - [`contributing/testing.md`](contributing/testing.md) — qué corre `npm test`, qué está cubierto y qué no.
 - [`contributing/changelog.md`](contributing/changelog.md)
 
-### Negocio
-No técnico — ignorar para tareas de código.
-- [`business/contexto.md`](business/contexto.md) — contexto y modelo de negocio.
-- [`business/ArtSanctuaryCarnavalSuite.md`](business/ArtSanctuaryCarnavalSuite.md) — visión del producto Carnaval.
-- [`business/comunicados/`](business/comunicados/) — comunicados oficiales de Corpocarnaval (movido desde `comunicado_full/` el 2026-08-13).
-
 ### Otros
-- [`glossary.md`](glossary.md)
-- [`helps/`](helps/) — prompts de generación de imagen para las láminas de Canon. No técnico — ignorar para tareas de código.
+- [`glossary.md`](glossary.md) — términos de dominio (Carnaval, Canon) que no se deducen del código.
+
+## Qué NO está aquí
+
+`docs/` contiene **solo el estado actual y verificable del código**. Todo lo
+demás vive en [`../.plans/`](../.plans/README.md), fuera de este árbol:
+
+| Dónde | Qué |
+|---|---|
+| `.plans/pr/` | Planes de implementación (intenciones, no realidad) |
+| `.plans/historical/` | Planes ya ejecutados y auditorías point-in-time |
+| `.plans/business/` | Visión de producto y comunicados de Corpocarnaval |
+| `.plans/helps/` | Prompts de generación de las láminas de Canon |
+
+Se movieron el 2026-08-14: eran el **55% del peso** de `docs/` y ninguno
+describe cómo funciona el código hoy, que es justo lo que se busca aquí.
 
 ## Onboarding rápido (5 min)
 
@@ -174,11 +180,31 @@ planes activos).
 
 | Estado | Significado |
 |---|---|
-| `stable` | Vigente y actual. |
-| `wip` | Borrador. |
-| `deprecated` | No usar. |
+| `stable` | Vigente y verificado contra el código. |
+| `wip` | Describe algo incompleto o no implementado. Lo dice en su cabecera. |
 
-Cada doc lleva frontmatter con `status`, `updated`, `owner`.
+Cada doc lleva frontmatter con `status`, `updated`, `owner` (los ADR usan
+`date` en vez de `updated`: son decisiones, no se "actualizan").
+
+**No existe `deprecated` aquí.** `npm run docs:verify` falla si encuentra un
+doc `deprecated` o `historical` bajo `docs/`: si algo queda obsoleto, o se
+arregla, o se mueve a [`../.plans/`](../.plans/README.md), o se borra. Sin esa
+regla el árbol volvía a acumular lastre.
+
+### Verificación automática
+
+```bash
+npm run docs:verify   # contratos: modelos, métodos HTTP, ficheros, 'use client', ERD
+npm run docs:check    # rutas pre-refactor y nombres de tools MCP inexistentes
+```
+
+Ambos fallan con exit 1 ante drift. Correr `docs:verify` tras tocar un modelo,
+una ruta de API o un componente.
+
+### Peso
+
+382 KB / ~97k tokens (2026-08-14). Venía de 219k: el 55% eran planes,
+histórico y material no técnico, hoy en `.plans/`.
 
 ## Histórico
 
@@ -189,5 +215,7 @@ Documentación inicial reescrita y reestructurada (2026-05-18). Archivos antiguo
 - `obsidian_gallery_design.md` → consolidado en `frontend/design-system.md`
 - `DESIGN.md` → consolidado en `frontend/design-system.md`
 - `contexto_y_negocio.md` → movido a `business/contexto.md`
-- `systems/artist-microtools.md` → movido a `features/tools/artist-microtools.md`
+- `systems/artist-microtools.md` → **borrado el 2026-08-14**: documentaba
+  ficheros `.jsx` y un router `pages/` que nunca existieron en este repo. Cada
+  herramienta tiene su doc propio arriba.
 - Scripts de ejecución, output de React Doctor y planes temporales → archivados en `historical/`

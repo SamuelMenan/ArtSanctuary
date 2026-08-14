@@ -7,18 +7,19 @@ updated: 2026-08-14
 
 # Flujo de Handoff entre Herramientas de Estudio
 
-> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
-> - **No se transporta base64.** El payload lleva `imageUrl` (URL persistente
->   vía `/api/upload`); el propio `handoff.ts` lo comenta explícitamente.
-> - No son "ancho y alto originales" en píxeles: son medidas **físicas en cm**
->   (`widthCm`/`heightCm`, más las escaladas y `squareCm`).
-> - El flujo **no es unidireccional**: soporta round-trip de vuelta a Boards
->   (`boardId`, `objectId`, `workspaceId`), y Boards puede ser **origen**
->   (`ToolSource` incluye `'boards'` y `'upload'`).
-> - `takeHandoff()` consume el payload; `peekHandoff()` no. La distinción
->   importa y no aparece.
-> - Falta un **segundo canal** independiente: `boardHandoff.ts` de Canon
->   (`takePendingFigure`), usado por `BoardEditor`.
+> **Lo que viaja es una URL, no la imagen.** El payload lleva `imageUrl`
+> (persistente, subida vía `/api/upload`) más las medidas **físicas en cm** —
+> nunca base64.
+>
+> **No es unidireccional:** `ToolSource` incluye `'boards'` y `'upload'` como
+> orígenes, y el payload lleva `boardId`/`objectId`/`workspaceId` para el
+> round-trip de vuelta al objeto exacto del tablero.
+>
+> **`takeHandoff()` consume, `peekHandoff()` no.** Elegir mal deja el payload
+> huérfano o lo borra antes de tiempo.
+>
+> Existe además un **segundo canal independiente** para enviar láminas de Canon
+> a Boards: `takePendingFigure` en `tools/canon/lib/boardHandoff.ts`.
 >
 > Contrato completo: [`../shared-lib.md`](../shared-lib.md).
 
@@ -37,21 +38,21 @@ El **Handoff** es el mecanismo que permite enviar una imagen de una herramienta 
 
 ```mermaid
 flowchart LR
-    Upload(["Upload de Imagen"]) --> Cutout["CutoutTool / CropTool"]
-    
-    subgraph S_Cutout ["CutoutTool"]
-        Extraccion["Recorte/Extracción de Fondo"]
-    end
+    Upload(["/api/upload"]) -->|"imageUrl persistente"| Crop
+    Crop["CropTool<br/><small>/dashboard/tools/crop</small>"]
+    Cutout["CutoutTool<br/><small>/dashboard/tools/cutout</small>"]
+    Grid["ReferenceGridScreen<br/><small>/dashboard/tools/grid</small>"]
+    Board["BoardEditor<br/><small>Konva</small>"]
 
-    Cutout -- "Payload: handoff.ts<br/>(width, height, base64)" --> Grid["ReferenceGridScreen"]
-    
-    subgraph S_Grid ["ReferenceGridScreen"]
-        Cuadriculado["Aplicar Cuadrícula"]
-    end
+    Crop <-->|"PhysicalImage"| Grid
+    Cutout <-->|"PhysicalImage"| Grid
+    Crop <-->|"PhysicalImage"| Board
+    Cutout <-->|"PhysicalImage"| Board
+    Grid <-->|"PhysicalImage"| Board
 
-    Grid -- "Payload: handoff.ts<br/>(Medidas físicas escaladas)" --> Board["BoardEditor"]
+    Canon["CanonScreen"] -.->|"canal aparte:<br/>setPendingFigure()"| Board
 
-    subgraph S_Board ["BoardEditor"]
-        Lienzo["Renderizado en Konva.js<br/>con proporciones exactas"]
-    end
+    P["PhysicalImage (sessionStorage)<br/>imageUrl · widthCm/heightCm<br/>widthScaledCm/heightScaledCm · squareCm<br/>source · boardId/objectId/workspaceId"]
+
+    style P fill:#fef3c7,stroke:#d97706,color:#92400e
 ```

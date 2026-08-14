@@ -7,21 +7,16 @@ updated: 2026-08-14
 
 # Modelo C4 - Nivel 2: Contenedores
 
-> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
-> - "El cliente llama a la API **para mutar** datos" — también la usa para
->   **leer** (boards, explore, notifications, search).
-> - "Servicios totalmente aislados de HTTP y de React" — el aislamiento de
->   HTTP se cumple, pero `unstable_cache` de `next/cache` en
->   `explore.service.ts` y `artworks.service.ts` los acopla al runtime de Next.
-> - Falta el contenedor real donde viven los Server Components:
->   `src/frontend/features/*/screens/`, no el router de `src/app/`.
+> Los **Server Components** viven en `src/frontend/features/*/screens/`; los
+> `page.tsx` del router solo los re-exportan. Ver
+> [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
 
 Este diagrama amplía el sistema `ArtSanctuary` para revelar los contenedores principales (aplicaciones web, APIs, capas lógicas y bases de datos) que componen la plataforma.
 
 ## Explicación del Diagrama
 1. **Single Page Application (Client Components):** Todo el código React interactivo que corre en el navegador del usuario (incluyendo Konva.js para los tableros).
 2. **Server App (Next.js App Router):** El entorno de Node.js donde viven los Server Components y los controladores de la API. Aquí ocurre el renderizado HTML inicial y la protección de rutas.
-3. **Capa de Servicios Puros:** El núcleo de Clean Architecture. Una biblioteca interna donde reside toda la lógica de negocio (TypeScript puro), totalmente aislada de HTTP y de React.
+3. **Capa de Servicios Puros:** El núcleo de Clean Architecture. Biblioteca interna con toda la lógica de negocio, **aislada de HTTP y de React**. Matiz verificado: dos servicios (`explore`, `artworks`) importan `unstable_cache` de `next/cache`, así que no son agnósticos del framework al 100%, aunque sí de HTTP.
 
 ## Diagrama (Mermaid C4)
 
@@ -40,7 +35,7 @@ C4Container
     ContainerDb(db, "MongoDB", "Mongoose", "Almacena colecciones de la plataforma de forma estructurada.")
     
     Rel(artist, spa, "Visita la web usando HTTPS", "Browser")
-    Rel(spa, rsc, "Llama a endpoints API para mutar datos", "JSON / HTTPS")
+    Rel(spa, rsc, "Llama a endpoints API para mutar Y para leer", "JSON / HTTPS")
     Rel(rsc, services, "Llama a funciones de negocio y de DB directamente en memoria", "Node.js")
     Rel(services, db, "Lee y escribe colecciones", "Mongoose Driver")
 ```

@@ -14,14 +14,14 @@ owner: TBD
 >   dependiente) **no existe en el repo** — no se encontró con `Glob` en
 >   ninguna carpeta, ni en `historical/`. El trabajo que le atribuye (capa
 >   `backend/services` + adelgazar `route.ts`) **sí está hecho** — ver
->   [`../../../architecture/services.md`](../../../architecture/services.md)
+>   [`../../../architecture/services.md`](../../../../docs/architecture/services.md)
 >   — pero **no vía Server Actions** como sugiere el texto: el proyecto no
 >   usa `"use server"` en ningún archivo (verificado con `grep`), usa rutas
 >   `route.ts` delgadas + servicios, patrón Controlador-Servicio normal.
 
 # Plan maestro de idioma — app 100 % bilingüe, código 100 % inglés
 
-> **Documentación Estratégica:** Para comprender cómo el diseño de i18n no destruye el bundle del cliente, revisa previamente [`../performance/03-optimizacion-diccionarios-i18n.md`](../performance/03-optimizacion-diccionarios-i18n.md).
+> **Documentación Estratégica:** Para comprender cómo el diseño de i18n no destruye el bundle del cliente, revisa previamente [`../performance/03-optimizacion-diccionarios-i18n.md`](../../../../docs/performance/03-optimizacion-diccionarios-i18n.md).
 
 > Fusiona `plan-i18n-migracion.md` + la parte de idioma de
 > `plan-refactor-estructura-i18n.md` en **un solo plan** que resuelve **todos** los

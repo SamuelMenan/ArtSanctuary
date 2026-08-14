@@ -7,26 +7,27 @@ updated: 2026-08-14
 
 # Arquitectura Macro (Capas del Sistema)
 
-> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14). La forma general es
-> válida; estas afirmaciones concretas no:
-> - Ubica los Server Components en `src/app/` — viven en
->   `src/frontend/features/*/screens/`. Ver
->   [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
-> - La arista `SVC --> Auth` está **invertida**: ningún servicio importa
->   `@backend/auth`; es `requireUser()` quien se llama desde los `route.ts`.
 
 Una vista a alto nivel (10,000 pies de altura) que ilustra la arquitectura de Clean Architecture (Patrón Controlador-Servicio) aplicada en ArtSanctuary.
 
 ## Explicación del Diagrama
 
-El sistema está fraccionado en 3 grandes áreas físicas y conceptuales:
+El sistema está fraccionado en 4 áreas:
 
-1. **Capa Cliente (Navegador):** Componentes marcados con `'use client'`. Estos componentes son los únicos que disparan mutaciones de datos mediante peticiones `fetch` HTTP a través de la red hacia la API.
-2. **Capa Enrutamiento (`src/app/`):** Es la frontera externa del servidor. 
-   - Los **Server Components** (`page.tsx`) generan HTML inicial. Para leer datos, invocan a los servicios puramente en memoria, siendo sumamente rápidos.
-   - Los **Controladores HTTP** (`route.ts`) interceptan tráfico del cliente, extraen credenciales, y delegan en los servicios.
-3. **Capa Lógica (`src/backend/`):** El corazón de la aplicación.
-   - Los **Servicios** se encargan de orquestar operaciones complejas, validaciones y comunicarse con los Modelos de base de datos (`Mongoose`) o servicios de Autenticación (`NextAuth`). Nunca ven nada de HTTP, asegurando un diseño puro y testeable.
+1. **Capa Cliente (Navegador):** Componentes con `'use client'`. Disparan
+   `fetch` HTTP hacia la API — para **mutar y también para leer** (boards,
+   explore, notifications y búsqueda leen así).
+2. **Capa Enrutamiento (`src/app/`):** la frontera externa del servidor.
+   - Los `page.tsx` son **re-exports de una línea**, no contienen lógica.
+   - Los **controladores** (`route.ts`) validan sesión con `requireUser()` y
+     delegan en los servicios.
+3. **Capa Presentación (`src/frontend/features/*/screens/`):** aquí viven los
+   **Server Components reales**, los que invocan servicios en memoria y evitan
+   el salto HTTP interno. Ver
+   [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
+4. **Capa Lógica (`src/backend/`):** los servicios orquestan y hablan con los
+   modelos. **No conocen HTTP ni auth**: es al revés — `requireUser()` se llama
+   desde el controlador, antes de invocar al servicio.
 
 ## Diagrama (Mermaid)
 
@@ -38,32 +39,40 @@ graph TB
     end
 
     subgraph Enrutamiento ["Capa Enrutamiento (src/app/)"]
-        RSC["Server Components<br/>page.tsx"]
+        PAGE["page.tsx<br/><i>re-export de 1 línea</i>"]
         API["Controladores HTTP<br/>route.ts"]
+    end
+
+    subgraph Presentacion ["Capa Presentación (src/frontend/)"]
+        RSC["Server Components<br/>features/*/screens/"]
     end
 
     subgraph Logica ["Capa Lógica (src/backend/)"]
         SVC["Servicios Puros<br/>services/"]
-        Auth["NextAuth / Sesión<br/>auth/"]
+        Auth["requireUser / NextAuth<br/>auth/"]
         MOD["Modelos Mongoose<br/>models/"]
     end
 
-    Browser -->|"Petición de Página"| RSC;
+    Browser -->|"Petición de Página"| PAGE;
+    PAGE -->|"re-exporta"| RSC;
     Browser -->|"Mutación (Fetch)"| API;
-    CC -->|"Mutación (Fetch)"| API;
+    CC -->|"Mutación y LECTURA (Fetch)"| API;
     
     RSC -->|"Llamada Directa en Memoria"| SVC;
-    API -->|"Validación y Llamada"| SVC;
+    API -->|"Valida sesión"| Auth;
+    API -->|"Llama"| SVC;
     
-    SVC --> Auth;
+    Auth --> MOD;
     SVC --> MOD;
     MOD --> MongoDB[("Base de Datos")];
 
     classDef client fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a;
     classDef route fill:#fef3c7,stroke:#d97706,color:#92400e;
+    classDef screen fill:#ede9fe,stroke:#8b5cf6,color:#5b21b6;
     classDef logic fill:#dcfce7,stroke:#22c55e,color:#166534;
-    
+
     class Browser,CC client;
-    class RSC,API route;
+    class PAGE,API route;
+    class RSC screen;
     class SVC,Auth,MOD logic;
 ```

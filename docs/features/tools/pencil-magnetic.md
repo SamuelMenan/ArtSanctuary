@@ -33,7 +33,8 @@ De acuerdo con el **ADR 0016 (Procesamiento Pesado de Imágenes en Cliente)**, p
 ---
 
 ## 3. Coexistencia sin Conflictos
-La lógica magnética se encapsula como un middleware en la captura de eventos del puntero en [useStagePointer.ts](file:///C:/Users/sam10/OneDrive/Documentos/ArtSanctuary/src/frontend/features/tools/boards/hooks/useStagePointer.ts):
+La lógica magnética se encapsularía como un middleware en la captura de eventos
+del puntero, en `src/frontend/features/tools/boards/hooks/useStagePointer.ts`:
 
 *   **Puntero Normal:**
     ```typescript

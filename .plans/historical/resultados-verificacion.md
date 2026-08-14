@@ -8,7 +8,7 @@ owner: TBD
 
 # Resultados de verificación — Fases 0, 1, 2, 3 y 4
 
-> Fecha: 2026-06-02 · Base: [plan-verificacion-codigo.md](../pr/completos/plan-verificacion-codigo.md)
+> Fecha: 2026-06-02 · Base: [plan-verificacion-codigo.md](./plan-verificacion-codigo.md)
 > Estado: **medido y documentado. Nada corregido aún** — esta es la cola de trabajo priorizada.
 
 ---

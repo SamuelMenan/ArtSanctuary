@@ -292,6 +292,25 @@ function checkErd() {
   }
 }
 
+/* ───────────────── check 6: nada obsoleto bajo docs/ ───────────────── */
+
+/**
+ * `docs/` describe el estado ACTUAL. Un doc marcado `deprecated`/`historical`
+ * ahí dentro es peso muerto: hay que leerlo para descubrir que no sirve.
+ *
+ * Si algo queda obsoleto: o se arregla, o se mueve a `.plans/`, o se borra.
+ * Sin esta regla, `docs/` volvía a acumular lastre — llegó a 219k tokens, de
+ * los que el 55% no describía el código.
+ */
+function checkNoObsoleteDocs() {
+  for (const file of walk('docs', (n) => n.endsWith('.md'))) {
+    const m = read(file).match(/^status:\s*(\w+)/m)
+    if (m && (m[1] === 'deprecated' || m[1] === 'historical')) {
+      record('obsoletos', norm(file), `\`status: ${m[1]}\` dentro de docs/ — arréglalo, muévelo a .plans/ o bórralo`)
+    }
+  }
+}
+
 /* ─────────────────────────── run ─────────────────────────── */
 
 checkModels()
@@ -299,6 +318,7 @@ checkRoutes()
 checkFileRefs()
 checkClientDirective()
 checkErd()
+checkNoObsoleteDocs()
 
 const LABELS = {
   modelos: 'Modelos ↔ architecture/data-model.md',
@@ -306,6 +326,7 @@ const LABELS = {
   ficheros: 'Ficheros citados en docs',
   'use-client': "'use client' ↔ frontend/components-map.md",
   erd: 'ERD ↔ modelos existentes',
+  obsoletos: 'Sin docs obsoletos bajo docs/',
 }
 
 for (const key of Object.keys(LABELS)) {

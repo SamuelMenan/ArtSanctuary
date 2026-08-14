@@ -113,9 +113,9 @@ Esta primera iteración es un prototipo funcional con las siguientes caracterís
 
 Para entender cómo estos conceptos de negocio se traducen en código:
 
-- **[Data Model](../architecture/data-model.md)** — Cómo se modelan las entidades `User`, `Artwork`, `Board` y `CarnivalProject` en MongoDB.
-- **[App Router](../architecture/routing.md)** — Cómo se estructura la navegación web y la API.
-- **[Workspace Carnaval](../features/workspaces/carnaval.md)** — Detalles técnicos del motor de validación.
+- **[Data Model](../../docs/architecture/data-model.md)** — Cómo se modelan las entidades `User`, `Artwork`, `Board` y `CarnivalProject` en MongoDB.
+- **[App Router](../../docs/architecture/routing.md)** — Cómo se estructura la navegación web y la API.
+- **[Workspace Carnaval](../../docs/features/workspaces/carnaval.md)** — Detalles técnicos del motor de validación.
 
 ---
 

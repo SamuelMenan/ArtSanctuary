@@ -22,7 +22,7 @@ owner: TBD
 
 ## 1. Contexto y Objetivos
 
-> **Lectura Obligatoria para Agentes IA:** Antes de ejecutar este plan, es crítico revisar el diagrama de componentes en [`../architecture/diagramas/c4-contenedores.md`](../architecture/diagramas/c4-contenedores.md) y las reglas de frontera en [`../architecture/diagramas/limites-dependencias-arquitectura.md`](../architecture/diagramas/limites-dependencias-arquitectura.md) para comprender el flujo permitido de datos.
+> **Lectura Obligatoria para Agentes IA:** Antes de ejecutar este plan, es crítico revisar el diagrama de componentes en [`../architecture/diagramas/c4-contenedores.md`](../../docs/architecture/diagramas/c4-contenedores.md) y las reglas de frontera en [`../architecture/diagramas/limites-dependencias-arquitectura.md`](../../docs/architecture/diagramas/limites-dependencias-arquitectura.md) para comprender el flujo permitido de datos.
 
 El repositorio requiere una separacion estricta de responsabilidades (Clean Architecture) para mitigar dos problemas criticos:
 1. **Acoplamiento HTTP-Logica:** Los archivos en `src/app/api/**/route.ts` contienen validacion HTTP, resolucion de base de datos (Mongoose) y reglas de negocio, resultando en modulos de dificil mantenimiento.

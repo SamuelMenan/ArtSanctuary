@@ -7,20 +7,18 @@ updated: 2026-08-14
 
 # Jerarquía y Estado de BoardEditor
 
-> ⚠️ **Parcialmente incorrecto e incompleto** (verificado 2026-08-14):
-> - **No existe una "Background Layer".** `BoardStage` monta `GridLayer`,
->   `BoardExtLayers`, la capa de objetos y `MeasureLayer`. El fondo lo dibuja
->   el propio `GridLayer` (`type: 'grid'|'dots'|'plain'`).
-> - `DimensionLabel` **no vive dentro de `MeasureLayer`**: está en `overlays/`
->   y se renderiza como HTML desde `BoardEditor`.
-> - **Omite el sistema de extensiones** (`extensions/`), que es un eje
->   estructural del editor — ver
->   [`../workspaces-plugins.md`](../workspaces-plugins.md).
-> - Faltan 8 de los 12 hooks y buena parte de las islas de UI (`RightRail`,
->   `ZoomIsland`, `DimensionsFooter`, `TextFormatBar`, `ShapeStyleBar`,
->   `LayersPanel`, `ContextMenu`).
+> **El anidamiento respecto al `BoardExtProvider` es load-bearing.** Lo que
+> está dentro comparte el contexto de la extensión de workspace; `ZoomIsland` y
+> el panel de capas quedan fuera. Mover un componente entre esas dos zonas
+> rompe el contexto en silencio — ver
+> [`../workspaces-plugins.md`](../workspaces-plugins.md).
 >
-> Vista actualizada: [`../../features/tools/boards.md`](../../features/tools/boards.md).
+> Ojo a la distinción Konva vs HTML: `layers/` y `nodes/` viven **dentro** del
+> `<Stage>`; `overlays/` y `toolbars/` son HTML **encima**. No son
+> intercambiables.
+>
+> Detalle por subcarpeta e invariantes:
+> [`../../features/tools/boards.md`](../../features/tools/boards.md).
 
 Este diagrama documenta la compleja estructura del Tablero Infinito interactivo, separando las responsabilidades de estado (Hooks) de la presentación visual (Konva y React).
 
@@ -42,20 +40,29 @@ El componente `BoardEditor` es un orquestador que centraliza el estado y lo dist
 
 ```mermaid
 graph TD
-    BE["BoardEditor.tsx"] --> Hooks(("Hooks de Lógica"))
-    Hooks -.-> H1("useBoardData")
-    Hooks -.-> H2("useHistory")
-    Hooks -.-> H3("usePanZoom")
-    Hooks -.-> H4("useObjectActions")
+    BE["BoardEditor.tsx<br/><i>orquestador: compone los hooks<br/>y baja props</i>"]
 
-    BE --> UI["Componentes de Interfaz"]
-    UI --> TP["TopBar"]
-    UI --> IS["ToolIsland / Inspector"]
+    BE --> Hooks(("hooks/ · 12"))
+    Hooks -.-> HD("datos: useBoardData<br/>useBoardExport")
+    Hooks -.-> HC("cámara: usePanZoom<br/>useSpacePan · useStagePointer")
+    Hooks -.-> HO("objetos: useObjectCreation<br/>useObjectActions · useClipboard<br/>useTextEditing · useTransformerSync")
+    Hooks -.-> HE("useHistory · useShortcuts")
 
-    BE --> Stage["BoardStage.tsx"]
-    Stage --> Konva(("Motor Konva.js"))
-    Konva --> BG["Background Layer"]
-    Konva --> BL["GridLayer"]
-    Konva --> Obj["Objects Layer<br/>Nodos + Transformer"]
-    Konva --> ML["MeasureLayer<br/>DimensionLabels"]
+    BE --> Prov{{"BoardExtProvider<br/><i>slot de extensión de workspace</i>"}}
+
+    Prov --> Stage["BoardStage.tsx"]
+    Prov --> Islas["toolbars/ · 10<br/>TopBar · ToolIsland · RightRail<br/>ShapeStyleBar · TextFormatBar<br/>DimensionsFooter"]
+    Prov --> Over["overlays/ · 4 (HTML)<br/>DimensionLabel · MeasureLabel<br/>SelectionRect · TextEditor"]
+    Prov --> ExtO["BoardExtOverlays<br/>BoardExtWorkspaceActions"]
+
+    BE --> Fuera["FUERA del Provider<br/>ZoomIsland · LayersPanel"]
+
+    Stage --> Konva(("Stage de Konva"))
+    Konva --> GL["GridLayer<br/><i>dibuja también el fondo:<br/>grid | dots | plain</i>"]
+    Konva --> ExtL["BoardExtLayers<br/><i>capas del workspace</i>"]
+    Konva --> Obj["Layer de objetos<br/>nodes/ · 6 + Transformer"]
+    Konva --> ML["MeasureLayer"]
+
+    style Prov fill:#ede9fe,stroke:#8b5cf6,color:#5b21b6
+    style Fuera fill:#fee2e2,stroke:#ef4444,color:#991b1b
 ```

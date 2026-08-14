@@ -14,7 +14,7 @@ owner: TBD
 > (ToolsScreen/AccountForm a server) `12cf53e`. Palanca 3 ya estaba cumplida.
 > Pendiente solo **medir** con `npm run analyze` + Lighthouse en entorno con build.
 
-> **Documentación Estratégica:** Este plan materializa las directrices teóricas definidas en [`../performance/01-optimizacion-servidor-rsc.md`](../performance/01-optimizacion-servidor-rsc.md) y [`../performance/02-estrategia-carga-cliente.md`](../performance/02-estrategia-carga-cliente.md).
+> **Documentación Estratégica:** Este plan materializa las directrices teóricas definidas en [`../performance/01-optimizacion-servidor-rsc.md`](../../docs/performance/01-optimizacion-servidor-rsc.md) y [`../performance/02-estrategia-carga-cliente.md`](../../docs/performance/02-estrategia-carga-cliente.md).
 
 > Objetivo: que la página cargue y responda lo más rápido posible **sin** cambiar
 > funcionalidad ni UX. Palanca principal = **enviar menos JavaScript al navegador**.

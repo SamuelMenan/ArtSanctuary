@@ -9,7 +9,7 @@ owner: TBD
 # Plan: Boards UI
 
 > Origen: revisión visual del editor de tableros (captura
-> `docs/Captura de pantalla 2026-06-04 142111.png`, plano Carnaval "Frontal").
+> [`captura-boards-ui-2026-06-04.png`](captura-boards-ui-2026-06-04.png), plano Carnaval "Frontal").
 > Plan **único** que fusiona los 8 hallazgos reportados por el usuario con las mejoras
 > de criterio de producto (Miro/Figma). Donde ambos enfoques chocaban se elige la
 > solución estructural (la "de criterio"), que resuelve los hallazgos de raíz.
@@ -23,7 +23,7 @@ owner: TBD
 El editor (`BoardEditor`) compone islas flotantes sobre un `Stage` de Konva. Estilos
 base en `src/frontend/features/tools/boards/toolbars/islandStyles.ts`. La estética
 "galería oscura" (tokens, radios, tipografía) está en
-[`../frontend/design-system.md`](../frontend/design-system.md).
+[`../frontend/design-system.md`](../../../docs/frontend/design-system.md).
 
 Islas actuales: `ToolIsland` (izq), `InspectorIsland` (der), `ZoomIsland` (inf-izq),
 `TopBar` (sup), `DimensionsFooter` (inf) y overlays de Carnaval (`CarnavalOverlays`).

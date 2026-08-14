@@ -17,8 +17,8 @@ owner: TBD
 > **Decisión canónica (elegida): híbrido nuevo** con tokens compartidos.
 > Cambios **solo de UI** (tamaños, colores, primitivos); sin tocar lógica de sesión,
 > navegación ni datos. Sigue la estética "galería oscura" de
-> [`../frontend/design-system.md`](../frontend/design-system.md) y la norma de
-> animación de [`../frontend/animations.md`](../frontend/animations.md).
+> [`../frontend/design-system.md`](../../docs/frontend/design-system.md) y la norma de
+> animación de [`../frontend/animations.md`](../../docs/frontend/animations.md).
 
 ## Principio de coherencia (aclaración del usuario)
 

@@ -1,73 +1,101 @@
 ---
 title: "Reglas de Importación y Fronteras Arquitectónicas"
 audience: ai-agent, dev
-status: deprecated
+status: stable
 updated: 2026-08-14
 ---
 
-# Reglas de Importación y Fronteras (Límites Arquitectónicos)
+# Reglas de Importación y Fronteras
 
-> 🛑 **La regla principal de este diagrama es falsa.** Verificado el
-> 2026-08-14. Igual que el de la máquina de estados, es peligroso porque
-> pretende dictarle restricciones a una IA.
->
-> - **Regla 1 — "`src/frontend` jamás debe importar nada de `src/backend`":
->   incorrecta.** 6 archivos de `src/frontend` importan `@backend/services` y
->   `@backend/auth` — y es **correcto que lo hagan**: son los Server
->   Components reales (`GalleryScreen`, `HomeScreen`, `ProfileScreen`,
->   `ProfileDetailScreen`, `CollectionDetailScreen`, `SettingsScreen`).
->   La restricción real y vigente es solo sobre **`@backend/models`**
->   (0 violaciones hoy).
-> - **Regla 2 — "las API routes son tontas": se cumple a medias.** Ninguna
->   importa modelos, pero varias mutan estado directamente:
->   `settings/account/{deactivate,password,email,sessions}/route.ts` tocan
->   `user.status`/`user.tokenVersion` en el controlador.
-> - **Regla 3 — "servicios = funciones puras": con matiz.** `unstable_cache`
->   de `next/cache` en `explore.service.ts` y `artworks.service.ts` los acopla
->   al runtime de Next.
-> - Falta `src/shared/` (i18n, lib) como zona neutra que importan ambos lados.
->
-> Fuente correcta: [`../estructura-optimizada.md`](../estructura-optimizada.md).
+Reconstruido desde cero el 2026-08-14. La versión anterior prohibía que
+`src/frontend` importara de `src/backend` — una regla que **6 archivos violan
+legítimamente**, porque son los Server Components de la app.
 
-Para una IA (o cualquier herramienta de linting), entender el problema a veces es menos importante que **entender lo que NO se debe hacer**. Este diagrama traza las reglas estrictas de acoplamiento de la base de código.
-
-## Restricciones Críticas para la IA
-1. **Frontend NUNCA toca el Backend directamente:** El directorio `src/frontend` jamás debe importar nada de `src/backend/models`.
-2. **API Routes son "Tontas":** Los archivos `route.ts` de `src/app/api/` tienen estrictamente prohibido importar esquemas Mongoose o interactuar con la base de datos de manera directa; deben cruzar la frontera hacia `src/backend/services`.
-3. **Servicios son Agnosticos:** Los servicios en `src/backend/services` nunca deben importar tipos u objetos como `NextRequest` o `NextResponse`. Son funciones puras que retornan objetos de JavaScript.
-
-## Diagrama (Mermaid Flowchart)
+## El mapa real
 
 ```mermaid
-flowchart TD
-    subgraph Frontend ["src/frontend/"]
-        UI["Componentes UI / Hooks"]
+flowchart TB
+    subgraph APP["src/app — enrutamiento"]
+        PAGE["page.tsx<br/><i>re-export de una línea</i>"]
+        ROUTE["api/**/route.ts<br/><i>controladores HTTP</i>"]
     end
 
-    subgraph App ["src/app/"]
-        RSC["Server Components (page.tsx)"]
-        API["API Routes (route.ts)"]
+    subgraph FRONT["src/frontend — presentación"]
+        SCREEN["features/*/screens/*.tsx<br/><b>Server Components reales</b>"]
+        CLIENT["componentes 'use client'"]
     end
 
-    subgraph Backend ["src/backend/"]
-        SVC["Services (Lógica)"]
-        MOD["Models (Mongoose)"]
-        AUTH["Auth Logic"]
+    subgraph BACK["src/backend — dominio"]
+        SVC["services/*.service.ts"]
+        AUTH["auth/requireUser.ts"]
+        MODELS["models/*.ts"]
     end
 
-    %% Enlaces permitidos (Verdes)
-    RSC -->|"1. Inyecta Props"| UI;
-    RSC -->|"2. Llama"| SVC;
-    API -->|"3. Llama"| SVC;
-    SVC -->|"4. Accede a"| MOD;
-    SVC -->|"5. Verifica"| AUTH;
+    NEUTRAL["src/shared — zona neutra<br/>i18n · lib (canon, boards, workspaces, image)"]
 
-    %% Enlaces Prohibidos (Rojos)
-    UI -.->|"PROHIBIDO (Fuga de Secretos)"| MOD;
-    API -.->|"PROHIBIDO (Lógica en Controlador)"| MOD;
-    SVC -.->|"PROHIBIDO (Ciclo Circular)"| Frontend;
-    SVC -.->|"PROHIBIDO (Acoplamiento HTTP)"| App;
+    PAGE -->|re-exporta| SCREEN
+    SCREEN -->|"✅ import directo"| SVC
+    CLIENT -->|"fetch HTTP"| ROUTE
+    ROUTE --> SVC
+    ROUTE --> AUTH
+    SVC --> MODELS
+    AUTH --> MODELS
 
-    linkStyle 0,1,2,3,4 stroke:#22c55e,stroke-width:2px;
-    linkStyle 5,6,7,8 stroke:#ef4444,stroke-width:2px,stroke-dasharray: 5 5;
+    FRONT -.->|✅| NEUTRAL
+    BACK -.->|✅| NEUTRAL
+
+    CLIENT -.->|"❌ PROHIBIDO"| MODELS
+    SCREEN -.->|"❌ PROHIBIDO"| MODELS
 ```
+
+## Las fronteras que sí existen
+
+### 1. `@backend/models` no se importa desde `src/frontend` — NUNCA
+
+Es **la** regla dura, y hoy se cumple al 100% (0 violaciones). Importar un
+modelo Mongoose en el cliente arrastra `mongoose` al bundle del navegador.
+Para tipos en el cliente existe `src/shared/lib/types.ts`, que son las formas
+**serializadas**.
+
+### 2. `src/frontend` SÍ puede importar `@backend/services` y `@backend/auth`
+
+Y debe hacerlo: los Server Components viven en
+`src/frontend/features/*/screens/`, no en `src/app/`. Los 6 que lo hacen —
+`GalleryScreen`, `HomeScreen`, `ProfileScreen`, `ProfileDetailScreen`,
+`CollectionDetailScreen`, `SettingsScreen` — llaman al servicio **en memoria**,
+evitando un salto HTTP interno.
+
+Ver [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
+
+### 3. `src/backend/services` no importa nada de `next/server`
+
+Sin `NextRequest`/`NextResponse` ni hooks de React. Se cumple.
+
+**Matiz real:** dos servicios (`explore.service.ts`, `artworks.service.ts`)
+importan `unstable_cache` de `next/cache`. No son 100% agnósticos del
+framework, aunque sí de HTTP.
+
+### 4. `src/shared` es zona neutra
+
+La importan ambos lados y no importa a ninguno. Es donde va cualquier cosa que
+necesiten cliente y servidor (i18n, tipos serializados, lógica pura de dominio).
+
+## Lo que la regla "los controladores son tontos" no cubre
+
+`src/app/api/**/route.ts` no importa modelos (se cumple), pero **sí hay lógica
+de negocio en algunos controladores**:
+
+- `settings/account/deactivate/route.ts` muta `user.status` y `user.tokenVersion`
+- `settings/account/{password,email,sessions}/route.ts` — lo mismo
+
+Es deuda conocida, no un patrón a imitar: lo correcto es que esa mutación viva
+en un servicio.
+
+## Sin lint que lo imponga
+
+Ninguna de estas fronteras está forzada por herramientas — son convención. Un
+`eslint-plugin-boundaries` las haría verificables; hoy la única red es
+`npm run docs:verify`, que comprueba la documentación, no los imports.
+
+Fuente: verificado con `grep` sobre `@backend/models`, `@backend/services`,
+`next/server` y `next/cache` en todo `src/`.

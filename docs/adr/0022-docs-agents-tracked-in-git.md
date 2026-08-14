@@ -44,8 +44,8 @@ desarrollo separada, no documentación ni reglas de comportamiento.
 - ❌ El repo crece en tamaño (~157 archivos adicionales trackeados,
   mayormente markdown — impacto de peso real bajo, no son binarios salvo
   unas pocas imágenes <200KB).
-- ❌ Contenido de negocio/anuncios (`docs/business/`, `docs/comunicado_full/`)
-  y prompts de generación de imagen (`docs/helps/`) quedan públicos si el
+- ❌ Contenido de negocio/anuncios (`.plans/business/`, `.plans/business/comunicados/`)
+  y prompts de generación de imagen (`.plans/helps/`) quedan públicos si el
   repo lo es — revisar visibilidad del repo si esto importa.
 
 ## Notas

@@ -2,7 +2,7 @@
 title: Router de documentación para agentes IA (INDEX)
 audience: ai-agent
 status: stable
-updated: 2026-08-13
+updated: 2026-08-14
 owner: TBD
 ---
 
@@ -74,6 +74,6 @@ Si la tarea implica mejorar los tiempos de carga:
 - Diccionarios i18n: `docs/performance/03-optimizacion-diccionarios-i18n.md`
 
 ## 📝 Planes de Features y PRs Activos
-- Planes en curso: `docs/pr/incompletos/` (ej. `docs/pr/incompletos/plan-rediseno-tools-imagen.md`) y `docs/pr/importantes/`.
-- Planes cerrados/ejecutados: archivados en `docs/historical/` (ya no en `docs/pr/completos/`, movido el 2026-08-13). El 2026-08-13 también se movieron 5 planes de `pr/incompletos/` cuyo trabajo ya estaba implementado en código pese a la etiqueta.
-- Herramientas visuales y canon de anatomía: `docs/pr/importantes/canon/` y `docs/helps/`.
+- Planes en curso: `.plans/pr/incompletos/` (ej. `.plans/pr/incompletos/plan-rediseno-tools-imagen.md`) y `.plans/pr/importantes/`.
+- Planes cerrados/ejecutados: archivados en `.plans/historical/` (ya no en `.plans/pr/completos/`, movido el 2026-08-13). El 2026-08-13 también se movieron 5 planes de `pr/incompletos/` cuyo trabajo ya estaba implementado en código pese a la etiqueta.
+- Herramientas visuales y canon de anatomía: `.plans/pr/importantes/canon/` y `.plans/helps/`.

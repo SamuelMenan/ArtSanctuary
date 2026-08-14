@@ -1,6 +1,6 @@
 # Plan de rendimiento con Redis (mejoras futuras #1–#3)
 
-> Fecha: 2026-06-02 · Base: [resultados-verificacion.md](./resultados-verificacion.md) Fase 3.
+> Fecha: 2026-06-02 · Base: [resultados-verificacion.md](../../historical/resultados-verificacion.md) Fase 3.
 > Estado: **pendiente, a futuro.** No es necesario ahora. El #4 (precarga del modelo IA) ya está hecho.
 > Objetivo: reducir latencia real percibida por el usuario en galería/perfiles e imágenes, con caché Redis como backend de datos cacheados.
 

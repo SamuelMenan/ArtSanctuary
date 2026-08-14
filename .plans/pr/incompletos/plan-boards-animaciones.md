@@ -16,7 +16,7 @@ owner: TBD
 > Objetivo: que el editor de tableros tenga animaciones **suaves y presentes** —ni pocas
 > ni saturadas— que aclaren cambios de estado y den sensación de calidad. **Toda**
 > animación con `motion` (`motion/react`), siguiendo la norma y los tokens de
-> [`../frontend/animations.md`](../frontend/animations.md)
+> [`../frontend/animations.md`](../../../docs/frontend/animations.md)
 > (`src/frontend/shared/motion/tokens.ts`). Prohibido `@keyframes` CSS nuevos.
 
 ## Principios para esta sección

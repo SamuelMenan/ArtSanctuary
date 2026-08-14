@@ -17,7 +17,7 @@ Atlas anatómico: dibuja una figura humana proporcional a cualquier altura y
 canon (sistema de proporción en "cabezas") y superpone referencias de
 medida, esqueleto, músculos, y landmarks. La pieza más grande y compleja del
 repo — sin este doc, la única forma de entenderla era leer los 13 planes de
-`docs/pr/importantes/canon/`.
+`.plans/pr/importantes/canon/`.
 
 ## Por qué no hay un solo doc "canónico" más detallado
 
@@ -25,7 +25,7 @@ Canon tuvo ~6 generaciones de iteración documentadas en
 `pr/importantes/canon/plan-canon-*.md` y 3 ADRs propios (0010, 0012, 0013).
 Este doc da el mapa de navegación; el detalle de *por qué* cada pieza es como
 es vive en esos planes — especialmente
-[`arquitectura.md`](../../pr/importantes/canon/arquitectura.md) (la espina)
+[`arquitectura.md`](../../../.plans/pr/importantes/canon/arquitectura.md) (la espina)
 si vas a tocar algo no trivial.
 
 ## Arquitectura (3 capas, ver ADR-0012)
@@ -109,7 +109,7 @@ componentes — ver [`../../contributing/testing.md`](../../contributing/testing
 - [ADR-0012](../../adr/0012-canon-purity-and-scaling.md) — pureza de datos y escalado relativo.
 - [ADR-0013](../../adr/0013-canon-vector-vs-raster.md) — raster para arte, vector (path) para hit-tests.
 - [`architecture/canon-muscle-mapping.md`](../../architecture/canon-muscle-mapping.md) — arquitectura final del mapeo muscular en detalle.
-- [`pr/importantes/canon/arquitectura.md`](../../pr/importantes/canon/arquitectura.md) — espina completa (capas, invariantes, puntos de extensión).
+- [`pr/importantes/canon/arquitectura.md`](../../../.plans/pr/importantes/canon/arquitectura.md) — espina completa (capas, invariantes, puntos de extensión).
 
 ## Última verificación
 

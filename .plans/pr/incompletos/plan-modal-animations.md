@@ -10,7 +10,7 @@ owner: TBD
 
 > `ImageSourceModal` (selector de imagen: subir / colecciones) se reutiliza en ~5
 > pantallas. Hoy aparece con `animate-in fade-in` (clase **prohibida** por
-> [`../frontend/animations.md`](../frontend/animations.md)) y **no anima al cerrar**.
+> [`../frontend/animations.md`](../../../docs/frontend/animations.md)) y **no anima al cerrar**.
 > Objetivo: entrada y salida suaves con `motion` y tokens, sin tocar los 5 padres.
 
 ## Diseño

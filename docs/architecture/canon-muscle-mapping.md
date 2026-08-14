@@ -14,8 +14,8 @@ owner: TBD
 Este documento describe **la solución final** al problema más grande de la herramienta Canon
 (cómo se generan las regiones clicables) y los **tres generadores** que produce hoy
 `partHits.ts`. El relato de cómo se llegó aquí (todas las propuestas que fracasaron) vive en
-`docs/historical/2026-06-18-canon-frontal-muscle-mapping.md`. La espina general de Canon está en
-`docs/pr/importantes/canon/arquitectura.md` (este doc expande su §8.1 / decisión P9).
+[ADR-0010](../adr/0010-canon-muscle-mapping-strategy.md). La espina general de Canon está en
+`.plans/pr/importantes/canon/arquitectura.md` (este doc expande su §8.1 / decisión P9).
 
 ---
 
@@ -247,10 +247,10 @@ viene sombreado (un hue en varios tonos) este enfoque fragmenta → por eso el f
 
 ---
 
-Relacionado: `docs/pr/importantes/canon/arquitectura.md` (§8.1 / P9), planes
+Relacionado: `.plans/pr/importantes/canon/arquitectura.md` (§8.1 / P9), planes
 `plan-canon-musculos-frontal-atlas.md` · `plan-canon-afinar-bordes-frontal.md` ·
 `plan-canon-anatomy-deep.md`, histórico
-`docs/historical/2026-06-18-canon-frontal-muscle-mapping.md`,
+[ADR-0010](../adr/0010-canon-muscle-mapping-strategy.md),
 `scripts/canon-parthits/{paint,knee-shape,head-shape,apply}-frontal.js · build-polys.js · extract-colors.js`,
 `src/shared/lib/canon/{partHits,muscleColors,regions}.ts`,
 `src/frontend/features/tools/canon/components/{PartHitLayer,MuscleMapLayer}.tsx`.

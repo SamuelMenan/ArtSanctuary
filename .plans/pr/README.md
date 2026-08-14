@@ -9,7 +9,7 @@ Los planes se clasifican por estado/alcance:
 
 > Nota: `docs/` **sí se trackea en git desde 2026-08-13** (decisión revertida
 > respecto a lo que proponía `historical/plan-limpieza-git.md` — ver
-> [ADR-0022](../adr/0022-docs-agents-tracked-in-git.md)). `mcp/` sigue fuera
+> [ADR-0022](../../docs/adr/0022-docs-agents-tracked-in-git.md)). `mcp/` sigue fuera
 > del repo.
 
 ---

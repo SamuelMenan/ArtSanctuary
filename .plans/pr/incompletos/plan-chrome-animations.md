@@ -16,7 +16,7 @@ owner: TBD
 > acerca a los bordes.
 >
 > **Toda** animación con `motion` (`motion/react`) y los tokens de
-> [`../frontend/animations.md`](../frontend/animations.md)
+> [`../frontend/animations.md`](../../../docs/frontend/animations.md)
 > (`src/frontend/shared/motion/tokens.ts`). **Prohibido** `@keyframes` y clases
 > `animate-[...]`/`animate-in`. Continúa la línea de
 > [`plan-boards-animaciones.md`](plan-boards-animaciones.md) pero a nivel de chrome.

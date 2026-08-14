@@ -7,17 +7,13 @@ updated: 2026-08-14
 
 # Flujo de Datos: RSC vs. Mutaciones del Cliente
 
-> ⚠️ **Parcialmente incorrecto** (verificado 2026-08-14):
-> - El participante `Server Component (app/page.tsx)` está mal ubicado: vive
->   en `src/frontend/features/*/screens/`. Ver
->   [`../estructura-optimizada.md`](../estructura-optimizada.md#️-el-malentendido-más-caro-dónde-vive-el-server-component).
-> - **El ejemplo concreto es falso**: `GET /dashboard` → `getUserBoards()` no
->   ocurre. `dashboard/tools/boards/page.tsx` es `'use client'` y los boards se
->   cargan con `fetch('/api/boards/:id')` desde el cliente. `getUserBoards`
->   solo se invoca desde `src/app/api/boards/route.ts`.
-> - Falta el flujo de **lectura vía cliente**, que es el que usan boards,
->   notifications, explore y search.
-> - No aparece el caché (`unstable_cache` + tag `artworks`).
+> **Hay dos caminos de lectura, no uno.** El RSC (A) evita el salto HTTP y es
+> el preferido; el cliente (B) se usa cuando la lectura depende de estado de UI
+> (búsqueda, filtros, polling). Confundirlos es el error más común aquí.
+>
+> `getPublicGallery` y `getExploreTrending` van además envueltos en
+> `unstable_cache` (`revalidate: 60`, tag `artworks`), no mostrado abajo para
+> no cargar el diagrama.
 
 Este diagrama ilustra la diferencia fundamental en cómo se obtienen y envían los datos en la arquitectura actual. Está diseñado para aprovechar los React Server Components (RSC) y reducir la carga sobre el cliente.
 
@@ -34,24 +30,34 @@ Este diagrama ilustra la diferencia fundamental en cómo se obtienen y envían l
 ```mermaid
 sequenceDiagram
     participant B as Browser (Cliente)
-    participant RSC as Server Component (app/page.tsx)
-    participant API as API Route (app/api/route.ts)
+    participant RSC as Screen (frontend/features/*/screens)
+    participant API as API Route (app/api/**/route.ts)
     participant SVC as Backend Service (src/backend/services)
     participant DB as MongoDB
 
-    Note over B, DB: FLUJO DE LECTURA (Carga Inicial)
-    B->>RSC: GET /dashboard
-    RSC->>SVC: await getUserBoards(id)
-    SVC->>DB: Board.find().lean()
-    DB-->>SVC: POJO (Datos)
-    SVC-->>RSC: POJO (Datos)
-    RSC-->>B: HTML Pre-renderizado con Datos
+    Note over B, DB: LECTURA A — vía RSC (sin salto HTTP interno)
+    B->>RSC: GET /gallery
+    Note right of RSC: app/gallery/page.tsx solo re-exporta GalleryScreen
+    RSC->>SVC: await getGalleryArtworks(category)
+    SVC->>DB: Artwork.find().lean()
+    DB-->>SVC: POJO
+    SVC-->>RSC: POJO
+    RSC-->>B: HTML pre-renderizado con datos
 
-    Note over B, DB: FLUJO DE ESCRITURA (Interactividad)
+    Note over B, DB: LECTURA B — vía cliente (cuando depende de estado de UI)
+    B->>API: GET /api/boards
+    Note right of API: usado por BoardsListScreen, ExploreScreen,<br/>notifications y búsqueda ('use client')
+    API->>SVC: await getUserBoards(userId)
+    SVC->>DB: Board.find().lean()
+    DB-->>SVC: POJO
+    SVC-->>API: POJO
+    API-->>B: HTTP 200 (JSON)
+
+    Note over B, DB: ESCRITURA — siempre vía API
     B->>API: POST /api/boards (JSON)
     API->>SVC: await createBoard(data)
     SVC->>DB: Board.create()
     DB-->>SVC: Documento
-    SVC-->>API: POJO (Datos)
-    API-->>B: HTTP 200 OK (JSON)
+    SVC-->>API: POJO
+    API-->>B: HTTP 201 (JSON)
 ```
