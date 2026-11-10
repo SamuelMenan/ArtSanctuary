@@ -23,6 +23,13 @@ interface CarnavalBoardCtx {
   setInspectorOpen: (open: boolean) => void
   /** La vista viene fijada por el plano del proyecto (no se muestra el selector). */
   planoFixed: boolean
+  /**
+   * Desplazamiento (cm) que alinea la guía reglamentaria a la esquina de un
+   * cuadro de la cuadrícula. TODO lo que deba quedar centrado en la guía (la
+   * capa de guía, la figura humana) tiene que aplicarlo: los objetos del board
+   * viven en coordenadas de mundo sin desplazar.
+   */
+  baseOffset: GuideOffset
   /** Desplazamientos (cm) de las guías reglamentarias extra colocadas. */
   guideOffsets: GuideOffset[]
   /** Coloca otra copia de la guía reglamentaria de la vista actual, a la derecha. */
@@ -61,6 +68,10 @@ export function CarnavalBoardProvider({
   const planoFixed = !!workspace.view
   const rule = workspace.modality ? getCarnavalRule(workspace.modality) : null
 
+  const baseOffset = rule
+    ? gridAlignedOffsetCm(carnavalGuideRef(rule, view), squareCm)
+    : { x: 0, y: 0 }
+
   const addGuide = () => {
     if (!rule) return
     const r = carnavalGuideRef(rule, view)
@@ -75,7 +86,7 @@ export function CarnavalBoardProvider({
 
   return (
     <Ctx.Provider
-      value={{ view, setView, inspectorOpen, setInspectorOpen, planoFixed, guideOffsets, addGuide, clearGuides }}
+      value={{ view, setView, inspectorOpen, setInspectorOpen, planoFixed, baseOffset, guideOffsets, addGuide, clearGuides }}
     >
       {children}
     </Ctx.Provider>

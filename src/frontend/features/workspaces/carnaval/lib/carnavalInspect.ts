@@ -4,6 +4,7 @@
 
 import { cmOf } from '@shared/lib/measure'
 import type { BoardObject } from '@shared/lib/boards/types'
+import { HUMAN_FIGURE_NAME } from './carnavalHumanPlate'
 import {
   type AxisResult,
   type BocetoMeasures,
@@ -13,14 +14,20 @@ import {
 
 /** Envolvente (px de mundo) de los objetos que cuentan como obra. Excluye
  *  anotaciones (texto/stickies) y la figura humana de referencia, que no son
- *  parte de la obra a medir. `null` si no hay objetos que medir. */
+ *  parte de la obra a medir. `null` si no hay objetos que medir.
+ *
+ *  PENDIENTE: en Disfraz Individual el alto reglamentario (30–35 cm) es TOTAL
+ *  desde la base e incluye los 15 cm de figura humana, así que esta envolvente
+ *  se queda corta y el Inspector reporta "bajo mínimo" en bocetos correctos.
+ *  En Comparsa, en cambio, el alto (20–25) sí se mide de los hombros hacia
+ *  arriba, por lo que la corrección debe ser por modalidad, no global. */
 export function objectsBBoxPx(objects: BoardObject[]): { x: number; y: number; w: number; h: number } | null {
   const visible = objects.filter(
     (o) =>
       o.visible !== false &&
       o.type !== 'text' &&
       o.type !== 'sticky' &&
-      o.name !== 'Figura humana',
+      o.name !== HUMAN_FIGURE_NAME,
   )
   if (visible.length === 0) return null
   let minX = Infinity

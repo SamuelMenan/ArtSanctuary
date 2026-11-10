@@ -18,13 +18,13 @@ import {
 import { pxOf } from '@shared/lib/measure'
 import type { BoardExtSlotProps } from '@frontend/features/tools/boards/extensions/boardExtension'
 import { useCarnavalBoard } from './context'
-import { humanFigureSizeCm, humanFigureSvgDataUrl } from '../lib/humanFigure'
+import { humanPlateFor, HUMAN_FIGURE_NAME } from '../lib/carnavalHumanPlate'
 import CarnavalAlerts from './CarnavalAlerts'
 import CarnavalInspector from './CarnavalInspector'
 
 export default function CarnavalOverlays({ workspace, objects, readOnly, addObject }: BoardExtSlotProps) {
   const { t } = usePreferences()
-  const { view, setView, inspectorOpen, setInspectorOpen, planoFixed } = useCarnavalBoard()
+  const { view, setView, inspectorOpen, setInspectorOpen, planoFixed, baseOffset } = useCarnavalBoard()
   const rule = workspace.modality ? getCarnavalRule(workspace.modality) : null
   if (!rule) return null
 
@@ -38,20 +38,29 @@ export default function CarnavalOverlays({ workspace, objects, readOnly, addObje
     VIEW_AXES[view].height === 'alto'
 
   // Inyecta la figura humana reglamentaria anclada a la base (pies en y=0,
-  // silueta creciendo hacia arriba), escalada a la referencia de hombros.
+  // lámina creciendo hacia arriba), escalada a la referencia de hombros: la
+  // línea de hombros del dibujo cae sobre la que pinta la guía a esa cota.
+  // La lámina es la de Canon en la perspectiva del plano activo.
+  //
+  // `baseOffset` es obligatorio: la guía se dibuja dentro de un Group desplazado
+  // para alinearla a la cuadrícula, mientras que los objetos del board viven en
+  // coordenadas de mundo sin desplazar. Sin sumarlo, la figura queda descentrada
+  // respecto a la caja justo por ese desplazamiento.
   const addHuman = (shouldersCm: number) => {
-    const { wCm, hCm } = humanFigureSizeCm(shouldersCm)
-    const w = pxOf(wCm)
-    const h = pxOf(hCm)
+    const plate = humanPlateFor(view, shouldersCm)
+    if (!plate) return
+    const w = pxOf(plate.wCm)
+    const h = pxOf(plate.hCm)
     addObject({
       type: 'image',
-      src: humanFigureSvgDataUrl(shouldersCm),
-      x: -w / 2,
-      y: -h,
+      src: plate.src,
+      flipX: plate.flipX,
+      x: pxOf(baseOffset.x) - w / 2,
+      y: pxOf(baseOffset.y) - h,
       w,
       h,
       rotation: 0,
-      name: 'Figura humana',
+      name: HUMAN_FIGURE_NAME,
     })
   }
 

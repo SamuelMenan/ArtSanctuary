@@ -21,6 +21,8 @@ features/tools/boards/extensions/   ← el motor define el punto de extensión
 
 shared/lib/workspaces/              ← dominio puro (sin React)
   types.ts  registry.ts (workspaceScaler)  carnaval/ (rules, validate, views, planos, domain)
+shared/lib/canon/plates.ts          ← metadatos de las láminas de Canon; Carnaval las
+                                      usa como figura humana (ver dirección de deps)
 
 features/workspaces/                ← UI + plugins por tipo
   index.ts            importa cada plugin (side-effect = registro). Único sitio que lista tipos.
@@ -32,14 +34,22 @@ features/workspaces/                ← UI + plugins por tipo
     index.ts          registra extensión de lienzo + plugin de UI
     ui.ts             WorkspaceUiPlugin (card, variants=modalidades, createProject)
     board/            extension.ts + context + CarnavalLayers/Overlays + Guide/Base/Alerts/Inspector
-    lib/              carnavalGuide, carnavalInspect, humanFigure (+tests)
+    lib/              carnavalGuide, carnavalInspect, carnavalHumanPlate (+tests)
     screens/          WorkspaceProjectScreen, ExpedienteScreen
   libre/              stub (ui.ts enabled:false, sin extensión de lienzo)
 ```
 
 **Dirección de dependencias:** `boards → (su propia interfaz)`. `workspaces/<tipo> →
 boards + shared`. La capa app (rutas) hace el `import '@frontend/features/workspaces'`
-(composition root). NUNCA `boards → workspaces`, NUNCA `workspaces/A → workspaces/B`.
+(composition root). NUNCA `boards → workspaces`, NUNCA `workspaces/A → workspaces/B`,
+NUNCA `workspaces/<tipo> → tools/<herramienta>`.
+
+> **Si un workspace necesita algo que vive en una herramienta, baja el dato a
+> `shared/`; no subas el import.** Precedente (2026-08-15): la figura humana de
+> Carnaval es una lámina de Canon, así que los metadatos de lámina pasaron de
+> `tools/canon/lib/figureMeta.ts` a `shared/lib/canon/plates.ts` y la herramienta
+> se quedó con un re-export. Importar de `tools/canon` **habría compilado igual**
+> — nada automatiza esta regla.
 
 ## Cómo agregar un tipo nuevo (p. ej. Escultura)
 

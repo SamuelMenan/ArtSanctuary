@@ -118,7 +118,10 @@ muta** a "más assets PNG" u "overlay por `frac`". Lo que dependía de **datos +
 - Slider de estilización interpolado (#6) → discreto.
 - Export SVG **de la figura** (#4) → raster.
 - Canon personalizado generado (#2) y tipos corporales paramétricos (#5) → solo como assets.
-- Unificar la figura del Canon con la silueta `humanFigure` de Carnaval → ya no hay vector que unificar.
+- ~~Unificar la figura del Canon con la silueta `humanFigure` de Carnaval → ya no hay vector que unificar.~~
+  **REVIVE (2026-08-14).** La unificación no era de vectores sino de **láminas**: el
+  board de Carnaval ahora inserta el PNG de heroico en la perspectiva del plano activo
+  y `humanFigure` está borrado. Ver `plan-canon-figura-humana-carnaval.md`.
 
 ## Lo que ya está hecho
 - Medidas sobre la figura (#7), vistas múltiples (#10, incluso 3), base multi-canon de datos (#2).

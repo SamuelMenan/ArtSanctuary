@@ -7,19 +7,18 @@
 import { getCarnavalRule, isGeometricView, carnavalUsesHybridGrid } from '@shared/lib/workspaces/carnaval'
 import type { BoardExtSlotProps } from '@frontend/features/tools/boards/extensions/boardExtension'
 import { useCarnavalBoard } from './context'
-import { carnavalGuideRef, gridAlignedOffsetCm } from '../lib/carnavalGuide'
 import CarnavalGuideLayer from './CarnavalGuideLayer'
 import CarnavalBaseLayer from './CarnavalBaseLayer'
 import CarnavalHybridGrid from './CarnavalHybridGrid'
 import CarnavalMeasuredBBox from './CarnavalMeasuredBBox'
 
-export default function CarnavalLayers({ workspace, objects, scale, squareCm }: BoardExtSlotProps) {
-  const { view, guideOffsets, inspectorOpen } = useCarnavalBoard()
+export default function CarnavalLayers({ workspace, objects, scale }: BoardExtSlotProps) {
+  const { view, guideOffsets, inspectorOpen, baseOffset } = useCarnavalBoard()
   const rule = workspace.modality ? getCarnavalRule(workspace.modality) : null
   if (!rule) return null
 
-  // La guía base también se alinea a la esquina de un cuadro (igual que las copias).
-  const baseOffset = gridAlignedOffsetCm(carnavalGuideRef(rule, view), squareCm)
+  // `baseOffset` (la alineación de la guía a la esquina de un cuadro, igual que
+  // las copias) viene del contexto: la figura humana debe aplicar el MISMO.
   const hybrid = carnavalUsesHybridGrid(rule)
 
   return (
