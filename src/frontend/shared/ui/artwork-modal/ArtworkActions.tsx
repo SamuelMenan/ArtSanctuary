@@ -12,6 +12,11 @@ interface ArtworkActionsProps {
   handleShare: () => void;
   copyFeedback: boolean;
   isOwner: any;
+  isAdmin: boolean;
+  showDeleteConfirm: boolean;
+  setShowDeleteConfirm: (v: boolean) => void;
+  handleDelete: () => void;
+  isDeleting: boolean;
   isEditing: boolean;
   setIsEditing: (v: boolean) => void;
   t: (key: string) => string;
@@ -28,6 +33,11 @@ export default function ArtworkActions({
   handleShare,
   copyFeedback,
   isOwner,
+  isAdmin,
+  showDeleteConfirm,
+  setShowDeleteConfirm,
+  handleDelete,
+  isDeleting,
   isEditing,
   setIsEditing,
   t,
@@ -60,7 +70,25 @@ export default function ArtworkActions({
             <span className="material-symbols-outlined text-[14px]">edit</span> Editar
           </button>
         )}
+        {isAdmin && !isOwner && !isEditing && (
+          <button type="button" onClick={() => setShowDeleteConfirm(true)} className="font-mono text-[10px] uppercase tracking-widest border border-red-500/50 text-red-500 px-4 py-1.5 rounded-sm hover:bg-red-500 hover:text-white transition-colors flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">delete</span> Eliminar
+          </button>
+        )}
       </div>
+      {isAdmin && !isOwner && !isEditing && showDeleteConfirm && (
+        <div className="absolute bottom-full right-4 mb-2 w-64 p-3 border border-red-500/30 bg-[var(--color-surface-container-lowest)] rounded-sm shadow-lg">
+          <p className="text-red-500 font-sans text-xs mb-3">¿Eliminar esta publicación como administrador?</p>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleDelete} disabled={isDeleting} className="flex-1 bg-red-500 text-white font-mono text-[10px] uppercase tracking-widest py-2 rounded-sm hover:bg-red-600 transition-colors">
+              {isDeleting ? 'Eliminando...' : 'Confirmar'}
+            </button>
+            <button type="button" onClick={() => setShowDeleteConfirm(false)} disabled={isDeleting} className="flex-1 border border-red-500/30 text-red-500 font-mono text-[10px] uppercase tracking-widest py-2 rounded-sm hover:bg-red-500/10 transition-colors">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

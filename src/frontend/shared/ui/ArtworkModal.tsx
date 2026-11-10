@@ -139,6 +139,11 @@ export default function ArtworkModal({ artworkId, isOpen, onClose, onPrev, onNex
                 handleShare={handleShare}
                 copyFeedback={copyFeedback}
                 isOwner={isOwner}
+                isAdmin={session?.user?.role === 'admin'}
+                showDeleteConfirm={showDeleteConfirm}
+                setShowDeleteConfirm={setShowDeleteConfirm}
+                handleDelete={handleDelete}
+                isDeleting={isDeleting}
                 isEditing={isEditing}
                 setIsEditing={setIsEditing}
                 t={t}

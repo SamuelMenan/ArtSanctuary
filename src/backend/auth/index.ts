@@ -57,6 +57,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.displayName || user.username,
           email: user.email,
           image: user.avatarUrl || null,
+          role: user.role,
         };
       },
     }),
@@ -70,6 +71,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
         await connectDB();
         const u = await User.findById(user.id).select("tokenVersion");
         token.tv = u?.tokenVersion ?? 0;
@@ -95,6 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user && token?.id) {
         session.user.id = token.id as string;
+        session.user.role = (token.role as "user" | "admin") ?? "user";
       }
       return session;
     },

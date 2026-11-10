@@ -145,10 +145,10 @@ async function PublicHome() {
   const t = createTranslator(getDictionary(locale));
 
   const demoWorks = [
-    { title: t('nav.demoArt1Title'), medium: t('nav.demoArt1Medium'), src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCjH7oqtNvBpYq3AKfusyu6Jnp8Xschezn3BntNlesShwKiqL8q0wJIRf3tB8q17-dKvDs1ebrcTFpGqOoyXGwkPHXIVSVdVwHTf8xMVUV-NhN-s8Fz9CKzvBBym_WBKXi0SjXfQ4jWu_ozl2eURef3Xl13GrfNe81dowpll6C0ku9UOzP0V_pwA1IQVuxd6tYWlrz32NutckpNFM4ZN7KWV4KT4aSBbvy0FiB31pN8e72IjBobjDuqRu6dZE_DNhfp5Ve_3HTFw7nK" },
-    { title: t('nav.demoArt2Title'), medium: t('nav.demoArt2Medium'), src: "https://lh3.googleusercontent.com/aida-public/AB6AXuAvvTlQugH5vrVXcIx96Kkig2QXvQL4LbwFY3Aoef4yB90iS7RUeyDJch4o9Xf7OaLRmvcMrHcdlpBhdjccGfF3Xop2CDbG7e7pTsK4vKGqccnEnAJo-eC60XGVYG1V3IXimj5ZAScxPM3lj-YJx_xrIw73g-op1tBr2GZRhm56KidvtDZKQoKw2lH3R8K4UdRsnsrb2C907HNjN1aWDQVyXQi9pG8GWdrHQSg02VzoQ6aeG4p5A5YLP2XUPRUVWAMl8FDlDOc0nY0h" },
-    { title: t('nav.demoArt3Title'), medium: t('nav.demoArt3Medium'), src: "https://lh3.googleusercontent.com/aida-public/AB6AXuA-tY5jYNXwqEI2nyQxgsS4meWgaRHgMhW5Cbh81ziZrY1g5gO-HbnnlD5PTFQ1Dn8Ge_qThF7V4PVs-qOOZctIG9EYC7qgbe5h6XExUapjFWAgaV5sjCq06YZhH9AweweujZjctDLZK4fviSZEQWXzWt90NBrbsg20G_SzKwxXMPrQO-hLal3Pwz4Mv5QJLLO2bvrRF54Bfg5KNJkWou5pRJy2ZRZYOrS3XvRInc6Y4aM3YdOVBHRBCqqDdMKeObQ2onTb97pCWRHR" },
-    { title: t('nav.demoArt4Title'), medium: t('nav.demoArt4Medium'), src: "https://lh3.googleusercontent.com/aida-public/AB6AXuDMu2XU_3kW7bVdPEYyUe-S9HUSY8FrCAOiTyE7R-99x91n029hw0sJKhtkyZtFgdGvOUiehBBcecFdvneb2k_pklbe3o8QFSyG_MxC21Wmfw0L5plual5wr2GAQaeoi4iNYH2gLtc2zyOFTtpGvSHsjr09zl_6-4Rt93ffkCi09-Nqb21bQIbRMSvlXwbzCviQLs0YxiesmDrtJP41Ex6KITluoX078i8mkcEiFfpomMl9xmCPs8wRuc-xTBsSMXVcLA_eXQEIfuEU" },
+    { title: "Inmortal", medium: "José Vicente Revelo", src: "/home/recent-works/inmortal.webp" },
+    { title: "De vuelta al Carnaval", medium: "José Alirio Obando", src: "/home/recent-works/de-vuelta-al-carnaval.webp" },
+    { title: "Vendedor de ilusiones", medium: "Carlos Alberto Mena", src: "/home/recent-works/vendedor-de-ilusiones.webp" },
+    { title: "El circo de la vida", medium: "Miachel Sthephan Delgado", src: "/home/recent-works/el-circo-de-la-vida.webp" },
   ];
 
   return (

@@ -8,6 +8,7 @@ import { Types } from "mongoose";
 import { unstable_cache } from "next/cache";
 import { connectDB } from "@backend/db/mongoose";
 import Artwork from "@backend/models/Artwork";
+import User from "@backend/models/User";
 import Notification from "@backend/models/Notification";
 import Collection from "@backend/models/Collection";
 
@@ -204,9 +205,14 @@ export async function updateArtwork(id: string, userId: string, body: Record<str
 /** Borra la obra si el usuario es el autor. */
 export async function deleteArtwork(id: string, userId: string): Promise<OwnedResult<null>> {
   await connectDB();
-  const artwork = await Artwork.findById(id);
+  const [artwork, user] = await Promise.all([
+    Artwork.findById(id),
+    User.findById(userId).select("role").lean(),
+  ]);
   if (!artwork) return { status: "notfound" };
-  if (artwork.artistId.toString() !== userId) return { status: "forbidden" };
+  const isOwner = artwork.artistId.toString() === userId;
+  const isAdmin = user?.role === "admin";
+  if (!isOwner && !isAdmin) return { status: "forbidden" };
   await Artwork.findByIdAndDelete(id);
   return { status: "ok", data: null };
 }

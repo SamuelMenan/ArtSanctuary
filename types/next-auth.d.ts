@@ -5,9 +5,21 @@ import { DefaultSession } from "next-auth";
  * en la session y en el JWT token.
  */
 declare module "next-auth" {
+  interface User {
+    role: "user" | "admin";
+  }
+
   interface Session {
     user: {
       id: string;
+      role: "user" | "admin";
     } & DefaultSession["user"];
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    role?: "user" | "admin";
   }
 }

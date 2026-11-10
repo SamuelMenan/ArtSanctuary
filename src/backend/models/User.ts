@@ -36,6 +36,7 @@ export interface IUser extends Document {
   website: string;
   socials: ISocialLinks;
   plan: "free" | "pro";
+  role: "user" | "admin";
   theme: "dark" | "light" | "system";
   locale: "es" | "en";
   notificationSettings: INotificationSettings;
@@ -115,6 +116,7 @@ const UserSchema = new Schema<IUser>(
     privacySettings: { type: PrivacySettingsSchema, default: () => ({}) },
 
     plan: { type: String, enum: ["free", "pro"], default: "free" },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
 
     following: [{ type: Schema.Types.ObjectId, ref: "User" }],
     followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
