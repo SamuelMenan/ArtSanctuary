@@ -5,7 +5,7 @@
 
 import { cmOf, type Scaler } from '@shared/lib/measure'
 import type { BoardObject } from '@shared/lib/boards/types'
-import { colLabel } from '@frontend/features/tools/grid/lib/colLabel'
+import { loadImage, renderImageGridCanvas } from './imageGridCanvas'
 import { DEFAULT_SHEET, type SheetSize } from './sheetSizes'
 
 const MARGIN_CM = 1
@@ -16,89 +16,6 @@ const DPI = 254
 const PXCM = 100 // px por cm
 
 const r1 = (n: number) => Math.round(n * 10) / 10
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    img.crossOrigin = 'anonymous'
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = src
-  })
-}
-
-/** Lienzo maestro: la imagen + su cuadrícula EXACTA + números, a DPI alto. */
-function renderMaster(img: HTMLImageElement, wCm: number, hCm: number, gridCm: number, color: string, opacity: number, showNumbers: boolean) {
-  const cols = Math.ceil(wCm / gridCm)
-  const rows = Math.ceil(hCm / gridCm)
-
-  const cwPx = Math.round(gridCm * PXCM)
-  const chPx = Math.round(gridCm * PXCM)
-
-  const W = cols * cwPx
-  const H = rows * chPx
-
-  const cv = document.createElement('canvas')
-  cv.width = W
-  cv.height = H
-  const ctx = cv.getContext('2d')
-  if (!ctx) throw new Error('No 2d context')
-
-  // Fondo blanco para el sobrante de los cuadros incompletos
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, W, H)
-
-  // Dibujar la imagen en su tamaño real (puede dejar franjas blancas a la derecha/abajo)
-  ctx.drawImage(img, 0, 0, wCm * PXCM, hCm * PXCM)
-
-  // Borde/margen suave alrededor de la imagen para evitar que se confunda con el fondo si es blanca
-  ctx.strokeStyle = '#bbbbbb'
-  ctx.lineWidth = Math.max(1, PXCM * 0.02) // trazo fino (~2px a 254 DPI)
-  ctx.strokeRect(0, 0, wCm * PXCM, hCm * PXCM)
-
-  // Cuadrícula interior
-  ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(1, PXCM * 0.05)
-  ctx.globalAlpha = opacity / 100
-  for (let i = 1; i < cols; i++) {
-    ctx.beginPath()
-    ctx.moveTo(i * cwPx, 0)
-    ctx.lineTo(i * cwPx, H)
-    ctx.stroke()
-  }
-  for (let j = 1; j < rows; j++) {
-    ctx.beginPath()
-    ctx.moveTo(0, j * chPx)
-    ctx.lineTo(W, j * chPx)
-    ctx.stroke()
-  }
-  ctx.strokeRect(0, 0, W, H)
-
-  // Etiquetas dentro de cada celda (A1, B1, etc.)
-  if (showNumbers) {
-    const fs = Math.max(12, Math.round(cwPx / 5))
-    ctx.fillStyle = color
-    ctx.globalAlpha = Math.min(1, opacity / 100 + 0.3)
-    ctx.font = `${fs}px monospace`
-    ctx.textAlign = 'left'
-    ctx.textBaseline = 'top'
-
-    for (let j = 0; j < rows; j++) {
-      for (let i = 0; i < cols; i++) {
-        const cellW = i === cols - 1 ? W - i * cwPx : cwPx
-        const cellH = j === rows - 1 ? H - j * chPx : chPx
-        if (cellW < 25 || cellH < 14) continue
-        
-        const cx = i * cwPx + 6
-        const cy = j * chPx + 6
-        ctx.fillText(`${colLabel(i)}${j + 1}`, cx, cy)
-      }
-    }
-  }
-  ctx.globalAlpha = 1
-
-  return cv
-}
 
 export interface PdfOpts {
   /** Tamaño de hoja físico (default: carta). */
@@ -115,6 +32,9 @@ export interface PdfOpts {
   opacity?: number
   /** Si se muestran los números de columna y fila. Default: true */
   showNumbers?: boolean
+  /** Si se quema la cuadrícula en las hojas. Con `false` el PDF sale a escala
+   *  pero sin líneas ni números (el troceado por celdas no cambia). Default: true */
+  showGrid?: boolean
 }
 
 /**
@@ -143,10 +63,15 @@ export async function exportImageGridPdf(
   const color = opts.color ?? '#ef4444'
   const opacity = opts.opacity ?? 80
   const showNumbers = opts.showNumbers ?? true
+  const showGrid = opts.showGrid ?? true
   const cols = Math.ceil(wCm / gridCm)
   const rows = Math.ceil(hCm / gridCm)
 
-  const master = renderMaster(img, wCm, hCm, gridCm, color, opacity, showNumbers)
+  // El maestro manda: la imagen a su medida física exacta, con el lienzo
+  // extendido hasta el cuadro entero para poder cortar las hojas por los cuadros.
+  const { canvas: master, cellPx, lineWidth } = renderImageGridCanvas({
+    img, wCm, hCm, gridCm, color, opacity, showNumbers, showGrid, pxPerCm: PXCM, padToCell: true,
+  })
 
   // Calcular cuántos cuadros enteros caben por página
   const printW = pageW - 2 * margin
@@ -166,13 +91,11 @@ export async function exportImageGridPdf(
   })
   let first = true
 
-  const cwPx = Math.round(gridCm * PXCM)
-  const chPx = Math.round(gridCm * PXCM)
-  const lw = Math.max(1, PXCM * 0.05)
-  const halfLw = Math.ceil(lw / 2)
+  // Sin cuadrícula no hay línea que salvar: el corte cae justo en el cuadro.
+  const halfLw = showGrid ? Math.ceil(lineWidth / 2) : 0
 
-  const W_PX = cols * cwPx
-  const H_PX = rows * chPx
+  const W_PX = master.width
+  const H_PX = master.height
 
   for (let py = 0; py < pagesY; py++) {
     for (let px = 0; px < pagesX; px++) {
@@ -185,10 +108,10 @@ export async function exportImageGridPdf(
 
       // Para no cortar la línea roja por el medio, la asignamos completamente
       // a la página anterior (derecha/abajo).
-      const sx = startCol === 0 ? 0 : startCol * cwPx + halfLw
-      const sy = startRow === 0 ? 0 : startRow * chPx + halfLw
-      const ex = endCol === cols ? W_PX : endCol * cwPx + halfLw
-      const ey = endRow === rows ? H_PX : endRow * chPx + halfLw
+      const sx = startCol === 0 ? 0 : Math.round(startCol * cellPx) + halfLw
+      const sy = startRow === 0 ? 0 : Math.round(startRow * cellPx) + halfLw
+      const ex = endCol === cols ? W_PX : Math.round(endCol * cellPx) + halfLw
+      const ey = endRow === rows ? H_PX : Math.round(endRow * cellPx) + halfLw
 
       const sw = ex - sx
       const sh = ey - sy
@@ -221,16 +144,23 @@ export async function exportImageGridPdf(
       `Escala ${ratioStr}`,
       `Boceto: ${r1(wCm)} × ${r1(hCm)} cm`,
       `Obra real: ${scaler.formatScaled(wCm)} × ${scaler.formatScaled(hCm)}`,
-      `Cuadrícula: ${cols} columnas × ${rows} filas`,
+      showGrid ? `Cuadrícula: ${cols} columnas × ${rows} filas` : 'Cuadrícula: sin cuadrícula (imagen limpia)',
       `Cada cuadro (entero): ${gridCm} × ${gridCm} cm (boceto)`,
       `            = ${scaler.formatScaled(gridCm)} × ${scaler.formatScaled(gridCm)} (obra)`,
       '',
       'INSTRUCCIONES DE ARMADO:',
       '1. Imprime al 100% (tamaño real, sin "ajustar a página").',
       '2. Los cortes están hechos EXACTAMENTE sobre los cuadros.',
-      '3. La línea roja se dejó COMPLETA en el borde derecho e inferior de cada hoja.',
-      '4. Corta el margen blanco (izquierdo/superior) de la hoja siguiente',
-      '   al ras del dibujo y móntalo sobre la línea roja de la hoja anterior.',
+      ...(showGrid
+        ? [
+            '3. La línea roja se dejó COMPLETA en el borde derecho e inferior de cada hoja.',
+            '4. Corta el margen blanco (izquierdo/superior) de la hoja siguiente',
+            '   al ras del dibujo y móntalo sobre la línea roja de la hoja anterior.',
+          ]
+        : [
+            '3. Corta el margen blanco (izquierdo/superior) de la hoja siguiente',
+            '   al ras del dibujo y móntalo sobre el borde de la hoja anterior.',
+          ]),
     ]
     y += 1.2
     for (const l of lines) {
@@ -239,5 +169,6 @@ export async function exportImageGridPdf(
     }
   }
 
-  doc.save(`${(name || 'imagen').trim() || 'imagen'}-referencia-${sheet.id}.pdf`)
+  const suffix = showGrid ? '' : '-sin-cuadricula'
+  doc.save(`${(name || 'imagen').trim() || 'imagen'}-referencia-${sheet.id}${suffix}.pdf`)
 }

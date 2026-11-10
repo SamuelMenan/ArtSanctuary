@@ -13,7 +13,7 @@ const mockSetTextColor = vi.fn()
 
 // Constructor de clase mock para jsPDF
 class MockJsPDF {
-  constructor(public opts?: any) {}
+  constructor(public opts?: unknown) {}
   addPage = mockAddPage
   addImage = mockAddImage
   save = mockSave
@@ -61,13 +61,13 @@ beforeEach(() => {
       }
       return {}
     })
-  } as any
+  } as unknown as Document
 
   // Mock window
   global.window = {
     Image: class {
       onload: () => void = () => {}
-      onerror: (err: any) => void = () => {}
+      onerror: (err: unknown) => void = () => {}
       crossOrigin: string = ''
       src: string = ''
       constructor() {
@@ -76,8 +76,12 @@ beforeEach(() => {
         }, 0)
       }
     }
-  } as any
+  } as unknown as Window & typeof globalThis
 })
+
+function masterCanvas(): HTMLCanvasElement {
+  return vi.mocked(document.createElement).mock.results[0].value as HTMLCanvasElement
+}
 
 describe('exportImageGridPdf', () => {
   const scaler = createScaler(1) // Escala 1:1
@@ -98,13 +102,10 @@ describe('exportImageGridPdf', () => {
     })
 
     // El canvas maestro debería medir exactamente 200px por 200px (2 cm * 100 px/cm)
-    const canvasElementCalls = document.createElement as any
-    const canvases = canvasElementCalls.mock.results.map((r: any) => r.value)
-    
     // El primer canvas creado es el master
-    const masterCanvas = canvases[0]
-    expect(masterCanvas.width).toBe(200)
-    expect(masterCanvas.height).toBe(200)
+    const master = masterCanvas()
+    expect(master.width).toBe(200)
+    expect(master.height).toBe(200)
 
     // doc.addImage debe registrar el tamaño exacto en centímetros (sw / 100 = 200 / 100 = 2 cm)
     expect(mockAddImage).toHaveBeenCalledWith(
@@ -141,5 +142,29 @@ describe('exportImageGridPdf', () => {
     // Con pageW=4, pageH=3, la orientación es 'landscape'.
     // Comprobar que addPage se llamó pasando el tamaño de página [4, 3] y 'landscape'
     expect(mockAddPage).toHaveBeenCalledWith([4, 3], 'landscape')
+  })
+
+  // Objeto de 6x6 cm: con cuadro de 2 cm da 3x3 celdas → 2 líneas interiores por eje.
+  const sixCm: BoardObject = { id: 'six', type: 'image', x: 0, y: 0, w: 226.77, h: 226.77, src: 'https://example.com/six.png' }
+  const sheet = { id: 'a0', labelKey: 'sheetA0', wCm: 84.1, hCm: 118.9 }
+  const ctxOf = () => masterCanvas().getContext('2d')!
+
+  it('quema la cuadrícula y los números cuando showGrid no se pasa (default)', async () => {
+    await exportImageGridPdf(sixCm, scaler, 'Con', { gridCm: 2, sheet })
+    const ctx = ctxOf()
+    expect(ctx.stroke).toHaveBeenCalled()
+    expect(ctx.fillText).toHaveBeenCalled()
+  })
+
+  it('con showGrid: false no pinta líneas ni números, pero mantiene el troceado a escala', async () => {
+    await exportImageGridPdf(sixCm, scaler, 'Sin', { gridCm: 2, sheet, showGrid: false })
+    const ctx = ctxOf()
+    expect(ctx.stroke).not.toHaveBeenCalled()
+    expect(ctx.fillText).not.toHaveBeenCalled()
+    // El maestro sigue midiendo 3 celdas × 2 cm × 100 px/cm = 600 px por lado.
+    const master = masterCanvas()
+    expect(master.width).toBe(600)
+    expect(master.height).toBe(600)
+    expect(mockSave).toHaveBeenCalledWith('Sin-referencia-a0-sin-cuadricula.pdf')
   })
 })
