@@ -2,19 +2,20 @@
 title: Testing
 audience: dev
 status: stable
-updated: 2026-08-13
+updated: 2026-08-15
 owner: TBD
 ---
 
 # Testing
 
-Vitest. **19 archivos `*.test.ts`** a fecha 2026-08-13, todos lógica pura —
+Vitest. **20 archivos `*.test.ts`** a fecha 2026-08-15, todos lógica pura —
 cero tests de componentes React, cero tests de endpoints API.
 
-> ✅ **Estado verificado 2026-08-14: `npm test` pasa limpio** (19 archivos,
-> 141 tests) y `npx tsc --noEmit` sale con 0 errores.
+> ✅ **Estado verificado 2026-08-15: `npx vitest run` pasa limpio** — 20
+> archivos, 161 tests. (El 2026-08-14 eran 19 archivos y 141 tests, con
+> `npx tsc --noEmit` en 0 errores.)
 >
-> Hasta esa fecha fallaba por dos motivos, ambos ya resueltos: 3 strings
+> Hasta el 2026-08-14 fallaba por dos motivos, ambos ya resueltos: 3 strings
 > hardcodeados que abortaban el gate de `i18n:scan`, y 2 tests rotos de
 > `lateralMirror` que importaban una función que nunca se implementó.
 
@@ -43,9 +44,9 @@ separada: `foo.ts` + `foo.test.ts` en el mismo directorio. Alias
 | Dominio | Archivos |
 |---|---|
 | Motor de medidas Canon (`src/shared/lib/canon/`) | `anatomyParts`, `figure`, `landmarks`, `measurements`, `partHits`, `regions`, `units` |
-| Boards / Grid | `boards/lib/grid`, `boards/lib/imageGridPdf`, `grid/lib/colLabel`, `grid/lib/gridGeometry` |
-| Reglas de Carnaval (`src/shared/lib/workspaces/carnaval/`) | `planos`, `rules`, `lateralMirror` |
-| Workspace Carnaval (frontend) | `carnaval/lib/carnavalGuide`, `carnaval/lib/humanFigure` |
+| Boards / Grid | `boards/lib/grid`, `boards/lib/imageGridCanvas`, `boards/lib/imageGridPdf`, `boards/lib/resizeSnap`, `grid/lib/colLabel`, `grid/lib/gridGeometry` |
+| Reglas de Carnaval (`src/shared/lib/workspaces/carnaval/`) | `planos`, `rules` (incluye los tests de `validate.ts`), `lateralMirror` |
+| Workspace Carnaval (frontend) | `carnaval/lib/carnavalGuide`, `carnaval/lib/carnavalHumanPlate` |
 | Utilidades | `colorMix`, `measure`, `validation/settings` |
 
 Patrón común: son módulos de **lógica pura** (`src/shared/lib/*`,
@@ -77,10 +78,20 @@ probar manualmente contra `npm run dev` antes de dar por hecho que funciona.
 - Solo lógica pura por ahora — si necesitas testear algo que toca React o
   HTTP, es una categoría nueva sin precedente en el repo; decide el enfoque
   antes de asumir que existe una convención para eso.
+- **Corolario práctico:** si la lógica vive dentro de un componente, **no se
+  puede testear**. Sacarla a un módulo puro es el precio de tener red. El caso
+  de referencia es
+  `src/frontend/features/tools/boards/lib/resizeSnap.ts` (2026-08-15): 60 líneas de imán
+  incrustadas en el JSX de `BoardStage` salieron a un módulo puro en
+  coordenadas de mundo y pasaron de 0 a 15 tests, con el componente
+  encargándose solo de convertir coordenadas.
 
 ## Última verificación
 
-- Fecha: 2026-08-13
-- Commit: HEAD
-- Conteo de `*.test.ts`: 19 (verificado con `Glob`, sin `*.test.tsx` ni `*.spec.ts`)
-- `npm test` corrido realmente: **19/19 archivos, 141/141 tests, exit 0**.
+- Fecha: 2026-08-15
+- Commit: HEAD (árbol de trabajo, cambios sin commitear)
+- Conteo de `*.test.ts`: **20** (sin `*.test.tsx` ni `*.spec.ts`). Respecto al
+  2026-08-14: +`boards/lib/resizeSnap.test.ts`,
+  +`carnaval/lib/carnavalHumanPlate.test.ts`, −`carnaval/lib/humanFigure.test.ts`
+  (el módulo se borró).
+- `npx vitest run` corrido realmente: **20/20 archivos, 161/161 tests, exit 0**.

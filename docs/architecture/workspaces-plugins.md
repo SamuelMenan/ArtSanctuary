@@ -2,7 +2,7 @@
 title: "Arquitectura de plugins de Workspaces"
 audience: dev, ai-agent
 status: stable
-updated: 2026-08-14
+updated: 2026-08-15
 owner: TBD
 ---
 
@@ -103,6 +103,15 @@ Ordenados por cuánto cuesta descubrirlos:
 8. **Toda extensión debe tolerar `workspace.modality === undefined`.** El mismo
    `BoardExtension` corre en boards sueltos sin modalidad; los 5 puntos de
    entrada de Carnaval empiezan comprobándolo.
+9. **Todo cálculo geométrico que compartan `Layers` y `Overlays` va en el
+   `Provider`, no duplicado en cada uno.** Son árboles de render distintos
+   (Konva vs HTML) y solo coinciden en el contexto: si cada uno recalcula lo
+   mismo, divergen sin error. Ocurrió el 2026-08-15 con el desplazamiento que
+   alinea la guía de Carnaval a la cuadrícula — `Layers` lo aplicaba y
+   `Overlays` no, así que la figura humana entraba descentrada justo ese tanto
+   (el valor depende del reglamento vigente: 0.5 cm hoy, 2.5 cm antes de la
+   última rectificación). Se resolvió exponiendo `baseOffset` en el contexto,
+   con test de regresión.
 
 ## 5. La trampa de los ids
 
@@ -143,6 +152,17 @@ No hay un solo paso de registro. Según lo que necesite, toca 1, 2 o los 3:
 **nunca** `boards` → `workspaces/<tipo>` ni `workspaces/A` → `workspaces/B`.
 No hay lint rule que lo imponga: es convención en comentarios.
 
+**Falta una arista que la regla no nombra pero prohíbe igual:**
+`workspaces/<tipo> → tools/<tool>`. Un workspace no puede importar de una
+herramienta. Caso real (2026-08-15): el board de Carnaval necesitaba las láminas
+de Canon como figura humana; en vez de importar
+`tools/canon/lib/figureMeta.ts` —que compila sin queja— los metadatos bajaron a
+`shared/lib/canon/plates.ts` y la herramienta se quedó con un re-export.
+
+**El patrón general, para no re-derivarlo cada vez:** cuando un workspace
+necesita algo que hoy vive en una herramienta, **baja el dato a `shared/`**; no
+subas el import. Y como nada falla al hacerlo mal, la revisión es humana.
+
 ## Deuda conocida
 
 - **`BoardExtSlotProps.lateralMirrorEnabled` es una fuga de dominio**:
@@ -157,8 +177,15 @@ No hay lint rule que lo imponga: es convención en comentarios.
 
 ## Última verificación
 
-- Fecha: 2026-08-14
-- Commit: HEAD
+- Fecha: 2026-08-15
+- Commit: HEAD (árbol de trabajo, cambios sin commitear)
+- Añadidos el invariante 9 y la arista `workspaces → tools` de la regla de
+  dependencias, ambos verificados contra el cambio real: `board/context.tsx`
+  expone `baseOffset` y `carnavalHumanPlate.ts` importa de
+  `@shared/lib/canon/*`, no de `tools/canon`.
+
+### Verificación previa (2026-08-14)
+
 - Verificado leyendo los 3 registros, `boardExtension.ts`, `Host.tsx`, los
   `ui.ts`/`index.ts` de ambos plugins y los dos unions. La ausencia de
   `registerWorkspaceUi` confirmada con `grep` en todo `src/` (0 definiciones).

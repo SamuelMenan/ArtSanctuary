@@ -2,7 +2,7 @@
 title: "Canon (atlas de proporción anatómica)"
 audience: frontend, architecture
 status: stable
-updated: 2026-08-14
+updated: 2026-08-15
 owner: TBD
 ---
 
@@ -30,8 +30,9 @@ si vas a tocar algo no trivial.
 
 ## Arquitectura (3 capas, ver ADR-0012)
 
-1. **Datos — `src/shared/lib/canon/`** (puro, sin React, testeado — 7 de 10
-   archivos tienen `.test.ts`):
+1. **Datos — `src/shared/lib/canon/`** (puro, sin React, testeado — 7 de 11
+   archivos tienen `.test.ts`; sin test: `anatomyFacts`, `canons`,
+   `muscleColors`, `plates`):
    - `canons.ts` — los cánones en sí (proporción en `heads` por segmento del cuerpo). Fuente única; añadir un canon = una entrada aquí.
    - `figure.ts` — `buildFigure({ canonId, heightCm })`: motor que calcula todas las medidas reales a partir del canon + altura.
    - `units.ts` — conversión cm/in/heads + formato.
@@ -41,6 +42,7 @@ si vas a tocar algo no trivial.
    - `anatomyParts.ts` — atlas de partes del cuerpo (canon-agnóstico), con sub-partes (mano→dedos, etc.).
    - `partHits.ts` — regiones clicables **por canon-vista** (path SVG que sigue el contorno real, nunca cajas — decisión P9 / ADR-0013). Mientras un canon-vista no esté trazado, esa vista simplemente no es interactiva.
    - `muscleColors.ts` — paleta del mapa de músculos.
+   - `plates.ts` — **metadatos de las láminas PNG** (rutas, dims intrínsecas por canon-vista, fallback a heroico). Vive en `shared` desde 2026-08-15 porque lo consumen **dos** features; ver §Consumidores fuera de Canon.
 
 2. **Presentación — `components/`** (19 archivos), por responsabilidad:
 
@@ -59,8 +61,9 @@ si vas a tocar algo no trivial.
    `CanonScreen.tsx` es composición pura, sin lógica propia.
 
    `lib/` (8 archivos) es el pegamento **específico de la UI**, distinto del
-   motor puro de `shared/lib/canon/`: `figureMeta` (rutas y dims intrínsecas de
-   cada lámina + fallback a heroico), `chartLayers` (qué capas existen y sus
+   motor puro de `shared/lib/canon/`: `figureMeta` (**re-export** de
+   `@shared/lib/canon/plates` + el tipo `CanonOption`, propio de los selects),
+   `chartLayers` (qué capas existen y sus
    defaults), `figureGeom`, `joints`, `overlays` (assets por capa),
    `presets` (localStorage), `exportChart` (redibuja en `<canvas>` con la misma
    matemática para PNG/PDF) y `boardHandoff` (enviar la lámina a Boards).
@@ -69,7 +72,15 @@ si vas a tocar algo no trivial.
 
 Láminas PNG limpias en `public/canon/<canonId>/{frontal,lateral,posterior}.png`
 — un canon sin sus 3 láminas cae automáticamente a `heroic` (fallback, ver
-`figureMeta.ts:FIGURES`). El mapa de músculos frontal se traza sobre
+`plates.ts:FIGURES` / `resolveCanonId`).
+
+Las láminas son **transparentes y a sangre**: la coronilla toca el borde
+superior de la imagen y la planta el inferior. De ahí que las fracciones de
+`landmarks.ts` (0 = coronilla, 1 = planta) mapeen directo sobre la altura del
+PNG sin corrección — invariante del que depende el escalado de la figura humana
+de Carnaval. Añadir un canon = una entrada en `FIGURES` + las 3 imágenes.
+
+El mapa de músculos frontal se traza sobre
 `musculos.png` (dibujo del usuario, re-exportado alineado a `frontal.png` —
 ver ADR-0010 para por qué no se generó por código).
 
@@ -85,6 +96,36 @@ PNG/PDF/PDF-a-escala (`lib/exportChart.ts`) · zoom/pan · medidas con Δ vs.
 referencia antropométrica · **hover/clic interactivo** en partes del cuerpo
 (`PartHitLayer` + `CanonPartPanel` — ficha de la parte seleccionada, con
 imagen dedicada o fallback de zoom CSS a la región).
+
+## Consumidores fuera de Canon
+
+Canon dejó de ser una isla el **2026-08-15**: el board de **Carnaval** inserta la
+lámina heroica como figura humana reglamentaria, eligiendo la vista según el
+plano activo (frontal/lateral/posterior — las 3 vistas existen precisamente para
+calzar con esos planos). Ver
+[`../workspaces/carnaval.md#41-figura-humana-de-referencia--lámina-de-canon`](../workspaces/carnaval.md).
+
+Eso obligó a partir en dos lo que era un solo archivo de la herramienta:
+
+| | Antes | Ahora |
+|---|---|---|
+| Metadatos de lámina | `tools/canon/lib/figureMeta.ts` | **`shared/lib/canon/plates.ts`** (`View`, `VIEWS`, `Meta`, `FIGURES`, `AVAILABLE_CANON_IDS`, `resolveCanonId`, `figureSrc`, `figureDims`) |
+| `figureMeta.ts` | la implementación | re-export + `CanonOption` (tipo de UI) |
+
+**Por qué el rodeo:** la regla de dependencias permite
+`workspaces/<tipo> → shared` pero **prohíbe** `workspaces/<tipo> → tools/<tool>`
+(ver [`../../architecture/workspaces-plugins.md`](../../architecture/workspaces-plugins.md)).
+Sin el traslado, Carnaval habría tenido que importar de `tools/canon`, que
+compila pero rompe la arquitectura. Regla práctica: **cualquier dato de Canon
+que un segundo feature necesite baja a `shared/lib/canon/`**, no se importa
+desde `tools/canon/lib/`.
+
+Dos consumos por separado (no confundir):
+
+- **Handoff a Boards** (`lib/boardHandoff.ts`) — el usuario envía la lámina que
+  está viendo; es un flujo de UI, vía estado compartido.
+- **Figura humana de Carnaval** — el board pide la lámina por sí mismo, sin
+  pasar por la herramienta Canon ni por el handoff.
 
 ## Estado y trabajo pendiente conocido
 
@@ -113,8 +154,15 @@ componentes — ver [`../../contributing/testing.md`](../../contributing/testing
 
 ## Última verificación
 
-- Fecha: 2026-08-14
-- Commit: HEAD
+- Fecha: 2026-08-15
+- Commit: HEAD (árbol de trabajo, cambios sin commitear)
+- Reverificado el traslado a `shared/lib/canon/plates.ts`: `figureMeta.ts` es
+  hoy un re-export, `ls src/shared/lib/canon/` da 11 módulos + 7 tests, y la
+  transparencia/sangrado de las 3 láminas heroicas se comprobó píxel a píxel
+  (alfa 0 en las esquinas, tinta de `y=0` a `y=h`).
+
+### Verificación previa (2026-08-14)
+
 - Verificado: `CanonScreen.tsx`, `useCanonTool.ts`, `canons.ts`, `figureMeta.ts`, `partHits.ts` leídos directamente. Confirmado sin llamadas a `fetch`/`/api/` en todo `tools/canon/` (`grep` sin resultados) — 100% cliente.
 - Los 19 componentes y 8 libs verificados con `ls` (la versión anterior decía
   "14 archivos" en `components/`). El conteo de 14 regiones del mapa muscular

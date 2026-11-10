@@ -2,7 +2,7 @@
 title: "Utilidades compartidas (src/shared/lib/)"
 audience: dev
 status: stable
-updated: 2026-08-14
+updated: 2026-08-15
 owner: TBD
 ---
 
@@ -18,6 +18,16 @@ Los subsistemas con doc propio no se repiten aquí: el motor de Canon
 imagen ([`../features/image-compression.md`](../features/image-compression.md))
 y la escala de medida
 ([`../features/tools/escala-medicion.md`](../features/tools/escala-medicion.md)).
+
+> **Por qué algo acaba en `shared/lib/`.** El criterio no es "parece
+> reutilizable", es **"lo consume una segunda feature y la regla de
+> dependencias prohíbe el import directo"**. Caso de referencia (2026-08-15):
+> los metadatos de las láminas de Canon vivían en `tools/canon/lib/figureMeta.ts`
+> hasta que el board de Carnaval necesitó insertarlas como figura humana; como
+> `workspaces/<tipo> → tools/<tool>` no está permitido, bajaron a
+> `shared/lib/canon/plates.ts` y `figureMeta.ts` quedó como re-export. La
+> alternativa —importar de `tools/canon`— **compila** y por eso hay que
+> reconocerla a mano: no hay lint rule que la impida.
 
 ## `tools/handoff.ts` — transferencia entre herramientas
 
@@ -99,6 +109,23 @@ Barrel en `index.ts` (`rules`, `validate`, `views`, `planos`, `lateralMirror`).
 directa desde el registry, para no arrastrar `measure`/`boards/types` a todos
 los consumidores.
 
+**`rules.ts`** — la tabla oficial (`CARNAVAL_RULES`), fuente única. Si
+Corpocarnaval publica un comunicado nuevo, se edita **solo aquí**.
+- ⚠️ **El `alto` no significa lo mismo en todas las modalidades**: en `disfraz`
+  es TOTAL desde la base (27–30, incluidos los 15 cm de figura humana); en
+  `comparsa` se mide de los hombros hacia arriba (20–25). El tipo `DimRange` no
+  puede expresar esa diferencia — vive en los `notes` y en el comentario.
+- ⚠️ **En `disfraz`, `dims.alto` NO es el número de la tabla oficial**: la tabla
+  publica 12–15 (de hombros hacia arriba) y aquí se guarda 27–30, ya sumados los
+  15 cm de figura. Es deliberado —la guía y el Inspector trabajan desde la
+  base— y es la clase de discrepancia que alguien "corrige" sin querer.
+  Detalle y consecuencia en
+  [`../features/workspaces/carnaval.md`](../features/workspaces/carnaval.md).
+- `gridSquareCm` por modalidad alimenta el gcd de `carnavalGridSquareCm()`; al
+  cambiarlo, los boards **ya guardados** conservan su `background.squareCm`.
+- `carnavalUsesHybridGrid(rule)` es un stub que ignora su parámetro — ver
+  [`../ops/known-issues.md`](../ops/known-issues.md).
+
 **`validate.ts`** — motor puro de validación reglamentaria.
 `validateBoceto(rule, measures)` devuelve un `BocetoReport` con porcentaje de
 cumplimiento. Sutilezas que importan:
@@ -121,19 +148,40 @@ modalidad (10 para disfraz/comparsa, 15 para carroza/carro alegórico).
 
 **`lateralMirror.ts`** — espejo entre planos laterales. El invariante crítico es
 `mirroredFrom`: marca los objetos espejados para que la reconciliación pueda
-borrarlos sin tocar los propios del plano. Tiene 2 tests rotos — ver
-[`../ops/known-issues.md`](../ops/known-issues.md#7) antes de tocarlo.
+borrarlos sin tocar los propios del plano. Sus 2 tests rotos se arreglaron el
+2026-08-14 (importaban una función que nunca se implementó); hoy pasa limpio.
+⚠️ `mirrorPoints` conserva una rama muerta para arrays de longitud impar que
+produce puntos duplicados.
+
+**`canon/plates.ts`** — metadatos de las láminas PNG de Canon (`FIGURES`,
+`figureSrc`, `figureDims`, `resolveCanonId`). Está en `shared` porque lo
+consumen **dos** features (ver el recuadro del principio). Sutilezas:
+- **`resolveCanonId` cae a `heroic` en silencio** si el canon no tiene sus 3
+  láminas — un id inventado no falla, dibuja otro cuerpo.
+- Las dims son el **tamaño intrínseco real del PNG**; se renderiza por altura
+  para preservar el aspecto.
+- Las láminas son transparentes y **a sangre** (coronilla en `y=0`, planta en
+  `y=h`), invariante del que dependen tanto los `frac` de `landmarks.ts` como el
+  escalado de la figura humana de Carnaval. Una lámina nueva con márgenes
+  descuadraría ambos sin error visible.
 
 ## Cobertura de tests
 
-Solo `colorMix`, `measure`, `validation/settings`, el motor de `canon/` (7
-archivos) y `workspaces/carnaval/{planos,rules,lateralMirror}` tienen test.
-`handoff`, `autocrop`, `floodfill`, `canvas`, `mediums`, `useArtworkAutoFill`,
-`views` y `domain` **no**. Nota: los tests de `validate.ts` viven dentro de
-`rules.test.ts`, no en un `validate.test.ts`.
+Solo `colorMix`, `measure`, `validation/settings`, el motor de `canon/` (7 de
+sus 11 módulos) y `workspaces/carnaval/{planos,rules,lateralMirror}` tienen
+test. `handoff`, `autocrop`, `floodfill`, `canvas`, `mediums`,
+`useArtworkAutoFill`, `views`, `domain` y `canon/plates` **no**. Nota: los tests
+de `validate.ts` viven dentro de `rules.test.ts`, no en un `validate.test.ts`.
 
 ## Última verificación
 
-- Fecha: 2026-08-14
-- Commit: HEAD
+- Fecha: 2026-08-15
+- Commit: HEAD (árbol de trabajo, cambios sin commitear)
+- Revisado lo tocado el 2026-08-15: `canon/plates.ts` (módulo nuevo) y
+  `workspaces/carnaval/rules.ts` (tabla de `disfraz` rectificada, con sus
+  fixtures de `rules.test.ts` actualizadas). El resto se mantiene de la
+  verificación anterior.
+
+### Verificación previa (2026-08-14)
+
 - Firmas, consumidores y constantes verificados leyendo cada módulo completo.

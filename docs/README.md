@@ -2,7 +2,7 @@
 title: ArtSanctuary — Documentación técnica
 audience: all
 status: stable
-updated: 2026-08-14
+updated: 2026-08-15
 owner: TBD
 ---
 
@@ -94,7 +94,7 @@ el código el 2026-08-14 (3 se reconstruyeron desde cero por estar mal de raíz)
 - [`ops/env.md`](ops/env.md) — variables de entorno.
 - [`ops/deployment.md`](ops/deployment.md) — despliegue.
 - [`ops/security.md`](ops/security.md) — amenazas.
-- [`ops/known-issues.md`](ops/known-issues.md) — **bugs reales sin resolver**, encontrados durante la auditoría. Leer antes de tocar servicios o Carnaval.
+- [`ops/known-issues.md`](ops/known-issues.md) — **bugs reales sin resolver**, encontrados durante la auditoría y al implementar encima. Leer antes de tocar servicios, Carnaval o el redimensionado del lienzo.
 
 ### Rendimiento
 - [`performance/01-optimizacion-servidor-rsc.md`](performance/01-optimizacion-servidor-rsc.md)

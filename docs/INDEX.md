@@ -2,7 +2,7 @@
 title: Router de documentación para agentes IA (INDEX)
 audience: ai-agent
 status: stable
-updated: 2026-08-14
+updated: 2026-08-15
 owner: TBD
 ---
 
@@ -43,6 +43,8 @@ Si modificas lógica base de librerías externas o canvas, lee los ADRs pertinen
 ## 🧩 Workspaces y extensiones del lienzo
 Antes de tocar Carnaval, Libre o el motor de boards:
 - Los 3 registros, los 7 slots de `BoardExtension` e invariantes: `docs/architecture/workspaces-plugins.md`
+- Reglamento, planos y figura humana (lámina de Canon) de Carnaval: `docs/features/workspaces/carnaval.md`
+- Boards: mapa por responsabilidad, redimensionado y modificadores: `docs/features/tools/boards.md`
 
 ## 🎨 UI, Frontend y Diseño
 Para desarrollar componentes, maquetación visual y flujos del cliente:
@@ -57,9 +59,10 @@ Para desarrollar componentes, maquetación visual y flujos del cliente:
 Antes de asumir que algo tiene cobertura automática:
 - Qué corre `npm test`, qué está cubierto (lógica pura) y qué no (routes, componentes, E2E): `docs/contributing/testing.md`
 
-## 🐛 Bugs conocidos (leer antes de tocar backend)
+## 🐛 Bugs conocidos (leer antes de tocar backend o el lienzo)
 - Defectos reales sin resolver, con su ubicación exacta: `docs/ops/known-issues.md`
-  (incluye uno crítico: la galería de todo perfil público devuelve vacío).
+  (el más visible hoy: el Inspector de Carnaval mide de menos en Disfraz
+  Individual y marca "bajo mínimo" bocetos correctos).
 
 ## 🚀 Despliegue, Infraestructura y Seguridad (Ops)
 Para configuraciones del entorno de producción:

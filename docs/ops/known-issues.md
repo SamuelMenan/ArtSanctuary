@@ -2,7 +2,7 @@
 title: Bugs conocidos (sin resolver)
 audience: dev, ops
 status: stable
-updated: 2026-08-14
+updated: 2026-08-15
 owner: TBD
 ---
 
@@ -15,10 +15,15 @@ verificar otra cosa — así que asumir que hay más.
 **Cómo cerrar uno:** arreglarlo y borrar su entrada en el mismo commit. No se
 dejan entradas "resueltas": para eso está el historial de git.
 
-> **Los 7 restantes son decisiones de producto, no descuidos.** Implementar un
+> **Las entradas 1–5 son decisiones de producto, no descuidos.** Implementar un
 > "trending" real o el grid híbrido es construir una feature, no reparar algo
 > roto. Los dos de contrato (imports load-bearing, ruta muerta) son trampas
 > documentadas a propósito para que nadie las "limpie" sin querer.
+>
+> **Las entradas 6–8 (añadidas el 2026-08-15) sí son defectos.** Las tres se
+> encontraron trabajando en el board de Carnaval y en los modificadores de
+> redimensionado, y las tres tienen arreglo conocido y acotado — están aquí
+> porque se decidió documentar antes que parchear.
 
 ### Resueltos el 2026-08-14
 
@@ -129,10 +134,84 @@ Candidato claro a borrado.
 
 ---
 
+## 6. 🔴 El Inspector mide de menos en Disfraz Individual
+
+**Dónde:** `src/frontend/features/workspaces/carnaval/lib/carnavalInspect.ts` →
+`objectsBBoxPx`
+
+La envolvente medida **excluye** los objetos llamados `'Figura humana'`
+(`HUMAN_FIGURE_NAME`), porque son referencia y no obra. Correcto en `comparsa`,
+donde el reglamento mide el alto **de los hombros hacia arriba**.
+
+En `disfraz`, en cambio, el alto que guarda `rules.ts` (**27–30 cm** con la
+tabla vigente del 2026-08-15) es **TOTAL desde la base** e incluye los 15 cm de
+figura humana. Al
+excluirla, el Inspector mide solo la parte sobre los hombros y reporta
+**"bajo mínimo" en bocetos que sí cumplen**.
+
+Es el fallo más visible de la lista: sale en pantalla, al usuario, con un
+número rojo. No se arregló en el momento por decisión explícita ("no tocar la
+medición ahora"). **El arreglo debe ser por modalidad**, no global: aplicar a
+`comparsa` el criterio de `disfraz` rompería la otra mitad. Anotado también
+como `PENDIENTE` en el propio archivo.
+
+---
+
+## 7. 🟠 El imán de redimensionado pelea contra los modificadores de teclado
+
+**Dónde:** `src/frontend/features/tools/boards/components/BoardStage.tsx`
+
+Tres defectos en el mismo bloque, con causa común:
+
+- **El `boundBoxFunc` deshace la caja que Konva acaba de calcular.** Imanta cada
+  borde por separado, así que con centrado (`Alt`) se mueven los dos bordes
+  opuestos, cada uno cae en una línea distinta y el objeto **deriva**; con
+  proporción (`Shift`/`Ctrl`) imantar el ancho sin recalcular el alto rompe la
+  razón. El guard `delta > 0.01` del [ADR-0005](../adr/0005-konva-grid-snap-resize.md)
+  asume que siempre hay un lado quieto — con centrado no lo hay.
+- **El modificador se queda pegado**: el listener oye `keydown`/`keyup` pero no
+  `blur`. Soltar `Ctrl` fuera de la ventana (Alt+Tab) deja el board en modo
+  proporcional para siempre, sin indicación visual.
+- **Tres teclas para dos conductas.** `Shift` (nativo de Konva) y `Ctrl`/`⌘`
+  (listener de la app) hacen ambas proporción; `Alt` (nativo) hace centrado.
+  Nada de esto está documentado en el panel de atajos.
+
+Los módulos que lo arreglan
+(`src/frontend/features/tools/boards/lib/resizeSnap.ts` +
+`src/frontend/features/tools/boards/hooks/useResizeModifiers.ts`)
+**ya están escritos y testeados, pero sin cablear**: el comportamiento en
+producción es todavía el defectuoso. Fases pendientes en
+[`../../.plans/pr/incompletos/plan-boards-resize-modificadores.md`](../../.plans/pr/incompletos/plan-boards-resize-modificadores.md).
+
+**Además, `src/frontend/features/tools/boards/lib/resizeBehavior.ts` es código
+muerto** (`shouldKeepRatioForResize`, 0 consumidores) que *parece* la
+implementación real, y `ctrlPressedRef`
+(`BoardStage.tsx:93`) se escribe dos veces y no se lee nunca.
+
+---
+
+## 8. 🟡 El panel de atajos promete una función que no existe
+
+**Dónde:** `src/frontend/features/tools/boards/components/ShortcutsHelp.tsx:18`
+
+Documenta **`Alt + arrastrar → Duplicar arrastrando`**. Esa función no está
+implementada en ningún sitio: duplicar solo existe en `Ctrl/⌘+D` y en los
+botones. Peor: `Alt` **sí hace algo** distinto de lo anunciado — es el centrado
+nativo del `Transformer` (entrada 7).
+
+En el otro sentido, el panel **no tiene ninguna fila** para redimensionar
+proporcional ni desde el centro: las dos conductas que sí funcionan son
+invisibles para el usuario.
+
+---
+
 ## Cómo se encontraron
 
-Ninguno salió de una búsqueda dirigida de bugs: todos aparecieron leyendo
-código para verificar afirmaciones de la documentación. `npm run docs:verify`
+Ninguno salió de una búsqueda dirigida de bugs: los de 2026-08-13/14
+aparecieron leyendo código para verificar afirmaciones de la documentación, y
+los tres de 2026-08-15 (6, 7 y 8) al implementar otra cosa encima —
+cambiar la figura humana de Carnaval destapó el 6, y planificar los
+modificadores de resize destapó el 7 y el 8. `npm run docs:verify`
 cubre la clase **documentación ↔ contrato**, pero **no** detecta lógica
 incorrecta — la galería vacía de perfil público pasaba todos los checks
 automáticos porque los nombres de campo eran sintácticamente válidos, solo que
@@ -140,8 +219,17 @@ de otro modelo. Para eso no hay sustituto de leer el código o de tener tests.
 
 ## Última verificación
 
-- Fecha: 2026-08-14
-- Commit: HEAD
-- Cada entrada restante se verificó leyendo el código. `npm test` (i18n:scan +
-  19 archivos, 141 tests) y `npx tsc --noEmit` pasan limpios tras la ronda de
+- Fecha: 2026-08-15
+- Commit: HEAD (árbol de trabajo, cambios sin commitear)
+- Entradas 6–8 verificadas leyendo el código:
+  `carnavalInspect.objectsBBoxPx`, el bloque `93-115` + `boundBoxFunc` de
+  `BoardStage.tsx`, `ShortcutsHelp.tsx:18` y su clave i18n
+  (`boards.scAltDrag` = "Duplicar arrastrando" en `es.ts`/`en.ts`). El mapeo
+  nativo de teclas se leyó en `node_modules/konva/lib/shapes/Transformer.js`.
+- `npx vitest run`: 20 archivos, 161 tests, exit 0.
+
+### Verificación previa (2026-08-14)
+
+- Cada entrada 1–5 se verificó leyendo el código. `npm test` (i18n:scan +
+  19 archivos, 141 tests) y `npx tsc --noEmit` pasaban limpios tras la ronda de
   arreglos.

@@ -40,6 +40,12 @@ Los planes se clasifican por estado/alcance:
   - `plan-canon-panel-jerarquico.md` — panel derecho de lista plana → árbol región→parte→sub-parte (mano→dedos/falanges) amplio y escalable.
   - `plan-canon-laminas-faltantes.md` — qué láminas generar (Bloque D = partes).
   - `plan-canon-png-refactor.md` · `plan-canon-png-features.md` · `plan-canon-animations.md`.
+  - **`plan-canon-figura-humana-carnaval.md`** (nuevo 2026-08-14, **implementado**) —
+    la figura humana del board de Carnaval pasa a ser la lámina heroica de Canon en la
+    perspectiva del plano activo. Obligó a bajar los metadatos de lámina a
+    `shared/lib/canon/plates.ts` (la regla de dependencias prohíbe
+    `workspaces → tools`) y a borrar `carnaval/lib/humanFigure.ts`.
+    Revive la tarea que `plan-canon-png-features.md:121` daba por obsoleta.
 - ~~`carnaval/`~~ — suite de acreditación Carnaval (workspace). **Movida a
   `docs/historical/carnaval/` el 2026-08-13** — las 11 fases están
   implementadas y `features/workspaces/carnaval.md` (`status: stable`) es
@@ -66,6 +72,13 @@ Corregido 2026-08-14 — la lista tenía 2 entradas obsoletas
 contra el contenido real de la carpeta (`ls`), no solo de memoria.
 
 - `plan-boards-animaciones.md` · `plan-boards-ui-review.md` — boards (animaciones, revisión UI).
+- `plan-boards-resize-modificadores.md` — modificadores de redimensionado (Shift/Alt/Ctrl).
+  Konva ya trae Shift=proporcional y Alt=desde-el-centro nativos; el plan es dejar de
+  estorbarlos y arreglar el imán, que deshace la caja que Konva calcula.
+  ⏳ **A medias (2026-08-15):** `hooks/useResizeModifiers.ts` y `lib/resizeSnap.ts`
+  (+15 tests) están escritos y en verde, pero **`BoardStage.tsx` no los consume
+  todavía** — el comportamiento en producción sigue siendo el defectuoso. Falta F2
+  (mapeo en el `Transformer`), F4 (panel de atajos) y cablear F1/F3.
 - `plan-modal-animations.md` · `plan-chrome-animations.md` — animaciones de chrome/modales.
 - `plan-rediseno-tools-imagen.md` — coherencia de las 3 tools de imagen.
 - `plan-rendimiento-redis.md` — caché Redis (pendiente, a futuro).

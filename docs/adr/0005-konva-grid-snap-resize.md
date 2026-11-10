@@ -54,3 +54,74 @@ Inyectamos la escala (`scale` - cámara) directamente a la calculadora de físic
 *   **Si Zoom Out:** Las líneas pequeñas colapsan visualmente en pantalla (menos de 6px de separación). El imán lo detecta automáticamente, apaga el ajuste milimétrico y vuelve a saltar poderosa y exclusivamente entre los recuadros de la cuadrícula grande.
 
 **Estado Actual:** Pendiente de revisión y validación táctil del usuario.
+
+---
+
+## Intento 5 (2026-08-15): El imán contra los modificadores de teclado
+
+**Problema reportado:** "cuando se presione shift la figura se expanda en todos
+los lados igual tiene errores con el grip y creo que está implementada con otra
+tecla".
+
+**Lo que se encontró al mirar el código:** las dos conductas **ya existían**, y
+por partida triple.
+
+| Origen | Tecla | Conducta |
+|---|---|---|
+| `konva@10.3.0`, `Transformer.js:551` (`keepRatio() \|\| e.shiftKey`) | `Shift` | proporción |
+| `konva@10.3.0`, `Transformer.js:553,660` (`centeredScaling() \|\| e.altKey`) | `Alt` | desde el centro |
+| `BoardStage.tsx:96-115`, listener propio → prop `keepRatio` | `Ctrl`/`⌘` | proporción (duplicada) |
+
+Konva las trae de fábrica; la app añadió una tercera vía sin saberlo. No hay
+nada que implementar: hay que **dejar de estorbarlas**.
+
+### La causa raíz de los "errores con el grip"
+
+Es el mismo `boundBoxFunc` que estabilizamos en el Intento 3, y falla por la
+misma razón de fondo, un nivel más arriba:
+
+> **El imán razona por BORDES; los modificadores imponen una FORMA a la caja.**
+
+Konva calcula una caja que ya cumple la forma pedida (simétrica respecto al
+centro, o de razón fija) y el `boundBoxFunc` la **deshace después** al imantar
+cada borde por su cuenta:
+
+- **Centrado:** al crecer desde el centro se mueven **los dos** bordes opuestos,
+  así que `movingLeft` y `movingRight` son ambos `true`, cada uno se imanta a
+  una línea distinta, la caja deja de ser simétrica y el objeto **deriva** en
+  cada tirón del imán.
+- **Proporción:** imantar el ancho sin recalcular el alto rompe la razón justo
+  al enganchar.
+
+El guard del Intento 3 (`delta > 0.01` → no imantar el lado quieto) resolvía el
+caso sin modificador, donde **siempre** hay un lado quieto. Con centrado no lo
+hay: la premisa deja de cumplirse y el guard no protege nada.
+
+### La decisión
+
+1. **Imantar UNA sola magnitud y derivar el resto.** Se imanta exclusivamente el
+   borde bajo el ancla activa (`Transformer.getActiveAnchor()`); el opuesto se
+   espeja respecto al centro guardado si el modo es centrado, y el segundo eje
+   se calcula por la razón original si el modo es proporcional. Los candados
+   anti-`NaN` del Intento 3 se aplican **al final**, por la misma vía, para que
+   forzar el mínimo no rompa la simetría.
+2. **Sacar la lógica a `src/frontend/features/tools/boards/lib/resizeSnap.ts`,
+   puro y en coordenadas de mundo**, y
+   testearlo **antes** de cambiar el comportamiento. El `boundBoxFunc` se queda
+   solo con la conversión pantalla↔mundo. Motivo: el Intento 2 y el Intento 3
+   se depuraron a ojo sobre 60 líneas dentro de un JSX, sin un solo test de
+   redimensionado; esta es la tercera vez que se toca el mismo bloque.
+3. **Mapeo: `Shift` = desde el centro, `Ctrl`/`⌘` = proporción.** Se aparta del
+   estándar de la industria (y del cableado por defecto de Konva), así que
+   requiere `shiftBehavior="none"` en el `Transformer`. `Alt` seguirá centrando
+   igualmente: es nativo y no hay prop para apagarlo — se acepta como alias.
+4. **Leer las banderas del evento, no el nombre de la tecla**, y resetear en
+   `blur`: el listener anterior se quedaba pegado en modo proporcional si
+   soltabas `Ctrl` fuera de la ventana.
+
+**Estado:** `src/frontend/features/tools/boards/lib/resizeSnap.ts` +
+`src/frontend/features/tools/boards/hooks/useResizeModifiers.ts` escritos y
+testeados (15 tests). **`BoardStage.tsx` todavía no los consume** — el
+comportamiento en producción sigue siendo el de la tabla de arriba. Plan y
+fases pendientes en
+[`../../.plans/pr/incompletos/plan-boards-resize-modificadores.md`](../../.plans/pr/incompletos/plan-boards-resize-modificadores.md).
