@@ -1,0 +1,9 @@
+[mcp_servers.artsanctuary]
+command = "npx"
+args = [
+    "tsx",
+    "C:/Users/Admin/Documents/ArtSanctuary/mcp/index.ts",
+]
+
+[mcp_servers.artsanctuary.tools.read_file]
+approval_mode = "approve"

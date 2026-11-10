@@ -49,6 +49,7 @@ next-env.d.ts
 # editor / tool configs (personal)
 /.vscode
 /.claude
+/.idea
 
 # tooling: solo local, fuera del repo (mcp/ arrastra su propio node_modules)
 /mcp
