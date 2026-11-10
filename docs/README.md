@@ -81,10 +81,10 @@ el código el 2026-08-14 (3 se reconstruyeron desde cero por estar mal de raíz)
   - [`features/tools/grid.md`](features/tools/grid.md) — cuadrícula de referencia.
   - [`features/tools/crop.md`](features/tools/crop.md) — recorte **y** extracción (2 rutas independientes: `/crop`, `/cutout`).
   - [`features/tools/color-mixing.md`](features/tools/color-mixing.md) — simulador de mezcla de pigmentos.
+  - [`features/tools/notan.md`](features/tools/notan.md) — simplificación tonal a 2 o 3 valores en canvas, con descarga PNG.
   - [`features/tools/escala-medicion.md`](features/tools/escala-medicion.md) — escala global de medidas.
 - **Herramientas con ruta real pero sin funcionalidad** (prototipos visuales, verificado 2026-08-14 — no confundir con "no implementadas", *tienen* ruta y aparecen en el sidebar):
   - [`features/tools/gesture.md`](features/tools/gesture.md) — timer y copy son estáticos, sin lógica real.
-  - [`features/tools/notan.md`](features/tools/notan.md) — el "procesamiento" es un filtro CSS sobre una imagen fija, no hay upload ni canvas.
 - **Propuestas futuras, no implementadas** (sin ninguna ruta ni código, verificado 2026-08-13):
   - [`features/tools/pencil-geometric.md`](features/tools/pencil-geometric.md) — lápiz con reconocimiento geométrico asistido.
   - [`features/tools/pencil-magnetic.md`](features/tools/pencil-magnetic.md) — lápiz magnético a bordes de imagen.

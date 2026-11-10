@@ -30,7 +30,7 @@ Inventario de rutas Next.js App Router bajo `src/app/`. Ver
 | `/dashboard/tools/cuadricula` | requerida | Grid overlay |
 | `/dashboard/tools/gesture` | requerida | Gesture timer |
 | `/dashboard/tools/mezcla` | requerida | Mezcla de color |
-| `/dashboard/tools/notan` | requerida | Notan / posterize |
+| `/dashboard/tools/notan` | requerida | Notan: umbral a 2 o 3 valores en canvas, descarga PNG |
 | `/dashboard/tools/papel-milimetrado` | requerida | Graph paper |
 | `/dashboard/workspaces` | requerida | Selección de proyectos Libre/Carnaval |
 | `/dashboard/workspaces/[id]` | requerida | Entorno del tablero / canvas |

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import AppShell from "@frontend/shared/layouts/AppShell";
 import { auth } from "@backend/auth";
 import { getUserById } from "@backend/services/users.service";
@@ -152,9 +153,16 @@ async function PublicHome() {
 
   return (
     <AppShell fullBleed footer>
-      {/* Hero: bloque de imagen a sangre completa. El diseño lleva una fotografía;
-          mientras no exista el asset queda el fondo azul de marca. */}
+      {/* Hero: bloque de imagen a sangre completa. */}
       <section className="relative h-[320px] md:h-[480px] xl:h-[640px] bg-[var(--color-brand)] overflow-hidden">
+        <Image
+          src="/home/hero-artsanctuary-v3.webp"
+          alt="Obra de arte destacada de ArtSanctuary"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
         <ArrowLink href="/gallery" className="absolute bottom-0 right-0 w-full max-w-[420px]">
           {t('home.openGallery')}
         </ArrowLink>
