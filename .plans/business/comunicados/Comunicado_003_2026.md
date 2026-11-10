@@ -67,6 +67,30 @@ ESPESOR
  
 2
 ```
+
+> **Tabla vigente (2026-08-15) — `medidasfinales.jpeg`.** Corpocarnaval **volvió
+> a la tabla original** del comunicado: alto 12–15, ancho 15–25, largo 10–20,
+> base cuadrada 20×20×2. Es el segundo cambio de esta misma tabla.
+>
+> ![Disfraz Individual — medidas vigentes](medidasfinales.jpeg)
+>
+> **Historial de la cota, para no volver a confundirla:**
+>
+> | Versión | ALTO publicado | Total desde la base |
+> |---|---|---|
+> | Original del comunicado | 12–15 | 27–30 |
+> | Rectificación intermedia (`image.png`, ~2026-08-14) | 30–35 | 30–35 (ya era total) |
+> | **Vigente** (`medidasfinales.jpeg`, 2026-08-15) | **12–15** | **27–30** |
+>
+> ⚠️ **El ALTO de esta tabla se mide de los hombros hacia arriba**, como dice la
+> nota de la página 2 — no desde la base. El total del boceto es
+> **15 cm de figura humana hasta los hombros + 12 a 15 cm de obra = 27 a 30 cm**.
+> La rectificación intermedia sí publicaba el total ya sumado (de ahí el 30–35),
+> y esa diferencia de criterio entre versiones es justo lo que hace fácil
+> equivocarse.
+>
+> En código, `rules.ts` guarda **siempre el total** (`alto: { min: 27, max: 30 }`),
+> porque es lo que dibuja la guía y lo que mide el Inspector.
 ## Página 2
 Ejemplo del tamaño máximo del cuerpo humano hasta los hombros. 
 ![Página 2](pagina_2.png) 

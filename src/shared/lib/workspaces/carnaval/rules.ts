@@ -81,8 +81,17 @@ export const CARNAVAL_RULES: Record<CarnavalModality, CarnavalRule> = {
     scale: 10,
     scaleSource: 'comunicado',
     gridSquareCm: 1,
+    // Tabla VIGENTE de Disfraz Individual (2ª rectificación de Corpocarnaval al
+    // Comunicado 003 — `medidasfinales.jpeg`). Segunda vez que cambia.
+    //
+    // ⚠️ La tabla oficial publica el ALTO **de los hombros hacia arriba**
+    // (12–15 cm); aquí se guarda el TOTAL desde la base, que es lo que dibuja
+    // la guía y lo que mide el Inspector:
+    //     alto total = 15 (figura humana hasta hombros) + alto de tabla
+    //                = 15 + 12 → 27  ·  15 + 15 → 30
+    // El ANCHO y el LARGO sí van tal cual salen de la tabla.
     dims: {
-      alto: { min: 12, max: 15 },
+      alto: { min: 27, max: 30 },
       ancho: { min: 15, max: 25 },
       largo: { min: 10, max: 20 }, // largo / profundidad
       espesor: { exact: 2 },
@@ -94,7 +103,7 @@ export const CARNAVAL_RULES: Record<CarnavalModality, CarnavalRule> = {
     notes: [
       'Boceto volumétrico a escala 1:10.',
       'Estructura básica del cuerpo humano: 15 cm hasta los hombros.',
-      'La medida se toma de los hombros del jugador hacia arriba.',
+      'El alto se mide desde la base e INCLUYE la figura humana: 15 cm hasta los hombros + de 12 a 15 cm de los hombros hacia arriba (30 cm en total como máximo).',
       'Zancos, zancos saltarines u otros elementos deben ir insertos y explícitos en el texto.',
     ],
   },
@@ -190,6 +199,10 @@ export function isCarnavalModality(v: unknown): v is CarnavalModality {
  * común de las medidas (a precisión de 0.1 cm) de la modalidad. Así el fondo
  * "calza" con las referencias sin alterar las medidas.
  * Ej.: disfraz → 1 cm · comparsa → 5 cm · carroza/carro alegórico → 0.1 cm.
+ * (Disfraz bajó de 5 a 1 cm al rectificarse su tabla: 27 y 25 son coprimos.)
+ *
+ * ⚠️ No confundir con el campo `rule.gridSquareCm`, que hoy **no lo lee nadie**:
+ * el cuadro efectivo sale siempre de este gcd.
  */
 function carnavalDimGcdCm(rule: CarnavalRule): number {
   const vals: number[] = []

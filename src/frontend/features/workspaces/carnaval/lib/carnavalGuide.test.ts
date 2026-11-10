@@ -1,21 +1,25 @@
 import { describe, it, expect } from 'vitest'
-import { buildCarnavalGuide } from './carnavalGuide'
-import { getCarnavalRule } from '@shared/lib/workspaces/carnaval'
+import { buildCarnavalGuide, carnavalGuideRef, gridAlignedOffsetCm } from './carnavalGuide'
+import { getCarnavalRule, carnavalGridSquareCm } from '@shared/lib/workspaces/carnaval'
 
 describe('buildCarnavalGuide', () => {
-  it('frontal disfraz: envolvente máxima 25×15 centrada y apoyada en base', () => {
+  it('frontal disfraz: envolvente máxima 25×30 centrada y apoyada en base', () => {
     const g = buildCarnavalGuide(getCarnavalRule('disfraz'), 'frontal')
     const max = g.rects.find((r) => r.kind === 'max')!
     expect(max.w).toBe(25) // ancho
-    expect(max.h).toBe(15) // alto
+    expect(max.h).toBe(30) // alto TOTAL (figura humana incluida)
     expect(max.x).toBe(-12.5) // centrada
-    expect(max.y).toBe(-15) // apoyada en base (crece hacia arriba)
+    expect(max.y).toBe(-30) // apoyada en base (crece hacia arriba)
   })
 
-  it('frontal disfraz: incluye base y figura humana a 15 cm', () => {
+  it('frontal disfraz: la línea de hombros cae DENTRO de la envolvente máxima', () => {
     const g = buildCarnavalGuide(getCarnavalRule('disfraz'), 'frontal')
+    const max = g.rects.find((r) => r.kind === 'max')!
     expect(g.rects.some((r) => r.kind === 'base' && r.w === 20)).toBe(true)
-    expect(g.lines.find((l) => l.kind === 'human')!.y).toBe(-15)
+    const human = g.lines.find((l) => l.kind === 'human')!
+    expect(human.y).toBe(-15)
+    // 15 cm de hombros + 15 cm de obra hacia arriba = los 30 cm de la envolvente.
+    expect(human.y - max.y).toBe(15)
   })
 
   it('posterior valida mismos ejes que frontal (ancho×alto)', () => {
@@ -58,6 +62,18 @@ describe('buildCarnavalGuide', () => {
     // Bounds centrados en el origen.
     expect(g.bounds.x).toBe(-g.bounds.w / 2)
     expect(g.bounds.y).toBe(-g.bounds.h / 2)
+  })
+
+  // La guía se pinta dentro de un Group desplazado por este offset, pero los
+  // objetos del board (la figura humana) viven en coordenadas de mundo sin
+  // desplazar. Que sea DISTINTO de cero es justo lo que descentraba la figura:
+  // quien se ancle a la guía tiene que sumarlo.
+  it('disfraz frontal: la guía se desplaza 0.5 cm para alinearse al cuadro', () => {
+    const rule = getCarnavalRule('disfraz')
+    const off = gridAlignedOffsetCm(carnavalGuideRef(rule, 'frontal'), carnavalGridSquareCm(rule))
+    // Envolvente en x=-12.5 con cuadro de 1 cm → medio centímetro de ajuste.
+    // (Con la tabla anterior el cuadro era de 5 cm y el desfase, de 2.5.)
+    expect(off).toEqual({ x: 0.5, y: 0 })
   })
 
   it('frontal comparsa: sin envolvente mínima cuando falta ancho.min', () => {
