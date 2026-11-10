@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { type Locale, type ThemeMode } from '@shared/i18n'
-import { appBarIconBtnIdle, appBarTitle } from '../appbar/appBarStyles'
+import { appBarIconBtnIdle } from '../appbar/appBarStyles'
+import BrandLogos from '@frontend/shared/ui/BrandLogos'
+import UploadButton from '@frontend/shared/ui/UploadButton'
 
 interface MobileMenuProps {
   isOpen: boolean
@@ -31,10 +33,12 @@ export default function MobileMenu({
   return (
     <>
       {/* Mobile TopAppBar */}
-      <nav className="md:hidden flex items-center justify-between px-6 py-4 bg-[var(--color-surface-container)] border-b border-[var(--color-outline-variant)] sticky top-0 z-50">
-        <div>
-          <h1 className={appBarTitle}>ArtSanctuary</h1>
-        </div>
+      <nav className="md:hidden print:hidden flex items-center justify-between gap-3 px-4 h-[var(--spacing-appbar-height)] bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)] sticky top-0 z-50">
+        <Link href="/" aria-label={t('nav.home')} onClick={() => setIsOpen(false)} className="flex items-center">
+          <BrandLogos variant="compact" />
+        </Link>
+        <span className="flex-1" />
+        <UploadButton compact />
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
@@ -42,13 +46,13 @@ export default function MobileMenu({
           aria-expanded={isOpen}
           className={appBarIconBtnIdle}
         >
-          <span className="material-symbols-outlined text-[20px]" aria-hidden>{isOpen ? 'close' : 'menu'}</span>
+          <span className="material-symbols-outlined" aria-hidden>{isOpen ? 'close' : 'menu'}</span>
         </button>
       </nav>
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="md:hidden fixed inset-0 top-[73px] bg-[var(--color-surface-container)] z-40 overflow-y-auto custom-scrollbar flex flex-col">
+        <div className="md:hidden fixed inset-0 top-[var(--spacing-appbar-height)] bg-[var(--color-surface)] z-40 overflow-y-auto custom-scrollbar flex flex-col">
           <ul className="flex flex-col gap-2 p-6 flex-grow">
             {[
               { label: t('nav.home'), href: '/', icon: 'home' },
@@ -63,10 +67,11 @@ export default function MobileMenu({
                   <Link
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-4 py-3 font-mono text-label-sm uppercase tracking-[0.05em] pl-4 hover:text-[var(--color-primary)] transition-colors duration-200 `}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`flex items-center gap-4 py-2 font-sans font-bold text-[26px] leading-[32.5px] uppercase border-b border-[var(--color-outline-variant)] transition-colors duration-200 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface)] hover:text-[var(--color-primary)]'}`}
                   >
-                    <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    <span className="material-symbols-outlined" aria-hidden>arrow_forward</span>
                   </Link>
                 </li>
               )

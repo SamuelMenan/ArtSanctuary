@@ -95,7 +95,7 @@ export default function WorkspacesScreen() {
               </div>
             ) : projects.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
-                <span className="material-symbols-outlined text-6xl text-[var(--color-on-surface-variant)]/50">folder_special</span>
+                <span className="material-symbols-outlined text-[var(--color-on-surface)]">folder_special</span>
                 <p className="font-sans text-[var(--color-on-surface-variant)]">{t('workspaces.empty')}</p>
                 <button onClick={() => setPicking(true)} className="font-mono text-label-sm uppercase tracking-widest text-[var(--color-primary)] hover:underline">
                   {t('workspaces.createFirst')}

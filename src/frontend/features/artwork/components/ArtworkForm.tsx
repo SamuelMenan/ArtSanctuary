@@ -183,7 +183,7 @@ export default function ArtworkForm({
       </section>
 
       <div className="pt-4 flex justify-end">
-        <button type="submit" disabled={loading} className="w-full md:w-auto bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-xs uppercase tracking-widest px-12 py-4 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+        <button type="submit" disabled={loading} className="w-full md:w-auto bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-xs uppercase tracking-widest px-12 py-4 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
           {loading ? (
             <>
               <Spinner className="size-5" />

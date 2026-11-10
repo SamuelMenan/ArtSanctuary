@@ -33,7 +33,7 @@ export default function UploadArtworkPage() {
   } = useUploadArtwork();
 
   return (
-    <AppShell>
+    <AppShell footer>
       <div className="w-full max-w-6xl mx-auto py-10 px-4 md:px-0 pb-24">
         <div className="mb-10 border-b border-[var(--color-outline-variant)] pb-6">
           <h1 className="font-sans font-bold text-3xl md:text-4xl text-[var(--color-primary)] tracking-tight mb-2">{t('upload.registerTitle')}</h1>

@@ -30,7 +30,7 @@ export default async function GalleryPage({
   ];
 
   return (
-    <AppShell>
+    <AppShell footer>
       <div className="pt-8 pb-12 w-full max-w-[1400px] mx-auto z-10 relative px-4 md:px-0">
         <header className="mb-12">
           <h1 className="font-display-lg text-display-lg text-[var(--color-primary)] font-semibold mb-8 tracking-[-0.02em] leading-[1.1]">

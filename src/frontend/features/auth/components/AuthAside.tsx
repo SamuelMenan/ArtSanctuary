@@ -7,9 +7,9 @@ interface AuthAsideProps {
 /** Panel decorativo lateral (solo escritorio) compartido por Login y Registro. */
 export default function AuthAside({ t }: AuthAsideProps) {
   return (
-    <div className="hidden md:flex md:w-1/2 bg-[var(--color-surface)] flex-col justify-center items-center relative overflow-hidden p-[var(--spacing-container-padding)] border-r border-[var(--color-outline-variant)]">
+    <div className="hidden md:flex md:w-1/2 bg-[var(--color-surface)] flex-col justify-center items-center relative overflow-hidden p-[var(--spacing-container-padding)] ">
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-10 grayscale mix-blend-overlay"
+        className="absolute inset-0 bg-cover bg-center opacity-10"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&q=80')" }}
       />
       <div className="relative z-10 text-center max-w-md mx-auto">

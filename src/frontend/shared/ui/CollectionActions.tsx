@@ -57,7 +57,7 @@ export default function CollectionActions({ collectionId, initialName }: { colle
           onChange={e => setName(e.target.value)} 
           className="bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] px-3 py-1 text-sm font-sans focus:border-[var(--color-primary)] outline-none text-[var(--color-primary)] rounded-sm"
         />
-        <button type="button" onClick={handleRename} disabled={loading} className="text-xs font-mono uppercase bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] px-3 py-1 rounded-sm">{t('common.save')}</button>
+        <button type="button" onClick={handleRename} disabled={loading} className="text-xs font-mono uppercase bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] px-3 py-1 rounded-sm">{t('common.save')}</button>
         <button type="button" onClick={() => setIsEditing(false)} disabled={loading} className="text-xs font-mono uppercase border border-[var(--color-outline-variant)] text-[var(--color-primary)] px-3 py-1 rounded-sm">Cancelar</button>
       </div>
     );

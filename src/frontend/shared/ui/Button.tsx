@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes } from "react";
 
 const variants = {
   primary:
-    "bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] hover:bg-[var(--color-primary-container)]",
+    "bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] hover:bg-[var(--color-primary-container)]",
   ghost:
     "bg-transparent border border-[var(--color-outline-variant)] hover:border-[var(--color-primary)] text-[var(--color-on-surface)]",
   danger:

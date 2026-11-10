@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { type Locale, type ThemeMode } from '@shared/i18n'
-import { appBarIconBtnIdle } from '../appbar/appBarStyles'
 
 interface ProfileMenuProps {
   isOpen: boolean
@@ -35,14 +34,14 @@ export default function ProfileMenu({
         onClick={() => setIsOpen(!isOpen)}
         aria-label={t('nav.profile')}
         aria-expanded={isOpen}
-        className={appBarIconBtnIdle}
+        className="flex items-center justify-center size-8 shrink-0 rounded-full bg-[var(--color-brand)] text-[var(--color-on-brand)] transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand)] focus-visible:ring-offset-2"
       >
-        <span className="material-symbols-outlined text-[20px]" aria-hidden>account_circle</span>
+        <span className="material-symbols-outlined" aria-hidden>person</span>
       </button>
 
       {/* Profile Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] rounded-md shadow-lg overflow-hidden flex flex-col z-50">
+        <div className="absolute right-0 mt-3 w-52 bg-[var(--color-surface)] border border-[var(--color-outline)] overflow-hidden flex flex-col z-50">
           <div className="border-b border-[var(--color-outline-variant)] p-3 bg-[var(--color-surface-container)]">
             <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]">{t('menu.preferences')}</p>
             <div className="mt-3 space-y-3">

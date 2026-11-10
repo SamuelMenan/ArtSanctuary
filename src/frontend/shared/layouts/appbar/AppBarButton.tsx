@@ -40,7 +40,7 @@ export default function AppBarButton({
   const cls = `relative ${active ? appBarIconBtnActive(true) : appBarIconBtnIdle}`
   const glyph = (
     <>
-      <span className="material-symbols-outlined text-[20px]" aria-hidden>
+      <span className="material-symbols-outlined" aria-hidden>
         {icon}
       </span>
       {badge}

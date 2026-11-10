@@ -58,7 +58,7 @@ export default function ArtworkComments({
             placeholder={t('modal.addComment')}
             className="flex-1 bg-[var(--color-surface-container)] border border-[var(--color-outline-variant)] rounded-sm px-3 py-2 text-xs font-sans focus:border-[var(--color-primary)] outline-none text-[var(--color-primary)]"
           />
-          <button disabled={isSubmittingComment || !commentText.trim()} type="submit" className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] px-3 py-2 rounded-sm disabled:opacity-50 hover:bg-[var(--color-primary-container)] transition-colors">
+          <button disabled={isSubmittingComment || !commentText.trim()} type="submit" className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] px-3 py-2 rounded-sm disabled:opacity-50 hover:bg-[var(--color-primary-container)] transition-colors">
             <span className="material-symbols-outlined text-[16px] block">send</span>
           </button>
         </form>

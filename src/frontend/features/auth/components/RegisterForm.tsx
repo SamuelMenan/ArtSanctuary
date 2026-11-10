@@ -211,7 +211,7 @@ export default function RegisterForm({ onSwitchMode }: RegisterFormProps) {
             whileHover={disabled ? undefined : { scale: 1.01 }}
             whileTap={disabled ? undefined : { scale: 0.99 }}
             transition={transition.fast}
-            className={`w-full bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-xs uppercase tracking-widest py-4 rounded-[var(--radius-sm)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-outline)] mt-4 ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[var(--color-primary-container)]'}`}
+            className={`w-full bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-xs uppercase tracking-widest py-4 rounded-[var(--radius-sm)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-outline)] mt-4 ${disabled ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[var(--color-primary-container)]'}`}
           >
             {success ? `✓ ${t('auth.registerSuccess')}` : loading ? t('auth.creating') : t('auth.createAccount')}
           </motion.button>

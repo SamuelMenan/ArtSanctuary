@@ -22,7 +22,7 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
         aria-expanded={isOpen}
         className={`relative ${appBarIconBtnIdle}`}
       >
-        <span className="material-symbols-outlined text-[20px]" aria-hidden>notifications</span>
+        <span className="material-symbols-outlined" aria-hidden>notifications</span>
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 size-2 bg-[var(--color-primary)] rounded-full animate-pulse"></span>
         )}
@@ -30,7 +30,7 @@ export default function NotificationsMenu({ isOpen, setIsOpen, notifRef, t }: No
 
       {/* Notifications Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-[var(--color-surface-container-high)] border border-[var(--color-outline-variant)] rounded-sm shadow-xl flex flex-col z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 bg-[var(--color-surface)] border border-[var(--color-outline)] flex flex-col z-50 overflow-hidden">
           <div className="p-4 border-b border-[var(--color-outline-variant)] flex justify-between items-center bg-[var(--color-surface-container)]">
             <span className="font-sans font-semibold text-[var(--color-primary)] text-sm">{t('menu.notifications')}</span>
             {unreadCount > 0 && (

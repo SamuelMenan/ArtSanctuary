@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Manrope, JetBrains_Mono } from 'next/font/google'
+import { Barlow_Semi_Condensed, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import Providers from '@frontend/shared/providers/Providers'
 import { auth } from '@backend/auth'
@@ -9,9 +9,11 @@ import { normalizeLocale, normalizeTheme } from '@shared/i18n'
 import { getDictionary } from '@shared/i18n/dictionaries'
 import User from '@backend/models/User'
 
-const manrope = Manrope({
+const barlow = Barlow_Semi_Condensed({
   subsets: ['latin'],
-  variable: '--font-manrope',
+  weight: ['200', '300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-barlow',
   display: 'swap',
 })
 
@@ -50,9 +52,9 @@ export default async function RootLayout({
   const initialDictionary = getDictionary(initialLocale)
 
   return (
-    <html lang={initialLocale} className={`${initialTheme} ${manrope.variable} ${jetbrainsMono.variable}`} data-authenticated={session?.user?.id ? 'true' : 'false'} suppressHydrationWarning>
+    <html lang={initialLocale} className={`${initialTheme} ${barlow.variable} ${jetbrainsMono.variable}`} data-authenticated={session?.user?.id ? 'true' : 'false'} suppressHydrationWarning>
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased font-sans bg-background text-on-background min-h-screen" suppressHydrationWarning>
         <Providers initialLocale={initialLocale} initialTheme={initialTheme} initialDictionary={initialDictionary} userId={session?.user?.id}>

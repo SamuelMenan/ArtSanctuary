@@ -42,7 +42,7 @@ export function EmptyPortfolio({ ownerView, t }: Props) {
             <div className="mt-3">
               <Link
                 href="/upload"
-                className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-xs uppercase tracking-[0.2em] px-6 py-3 hover:bg-[var(--color-primary-container)] transition-colors rounded-sm"
+                className="inline-flex items-center gap-2 bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-xs uppercase tracking-[0.2em] px-6 py-3 hover:bg-[var(--color-primary-container)] transition-colors rounded-sm"
               >
                 <span aria-hidden>+</span>
                 {t('profile.uploadFirst')}

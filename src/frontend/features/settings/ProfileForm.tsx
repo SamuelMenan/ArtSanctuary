@@ -119,7 +119,7 @@ export function ProfileForm({ initial }: Props) {
         <button
           type="submit"
           disabled={pending || !changed}
-          className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-xs tracking-widest uppercase px-8 py-3 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-xs tracking-widest uppercase px-8 py-3 rounded-sm hover:bg-[var(--color-primary-container)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {pending ? t('settings.saving') : t('settings.saveChanges')}
         </button>

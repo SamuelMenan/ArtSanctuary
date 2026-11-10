@@ -142,7 +142,7 @@ export default function SaveToCollectionModal({ artworkId, onClose, onSavedStatu
               onChange={e => setNewCollectionName(e.target.value)}
               className="flex-1 bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)] rounded-sm px-3 py-2 text-xs font-sans focus:border-[var(--color-primary)] outline-none text-[var(--color-primary)]"
             />
-            <button type="submit" disabled={!newCollectionName.trim() || loading} className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] px-3 py-2 rounded-sm disabled:opacity-50 text-xs font-mono uppercase tracking-widest">
+            <button type="submit" disabled={!newCollectionName.trim() || loading} className="bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] px-3 py-2 rounded-sm disabled:opacity-50 text-xs font-mono uppercase tracking-widest">
               Crear
             </button>
           </form>

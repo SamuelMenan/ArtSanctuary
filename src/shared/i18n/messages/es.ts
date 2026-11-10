@@ -183,6 +183,11 @@ export const es = {
     microToolsTitle: 'Micro-herramientas de Asistencia',
     microToolsDesc: 'Tableros, cuadrícula de referencia, Notan, mezcla de colores y Gesture Drawing: todo en tu navegador, sin salir de ArtSanctuary.',
     explore: 'Explorar',
+    heroTitleLead: 'Donde el arte',
+    heroTitleRest: 'vive sin distracciones',
+    toolsTitle: 'Herramientas',
+    workspaceLead: 'Entorno de trabajo',
+    goToWorkspace: 'Ir al workspace',
   },
   gallery: {
     all: 'Todas',
@@ -346,6 +351,12 @@ export const es = {
   },
   sidebar: {
     noCollections: 'No hay colecciones',
+  },
+  footer: {
+    tagline: 'Tu santuario creativo: referencias, portafolio y herramientas para la comunidad artística.',
+    index: 'Índice',
+    account: 'Cuenta',
+    rights: '© ArtSanctuary. Todos los derechos reservados.',
   },
   upload: {
     autofill: 'Autocompletar formulario',

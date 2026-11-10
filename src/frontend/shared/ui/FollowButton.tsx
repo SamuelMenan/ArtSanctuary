@@ -58,7 +58,7 @@ export default function FollowButton({ targetUserId, initialIsFollowing, onFollo
       className={`font-mono text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-sm transition-colors flex items-center justify-center gap-1 min-w-[100px] ${
         isFollowing 
           ? 'border border-[var(--color-outline-variant)] text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)]' 
-          : 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] hover:bg-[var(--color-primary-container)]'
+          : 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] hover:bg-[var(--color-primary-container)]'
       }`}
     >
       {isLoading && <Spinner className="size-3" />}

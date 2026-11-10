@@ -140,7 +140,7 @@ function ExploreContent() {
           <button
             type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className={`shrink-0 flex items-center gap-2 font-mono text-xs uppercase tracking-widest px-6 py-4 rounded-full border transition-colors ${showFilters ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)]' : 'bg-transparent text-[var(--color-primary)] border-[var(--color-outline-variant)] hover:border-[var(--color-primary)]'}`}
+            className={`shrink-0 flex items-center gap-2 font-mono text-xs uppercase tracking-widest px-6 py-4 rounded-full border transition-colors ${showFilters ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] border-[var(--color-outline)]' : 'bg-transparent text-[var(--color-primary)] border-[var(--color-outline-variant)] hover:border-[var(--color-primary)]'}`}
           >
             <span className="material-symbols-outlined text-[18px]">tune</span>
             {t('explore.filters')}
@@ -309,7 +309,7 @@ function ExploreContent() {
 
 export default function ExplorePage() {
   return (
-    <AppShell>
+    <AppShell footer>
       <Suspense fallback={<div className="p-20 text-center font-mono">Cargando explorador…</div>}>
         <ExploreContent />
       </Suspense>

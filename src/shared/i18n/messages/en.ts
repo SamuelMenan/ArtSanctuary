@@ -183,6 +183,11 @@ export const en = {
     microToolsTitle: 'Assisted micro-tools',
     microToolsDesc: 'Boards, reference grids, Notan, color mixing, and Gesture Drawing: everything in your browser, without leaving ArtSanctuary.',
     explore: 'Explore',
+    heroTitleLead: 'Where art',
+    heroTitleRest: 'lives without distractions',
+    toolsTitle: 'Tools',
+    workspaceLead: 'Workspace environment',
+    goToWorkspace: 'Go to workspace',
   },
   gallery: {
     all: 'All',
@@ -341,6 +346,12 @@ export const en = {
   },
   sidebar: {
     noCollections: 'No collections yet',
+  },
+  footer: {
+    tagline: 'Your creative sanctuary: references, portfolio and tools for the art community.',
+    index: 'Index',
+    account: 'Account',
+    rights: '© ArtSanctuary. All rights reserved.',
   },
   upload: {
     autofill: 'Auto-fill form',

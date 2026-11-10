@@ -50,7 +50,7 @@ export default function UploadDropzone({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`w-full aspect-[4/5] border ${isDragging ? 'border-[var(--color-primary)] bg-[var(--color-surface-container)]' : 'border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)]'} rounded-sm flex flex-col items-center justify-center relative overflow-hidden group ${!imagePreview ? 'border-dashed hover:border-[var(--color-primary)] cursor-pointer transition-colors' : ''}`}
+          className={`w-full aspect-[4/5] border ${isDragging ? 'border-[var(--color-primary)] bg-[var(--color-surface-container)]' : 'border-[var(--color-outline-variant)] bg-[var(--color-surface-container-lowest)]'} rounded-sm flex flex-col items-center justify-center relative overflow-hidden group ${!imagePreview ? 'hover:border-[var(--color-primary)] cursor-pointer transition-colors' : ''}`}
         >
           {imagePreview ? (
             <>

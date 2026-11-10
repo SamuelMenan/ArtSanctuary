@@ -145,7 +145,7 @@ export default function ArtworkMeta({
       </div>
 
       <div className="pt-4 flex gap-2 border-t border-[var(--color-outline-variant)] mt-6">
-        <button type="button" onClick={handleSaveEdit} disabled={isSaving} className="flex-1 bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] shadow-[0_1px_0_var(--color-outline)] font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-[var(--color-primary-container)] rounded-sm transition-colors flex items-center justify-center gap-2">
+        <button type="button" onClick={handleSaveEdit} disabled={isSaving} className="flex-1 bg-[var(--color-primary)] text-[var(--color-on-primary)] border border-[var(--color-outline)] font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-[var(--color-primary-container)] rounded-sm transition-colors flex items-center justify-center gap-2">
           {isSaving ? <Spinner className="size-4" /> : t('modal.save')}
         </button>
         <button type="button" onClick={() => setShowDeleteConfirm(true)} disabled={isSaving} className="flex-1 bg-red-500/10 text-red-500 border border-red-500/20 font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-red-500 hover:text-white rounded-sm transition-colors">

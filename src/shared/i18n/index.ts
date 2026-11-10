@@ -12,7 +12,7 @@ export type ThemeMode = 'dark' | 'light' | 'system'
 export type ResolvedTheme = 'dark' | 'light'
 
 export const defaultLocale: Locale = 'es'
-export const defaultTheme: ThemeMode = 'dark'
+export const defaultTheme: ThemeMode = 'light'
 
 // Tipo derivado de ambos diccionarios (import type-only: sin coste en runtime).
 export type TranslationDictionary =

@@ -13,7 +13,7 @@ export const appBarShellSecondary =
 
 /** Las dos superficies admitidas. Cada barra elige una; el resto es idéntico. */
 export const appBarBg = {
-  glass: 'bg-[var(--color-surface)]/60 backdrop-blur-md',
+  glass: 'bg-[var(--color-surface)]',
   solid: 'bg-[var(--color-surface-container)]',
 } as const
 
@@ -24,13 +24,13 @@ const focusRing =
 // (aplicado en el glifo dentro de AppBarButton / consumidores).
 const btnBase = `flex items-center justify-center w-10 h-10 rounded-xl transition-colors disabled:opacity-40 shrink-0 ${focusRing}`
 const btnIdleTone =
-  'text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] hover:text-[var(--color-primary)]'
+  'text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container)] hover:text-[var(--color-primary)]'
 const btnActiveTone = 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
 
 export const appBarIconBtnIdle = `${btnBase} ${btnIdleTone}`
 export const appBarIconBtnActive = (on: boolean) => `${btnBase} ${on ? btnActiveTone : btnIdleTone}`
 
 /** Tipografía única para títulos/marcas de barra. */
-export const appBarTitle = 'font-display font-bold text-xl text-[var(--color-primary)] leading-none'
+export const appBarTitle = 'font-sans font-bold text-xl uppercase text-[var(--color-primary)] leading-none'
 /** Tipografía única para estado/etiqueta secundaria de barra. */
 export const appBarLabel = 'font-mono text-[10px] uppercase tracking-widest text-[var(--color-on-surface-variant)]'
